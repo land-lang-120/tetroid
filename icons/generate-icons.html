@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head><title>Generate TETROID Icons</title></head>
+<body style="background:#222;color:#fff;font-family:sans-serif;padding:20px">
+<h2>TETROID Icon Generator</h2>
+<p>Clique sur chaque bouton puis enregistre l'image (clic droit > Enregistrer sous)</p>
+
+<canvas id="c192" width="192" height="192"></canvas>
+<button onclick="download(192)">Telecharger 192x192</button>
+<br><br>
+<canvas id="c512" width="512" height="512"></canvas>
+<button onclick="download(512)">Telecharger 512x512</button>
+
+<script>
+function drawIcon(size){
+  const c = document.getElementById('c'+size);
+  const ctx = c.getContext('2d');
+  const s = size;
+
+  // Background gradient
+  const bg = ctx.createLinearGradient(0,0,s,s);
+  bg.addColorStop(0,'#1a1a4e');
+  bg.addColorStop(0.5,'#2d1b6e');
+  bg.addColorStop(1,'#1a3a6e');
+  ctx.fillStyle = bg;
+  ctx.beginPath();
+  ctx.roundRect(0,0,s,s,s*0.18);
+  ctx.fill();
+
+  // Grid lines subtle
+  ctx.strokeStyle = 'rgba(245,197,24,0.08)';
+  ctx.lineWidth = 1;
+  const step = s/8;
+  for(let i=1;i<8;i++){
+    ctx.beginPath(); ctx.moveTo(i*step,s*0.1); ctx.lineTo(i*step,s*0.9); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(s*0.1,i*step); ctx.lineTo(s*0.9,i*step); ctx.stroke();
+  }
+
+  // Tetris blocks - T piece
+  const bs = s * 0.14; // block size
+  const ox = s*0.22, oy = s*0.18;
+  const blocks = [
+    {x:ox+bs,y:oy,color:'#a855f7'},      // T top
+    {x:ox,y:oy+bs,color:'#a855f7'},       // T left
+    {x:ox+bs,y:oy+bs,color:'#a855f7'},    // T center
+    {x:ox+bs*2,y:oy+bs,color:'#a855f7'},  // T right
+  ];
+  // L piece
+  const ox2 = s*0.52, oy2 = s*0.15;
+  blocks.push(
+    {x:ox2,y:oy2,color:'#f97316'},
+    {x:ox2,y:oy2+bs,color:'#f97316'},
+    {x:ox2,y:oy2+bs*2,color:'#f97316'},
+    {x:ox2+bs,y:oy2+bs*2,color:'#f97316'},
+  );
+  // S piece at bottom
+  const ox3 = s*0.25, oy3 = s*0.52;
+  blocks.push(
+    {x:ox3+bs,y:oy3,color:'#22c55e'},
+    {x:ox3+bs*2,y:oy3,color:'#22c55e'},
+    {x:ox3,y:oy3+bs,color:'#22c55e'},
+    {x:ox3+bs,y:oy3+bs,color:'#22c55e'},
+  );
+
+  blocks.forEach(b=>{
+    // Block body
+    const g = ctx.createLinearGradient(b.x,b.y,b.x+bs,b.y+bs);
+    g.addColorStop(0, b.color);
+    g.addColorStop(1, shadeColor(b.color,-30));
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.roundRect(b.x+1,b.y+1,bs-2,bs-2,bs*0.15);
+    ctx.fill();
+    // Shine
+    ctx.fillStyle = 'rgba(255,255,255,0.25)';
+    ctx.beginPath();
+    ctx.roundRect(b.x+bs*0.15,b.y+bs*0.1,bs*0.35,bs*0.25,bs*0.08);
+    ctx.fill();
+    // Border
+    ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(b.x+1,b.y+1,bs-2,bs-2,bs*0.15);
+    ctx.stroke();
+  });
+
+  // TETROID text
+  ctx.save();
+  ctx.font = `900 ${s*0.12}px "Arial Black", sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.letterSpacing = `${s*0.01}px`;
+  // Gold gradient
+  const tg = ctx.createLinearGradient(s*0.3,s*0.78,s*0.7,s*0.92);
+  tg.addColorStop(0,'#ffe566');
+  tg.addColorStop(0.5,'#f5c518');
+  tg.addColorStop(1,'#c87000');
+  // Shadow
+  ctx.fillStyle = '#000';
+  ctx.globalAlpha = 0.6;
+  ctx.fillText('TETROID',s/2+2,s*0.88+2);
+  ctx.globalAlpha = 1;
+  // Text
+  ctx.fillStyle = tg;
+  ctx.fillText('TETROID',s/2,s*0.88);
+  ctx.restore();
+
+  return c;
+}
+
+function shadeColor(color, percent){
+  let R=parseInt(color.substring(1,3),16);
+  let G=parseInt(color.substring(3,5),16);
+  let B=parseInt(color.substring(5,7),16);
+  R=Math.min(255,Math.max(0,R+Math.round(R*percent/100)));
+  G=Math.min(255,Math.max(0,G+Math.round(G*percent/100)));
+  B=Math.min(255,Math.max(0,B+Math.round(B*percent/100)));
+  return '#'+(R<16?'0':'')+R.toString(16)+(G<16?'0':'')+G.toString(16)+(B<16?'0':'')+B.toString(16);
+}
+
+function download(size){
+  const c = document.getElementById('c'+size);
+  const a = document.createElement('a');
+  a.download = 'icon-'+size+'.png';
+  a.href = c.toDataURL('image/png');
+  a.click();
+}
+
+drawIcon(192);
+drawIcon(512);
+</script>
+</body>
+</html>

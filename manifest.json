@@ -1,0 +1,25 @@
+{
+  "name": "TETROID",
+  "short_name": "TETROID",
+  "description": "Jeu de puzzle Tetris arcade avec boosters, classement mondial et roue de la fortune !",
+  "start_url": "tetroid.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1a1a4e",
+  "theme_color": "#1a1a4e",
+  "icons": [
+    {
+      "src": "icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["games"]
+}
