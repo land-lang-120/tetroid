@@ -6531,24 +6531,32 @@ function sfxBooster(type){
   if(saved === 'light') applyTheme(true);
 })();
 
-// ── Loading screen — animation puis masquage ──
+// ── Loading screen — animation avec duree minimum de 2.5s ──
 (function(){
   const bar = document.getElementById('loader-bar');
   const screen = document.getElementById('loading-screen');
   if(!bar || !screen) return;
+  const startTime = Date.now();
+  const MIN_DISPLAY = 2500; // duree minimum d'affichage en ms
   let progress = 0;
   const iv = setInterval(()=>{
-    progress += 8 + Math.random()*12;
-    if(progress > 95) progress = 95;
+    const elapsed = Date.now() - startTime;
+    // Progression liee au temps : atteint 90% a MIN_DISPLAY
+    progress = Math.min(90, (elapsed / MIN_DISPLAY) * 90);
     bar.style.width = progress + '%';
-  }, 200);
+  }, 80);
   window.addEventListener('load', ()=>{
-    clearInterval(iv);
-    bar.style.width = '100%';
+    const elapsed = Date.now() - startTime;
+    const remaining = Math.max(0, MIN_DISPLAY - elapsed);
+    // Attendre que la duree minimum soit ecoulee
     setTimeout(()=>{
-      screen.classList.add('hidden');
-      setTimeout(()=> screen.remove(), 600);
-    }, 400);
+      clearInterval(iv);
+      bar.style.width = '100%';
+      setTimeout(()=>{
+        screen.classList.add('hidden');
+        setTimeout(()=> screen.remove(), 600);
+      }, 400);
+    }, remaining);
   });
 })();
 
