@@ -6565,6 +6565,42 @@ if('serviceWorker' in navigator){
   navigator.serviceWorker.register('sw.js').then(()=>console.log('[Tetroid] SW enregistré'))
     .catch(e=>console.warn('[Tetroid] SW erreur:',e));
 }
+
+// ── Installation PWA depuis CloneX (flag ?install=1) ──
+(function(){
+  let deferredPrompt = null;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    // Si on arrive avec ?install=1, declencher le prompt
+    if(new URLSearchParams(window.location.search).get('install') === '1'){
+      setTimeout(()=>{
+        if(deferredPrompt){
+          deferredPrompt.prompt();
+          deferredPrompt.userChoice.then(r => {
+            deferredPrompt = null;
+            // Nettoyer l'URL
+            history.replaceState(null, '', window.location.pathname);
+          });
+        }
+      }, 1000);
+    }
+  });
+  // Fallback si beforeinstallprompt ne se declenche pas
+  if(new URLSearchParams(window.location.search).get('install') === '1'){
+    setTimeout(()=>{
+      if(!deferredPrompt){
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        if(isIOS){
+          showToast('📲 Pour installer : Partager ⬆ puis "Sur l\'ecran d\'accueil"');
+        } else {
+          showToast('📲 Pour installer : Menu ⋮ puis "Installer l\'application"');
+        }
+        history.replaceState(null, '', window.location.pathname);
+      }
+    }, 2000);
+  }
+})();
 </script>
 </body>
 </html>
