@@ -43,10 +43,10 @@ export const RING_CIRC = 163.4;
 
 /** Booster packs for shop */
 export const PACKS = {
-  basic:    { freeze: 3,  laser: 3,  meteor: 2,  magnet: 2  },
-  value:    { freeze: 6,  laser: 6,  meteor: 4,  magnet: 4  },
-  premium:  { freeze: 10, laser: 10, meteor: 7,  magnet: 7  },
-  ultimate: { freeze: 16, laser: 16, meteor: 12, magnet: 12 },
+  basic:    { freeze: 9,   laser: 9,   meteor: 6,   magnet: 6   },  // Starter  $1.99  (30)
+  value:    { freeze: 18,  laser: 18,  meteor: 12,  magnet: 12  },  // Aventurier $4.99 (60)
+  premium:  { freeze: 30,  laser: 30,  meteor: 21,  magnet: 21  },  // Legendaire $9.99 (102)
+  ultimate: { freeze: 48,  laser: 48,  meteor: 36,  magnet: 36  },  // Ultime $19.99 (168)
 };
 
 /** Wheel of fortune prizes */
