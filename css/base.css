@@ -1,0 +1,60 @@
+/* === TETROID — Base Reset & Background === */
+
+*, *::before, *::after {
+  box-sizing:border-box; margin:0; padding:0;
+  -webkit-tap-highlight-color:transparent;
+}
+
+html, body {
+  width:100%; height:100%;
+  overflow:hidden;
+  font-family:'Nunito', sans-serif;
+  color:var(--body-color);
+  position:fixed; top:0; left:0;
+  background:linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 40%, var(--bg3) 100%);
+  transition:background .4s ease;
+}
+
+/* Ciel étoilé — masqué en mode clair */
+body:not(.light)::before {
+  content:'';
+  position:fixed; inset:0;
+  background-image:
+    radial-gradient(circle, rgba(255,255,255,0.75) 1px, transparent 1px),
+    radial-gradient(circle, rgba(255,255,255,0.4)  1px, transparent 1px);
+  background-size:90px 90px, 44px 44px;
+  background-position:0 0, 22px 22px;
+  opacity:.22; pointer-events:none; z-index:0;
+}
+/* Bulles décoratives en mode clair */
+body.light::before {
+  content:'';
+  position:fixed; inset:0;
+  background-image:
+    radial-gradient(circle, rgba(255,255,255,0.6) 8px, transparent 8px),
+    radial-gradient(circle, rgba(255,255,255,0.4) 5px, transparent 5px),
+    radial-gradient(circle, rgba(255,200,100,0.3) 12px, transparent 12px);
+  background-size:120px 120px, 70px 70px, 200px 200px;
+  background-position:0 0, 35px 35px, 60px 80px;
+  opacity:.35; pointer-events:none; z-index:0;
+}
+/* Lueurs radiales */
+body::after {
+  content:'';
+  position:fixed; inset:0;
+  background:
+    radial-gradient(ellipse at 50% 0%,  rgba(30,111,255,0.22) 0%, transparent 55%),
+    radial-gradient(ellipse at 10% 100%,rgba(245,197,24,0.10) 0%, transparent 45%);
+  pointer-events:none; z-index:0;
+}
+body.light::after {
+  background:
+    radial-gradient(ellipse at 50% 0%,  rgba(255,200,0,0.2) 0%, transparent 55%),
+    radial-gradient(ellipse at 90% 100%,rgba(255,100,0,0.15) 0%, transparent 45%);
+}
+
+#app {
+  display:flex; flex-direction:column;
+  width:100vw; height:100%;
+  position:relative; z-index:1;
+}

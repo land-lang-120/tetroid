@@ -1,99 +1,90 @@
-# TETROID - Architecture & Guide de Maintenance
+# TETROID — Architecture & Guide de Maintenance
 
-## Structure du projet
+## Vue d'ensemble
+
+Tetroid est un jeu Tetris arcade PWA avec une architecture **multi-fichiers modulaire**.
 
 ```
 tetroid/
-├── tetroid.html        # Application principale (fichier unique)
-├── index.html          # Redirection vers tetroid.html (GitHub Pages)
-├── manifest.json       # Manifeste PWA (nom, icones, orientation)
-├── sw.js               # Service Worker (cache offline)
-├── ARCHITECTURE.md     # Ce fichier
-├── icons/
-│   ├── icon-192.svg    # Icone PWA 192x192
-│   └── icon-512.svg    # Icone PWA 512x512
+├── index.html            # Squelette HTML (structure uniquement)
+├── manifest.json         # Manifeste PWA
+├── sw.js                 # Service Worker (cache offline)
+├── ARCHITECTURE.md       # Ce fichier
+│
+├── css/                  # Styles separes par responsabilite
+│   ├── variables.css     # Variables CSS (:root, themes clair/sombre)
+│   ├── base.css          # Reset, body, backgrounds animes
+│   ├── loading.css       # Ecran de chargement
+│   ├── hud.css           # Barre score/niveau/combo (style bois dore)
+│   ├── canvas.css        # Zone de jeu, pause, shop buttons
+│   ├── boosters.css      # 4 boutons boosters (candy style)
+│   ├── overlays.css      # Modals generiques (start, gameover, FOMO)
+│   ├── rank.css          # Barre de rang/XP + modal rank-up
+│   ├── leaderboard.css   # Classement mondial
+│   ├── settings.css      # Menu pause + panneau parametres
+│   ├── tutorial.css      # Tutorial intro + bulles in-game
+│   ├── monetization.css  # Shop, roue, pub, coffre
+│   └── social.css        # Boutons de partage (WhatsApp, etc.)
+│
+├── js/                   # Modules ES6 (import/export)
+│   ├── main.js           # Point d'entree — imports + init + window bindings
+│   ├── config.js         # Constantes : pieces, couleurs, vitesses, packs
+│   ├── state.js          # Etat central du jeu (objet S)
+│   ├── firebase.js       # Firebase Firestore (CDN, optionnel)
+│   ├── pieces.js         # Systeme de sac + generation de pieces
+│   ├── core.js           # Mecaniques : rotate, collide, lock, clearLines
+│   ├── rendering.js      # Rendu canvas : grille, pieces, ghost, cellules
+│   ├── particles.js      # Systeme de particules + explosions
+│   ├── game-loop.js      # Boucle principale (requestAnimationFrame)
+│   ├── input.js          # Gestion tactile + clavier
+│   ├── boosters.js       # 4 pouvoirs : freeze, laser, meteor, magnet
+│   ├── level-up.js       # Animation level-up (flash, banniere, feux d'artifice)
+│   ├── rank.js           # 8 rangs, XP, rank-up
+│   ├── hud.js            # Mise a jour interface (score, combo, toast)
+│   ├── game-flow.js      # Flux : init, start, end, pause, FOMO
+│   ├── settings.js       # Chargement/sauvegarde parametres
+│   ├── audio.js          # Web Audio API : musique + effets sonores
+│   ├── haptics.js        # Vibrations haptiques
+│   ├── translations.js   # 12 langues (EN, FR, DE, ES, PT, RU, ZH, KO, AR, HI, NL, SV)
+│   ├── tutorial.js       # Tutoriel intro + bulles contextuelles
+│   ├── monetization.js   # Boutique, roue, pub, coffre
+│   ├── social.js         # Partage de score sur reseaux sociaux
+│   └── loading.js        # Ecran de chargement + prompt PWA install
+│
+└── icons/
+    ├── icon-192.svg      # Icone PWA 192x192
+    └── icon-512.svg      # Icone PWA 512x512
 ```
 
-## Architecture de tetroid.html
+## Architecture JS
 
-Le jeu est un **fichier HTML unique** (~6500 lignes) organise en sections :
+### Flux de donnees
 
-### 1. Firebase (lignes 1-80)
-- Chargement **dynamique et optionnel** de Firebase
-- Si `FB_CONFIG.apiKey` est vide, le jeu fonctionne en mode offline
-- Fonctions exposees : `window.submitScore()`, `window.fetchLeaderboard()`
+```
+state.js (S)  <──  source unique de verite
+    │
+    ├── config.js       constantes (lecture seule)
+    ├── core.js         modifie S.grid, S.score, S.level
+    ├── game-loop.js    lit/ecrit S pour la boucle RAF
+    ├── input.js        lit S, appelle core.js
+    ├── boosters.js     modifie S.grid, consomme S.boosters
+    ├── rendering.js    lit S pour dessiner
+    └── main.js         orchestre tout, expose sur window
+```
 
-### 2. CSS (lignes 82-1500)
-- **Variables CSS** : `:root` pour le theme sombre, `body.light` pour le clair
-- **Loading screen** : Animation de blocs + barre de progression
-- **HUD** : Barre superieure avec score, niveau, combo, best, next
-- **Canvas** : Zone de jeu responsive
-- **Boosters** : 4 boutons avec badges de quantite
-- **Overlays** : Start, Game Over, Pause, Shop, Wheel, Ad, Chest, FOMO, Tutorial, Settings, Leaderboard
+### Etat central (`state.js`)
 
-### 3. HTML (lignes 1500-1900)
-- `#loading-screen` : Ecran de chargement anime
-- `#app` : Container principal flex
-  - `#hud` : Barre de stats
-  - `#rank-bar` : Barre XP/rang
-  - `#title-strip` : Titre + bouton leaderboard
-  - `#canvas-wrap` : Canvas du jeu + boutons pause/shop
-  - `#boosters` : 4 boutons de boosters
-- Overlays modaux (`ov-*`)
+Toutes les variables mutables du jeu vivent dans l'objet `S` :
+- Grille, piece courante, piece suivante, piece hold
+- Score, niveau, lignes, combo
+- Boosters (quantities), particules, effets
+- Flags : running, paused, gameOver, freezeActive
 
-### 4. JavaScript (lignes 1900-6500)
+### Communication inter-modules
 
-#### a. Constantes & Etat (~1900-2180)
-- Grille 10x20, 7 pieces Tetris standard
-- Couleurs, dimensions, timers
-- Variables d'etat : `grid`, `score`, `level`, `combo`, `boosters`
-
-#### b. Init & Spawn (~2180-2220)
-- `init()` : Reset complet, chargement boosters depuis localStorage
-- `spawnPiece()` : Generation de piece avec systeme de sac (bag)
-
-#### c. Mecaniques (~2220-2560)
-- Rotation avec wall-kick
-- Detection de collision
-- Verrouillage et effacement de lignes
-- Systeme de combo (x1 a x8)
-- Score : `[0,100,300,600,1000][lines] * level * combo`
-
-#### d. Boosters (~2560-2700)
-- **Freeze** : Ralentit 20s, effets cristallins
-- **Laser** : Rase les 4 lignes les plus remplies
-- **Meteor** : Detruit 3 briques/colonne avec animation
-- **Magnet** : Gravite sur briques flottantes (multi-passe)
-- Systeme **consommable** : decompte a chaque utilisation, sauvegarde localStorage
-
-#### e. Rendu & Effets (~2700-3500)
-- Canvas 2D avec cellules style bonbon
-- Ghost piece (ombre de la position finale)
-- Particules (line clear, level-up, boosters)
-- Fireworks, flash, bannieres animees
-
-#### f. Rang & XP (~3500-3600)
-- 8 niveaux : Novice -> Apprenti -> Confirmé -> Expert -> Maitre -> Légende -> Mythe -> Divin
-- XP = score cumule (localStorage)
-- Bonus boosters au rank-up
-
-#### g. i18n (~4400-5450)
-- 12 langues : EN, FR, DE, ES, PT, RU, ZH, KO, AR, HI, NL, SV
-- Systeme `data-i18n` sur les elements HTML
-- `applyLang()` applique la traduction selectionnee
-- Detection automatique via `navigator.language`
-
-#### h. Monetisation (~5600-6100)
-- **Shop** : 4 packs de boosters (prix croissants, quantites croissantes)
-- **Roue quotidienne** : 10 cases (6 boosters + 4 "pas de chance"), cooldown 24h
-- **Pub simulee** : 5 secondes, +1 booster aleatoire
-- **Coffre** : Toutes les 5 parties, 2-4 boosters
-- **FOMO** : Propose de continuer apres game over (via pub)
-
-#### i. Audio (~6100-6400)
-- Web Audio API : musique synthetisee 158 BPM
-- Effets sonores : rotation, lock, hard drop, line clear, level up, game over
-- Sons specifiques par booster
+- Les modules **importent** `S` depuis `state.js`
+- Les modules **exportent** des fonctions pures
+- `main.js` importe tout et enregistre les fonctions sur `window` pour les `onclick` HTML
 
 ## Stockage (localStorage)
 
@@ -107,39 +98,21 @@ Le jeu est un **fichier HTML unique** (~6500 lignes) organise en sections :
 | `tb_parties` | Compteur parties (pour coffre) |
 | `tb_lang` | Langue selectionnee |
 | `tb_theme` | `"dark"` ou `"light"` |
-| `tb_sound` | `"true"` ou `"false"` |
-| `tb_vibro` | Vibrations on/off |
+| `tb_sound` / `tb_vibro` | Parametres audio |
 | `tb_pseudo` | Pseudo leaderboard |
-| `tb_move_sens` | Sensibilite mouvement (1-10) |
-| `tb_drop_sens` | Sensibilite drop (1-10) |
-| `tb_seen_*` | Flags description booster deja vue |
+| `tb_move_sens` / `tb_drop_sens` | Sensibilite tactile |
 
 ## Firebase (Firestore)
 
 Collection `scores` :
 ```json
-{
-  "pseudo": "string (max 20 chars)",
-  "score": "number",
-  "weekly": "boolean",
-  "ts": "Timestamp"
-}
+{ "pseudo": "string", "score": "number", "weekly": "boolean", "ts": "Timestamp" }
 ```
 
-Regles de securite :
-- Read : public
-- Create : valide pseudo (string <=20) et score (number)
-- Update/Delete : interdit
+## Maintenance
 
-## Deploiement
-
-1. **GitHub Pages** : Push sur `main`, activer Pages dans les settings
-2. **PWA** : manifest.json + sw.js (cache offline)
-3. **Play Store** : TWA (Trusted Web Activity) via Bubblewrap ou PWABuilder
-
-## Maintenance courante
-
-- **Ajouter une langue** : Copier un bloc dans `TRANSLATIONS`, ajouter le bouton drapeau
-- **Modifier les packs** : Objet `PACKS` dans le JS
-- **Ajuster la difficulte** : `BASE` (vitesse initiale), formule level dans `dropInterval`
-- **Ajouter un booster** : Nouveau type dans `activateBooster()`, HTML bouton, icone, son
+- **Ajouter une langue** : Nouveau bloc dans `js/translations.js`, ajouter le drapeau dans le HTML
+- **Modifier les packs** : Objet `PACKS` dans `js/config.js`
+- **Ajuster la difficulte** : `BASE` dans `js/config.js`
+- **Ajouter un booster** : `js/boosters.js` + HTML bouton + CSS dans `css/boosters.css`
+- **Changer le theme** : Variables dans `css/variables.css`
