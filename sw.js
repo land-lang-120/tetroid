@@ -3,7 +3,7 @@
  * Cache-first strategy for offline PWA support
  * Version: 1.0.0
  */
-const CACHE_NAME = 'tetroid-v1';
+const CACHE_NAME = 'tetroid-v2-audiofix';
 const ASSETS = [
   '/',
   '/index.html',

@@ -14,6 +14,68 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="icon" href="icons/icon-192.svg">
 
+<!--
+  KILL SWITCH AUDIO - execute AVANT toute autre chose.
+  Garanti que :
+  1. Des le chargement, l'ancien SW cache est nettoye (force update).
+  2. Toute visibilityChange hidden ou pagehide suspend/ferme le contexte audio.
+  Actif meme si les modules JS ne sont pas encore charges.
+-->
+<script>
+(function() {
+  // Nettoie l'ancien SW et les caches au boot pour forcer la nouvelle version
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(function(regs) {
+      regs.forEach(function(r) {
+        // Verifie s'il utilise l'ancien cache 'tetroid-v1'
+        if ('caches' in window) {
+          caches.keys().then(function(keys) {
+            var hasOld = keys.some(function(k) { return k === 'tetroid-v1'; });
+            if (hasOld) {
+              keys.forEach(function(k) { if (k === 'tetroid-v1') caches.delete(k); });
+              r.unregister().then(function() { location.reload(); });
+            }
+          });
+        }
+      });
+    });
+  }
+
+  // Kill switch universel AudioContext
+  var __origAudioCtx = window.AudioContext || window.webkitAudioContext;
+  var __activeContexts = [];
+  if (__origAudioCtx) {
+    function TrackedAudioContext() {
+      var ctx = new __origAudioCtx();
+      __activeContexts.push(ctx);
+      return ctx;
+    }
+    TrackedAudioContext.prototype = __origAudioCtx.prototype;
+    window.AudioContext = TrackedAudioContext;
+    if (window.webkitAudioContext) window.webkitAudioContext = TrackedAudioContext;
+  }
+
+  function killAllAudio() {
+    __activeContexts.forEach(function(ctx) {
+      try { if (ctx.state !== 'closed') ctx.suspend(); } catch (e) {}
+      try { if (ctx.state !== 'closed') ctx.close(); } catch (e) {}
+    });
+  }
+
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) killAllAudio();
+  });
+  window.addEventListener('pagehide', killAllAudio);
+  window.addEventListener('beforeunload', killAllAudio);
+  window.addEventListener('blur', function() {
+    // Optionnel : pause meme quand fenetre desktop perd focus
+    __activeContexts.forEach(function(ctx) {
+      try { if (ctx.state === 'running') ctx.suspend(); } catch (e) {}
+    });
+  });
+})();
+</script>
+
 <!-- CSS Modules -->
 <link rel="stylesheet" href="css/variables.css">
 <link rel="stylesheet" href="css/base.css">
