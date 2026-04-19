@@ -178,6 +178,50 @@ export function startMusic() {
 export function stopMusic() {
   S.musicPlaying = false;
   if (S.musicInterval) { clearInterval(S.musicInterval); S.musicInterval = null; }
+  // Suspendre l'AudioContext pour arreter toute note deja planifiee
+  if (S.audioCtx && S.audioCtx.state === 'running') {
+    S.audioCtx.suspend().catch(() => {});
+  }
+}
+
+/**
+ * @description Fermer completement l'AudioContext (onPagehide/app close).
+ * Libere toutes les ressources audio et empeche toute note de continuer.
+ */
+export function destroyAudio() {
+  if (S.musicInterval) { clearInterval(S.musicInterval); S.musicInterval = null; }
+  S.musicPlaying = false;
+  if (S.audioCtx) {
+    try { S.audioCtx.close(); } catch (e) {}
+    S.audioCtx = null;
+  }
+}
+
+// ── Auto-pause quand l'app est en arriere-plan / fermee ──
+// CRITIQUE : empeche la musique de continuer apres fermeture.
+if (typeof document !== 'undefined') {
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      // App en arriere-plan : suspendre completement l'audio
+      if (S.audioCtx && S.audioCtx.state === 'running') {
+        S.audioCtx.suspend().catch(() => {});
+      }
+    } else {
+      // App revient au premier plan : reprendre si musique doit jouer
+      if (S.audioCtx && S.audioCtx.state === 'suspended' && S.musicPlaying) {
+        S.audioCtx.resume().catch(() => {});
+      }
+    }
+  });
+
+  // pagehide = fermeture definitive de l'onglet / app PWA
+  window.addEventListener('pagehide', () => {
+    destroyAudio();
+  });
+  // beforeunload = refresh / navigation externe
+  window.addEventListener('beforeunload', () => {
+    destroyAudio();
+  });
 }
 
 /** @description Toggle music on/off */
