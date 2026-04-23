@@ -1,0 +1,26 @@
+/* === TETROID — Variables === */
+
+@import url('https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@700;800;900&display=swap');
+
+:root {
+  --bg1:#1a1a4e; --bg2:#2d1b6e; --bg3:#1a3a6e;
+  --gold:#f5c518; --gold-l:#ffe566; --gold-d:#8a5000;
+  --blue:#1e6fff; --sky:#5bb8ff; --ui-border:#3a6aee;
+  --wood-top:#4a3200; --wood-bot:#2a1c00; --wood-edge:#7a5500;
+  --canvas-bg1:#0a0e1e; --canvas-bg2:#0d1530;
+  --canvas-border:rgba(58,106,238,0.25);
+  --grid-line:rgba(245,197,24,0.055);
+  --body-color:#fff;
+}
+
+/* ── MODE CLAIR — palette Candy Crush ensoleillée ── */
+body.light {
+  --bg1:#ffe0b2; --bg2:#ffcc80; --bg3:#ffa726;
+  --gold:#e65100; --gold-l:#bf360c; --gold-d:#7f1900;
+  --blue:#1565c0; --sky:#42a5f5; --ui-border:#1976d2;
+  --wood-top:#ff8f00; --wood-bot:#e65100; --wood-edge:#ffb300;
+  --canvas-bg1:#fff8e1; --canvas-bg2:#fff3cd;
+  --canvas-border:rgba(255,152,0,0.3);
+  --grid-line:rgba(255,152,0,0.08);
+  --body-color:#3a1800;
+}

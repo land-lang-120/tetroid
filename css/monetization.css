@@ -1,0 +1,241 @@
+/* === TETROID — Monetization === */
+
+.money-bar {
+  display:flex; justify-content:space-evenly; align-items:center;
+  padding:5px 8px;
+  background:linear-gradient(180deg,#1a1200,#0e0800);
+  border-bottom:2px solid rgba(245,197,24,.2);
+  flex-shrink:0;
+}
+.money-btn {
+  display:flex; align-items:center; gap:4px;
+  padding:5px 10px; border:none; border-radius:20px;
+  font-family:'Lilita One',sans-serif; font-size:0.58rem;
+  cursor:pointer; transition:transform .08s; flex-shrink:0;
+  box-shadow:0 3px 0 rgba(0,0,0,.4);
+}
+.money-btn:active { transform:scale(.92) translateY(2px); box-shadow:0 1px 0 rgba(0,0,0,.4); }
+.money-btn.shop   { background:linear-gradient(180deg,#ff9500,#e65100); color:#fff; }
+.money-btn.wheel  { background:linear-gradient(180deg,#9c27b0,#6a0080); color:#fff; }
+.money-btn.chest  { background:linear-gradient(180deg,#1565c0,#0d47a1); color:#fff; position:relative; }
+.money-btn.ad     { background:linear-gradient(180deg,#2e7d32,#1b5e20); color:#fff; }
+.money-btn .mb-icon { font-size:.95rem; }
+.chest-notif {
+  position:absolute; top:-5px; right:-5px;
+  background:#ff1111; color:#fff; border-radius:50%;
+  width:13px; height:13px; font-size:.4rem;
+  display:flex; align-items:center; justify-content:center;
+  border:1.5px solid #fff;
+  animation:notifPulse .7s infinite alternate;
+}
+@keyframes notifPulse { from{transform:scale(1)} to{transform:scale(1.25)} }
+
+/* Overlay générique */
+.money-ov {
+  position:fixed; inset:0; z-index:350;
+  background:rgba(4,2,14,.93); backdrop-filter:blur(10px);
+  display:none; align-items:center; justify-content:center;
+  padding:12px;
+}
+.money-ov.visible { display:flex; }
+.money-card {
+  width:min(360px,96vw);
+  background:linear-gradient(180deg,#2a1800,#120a00);
+  border:3px solid var(--gold);
+  border-radius:20px;
+  box-shadow:0 0 0 5px rgba(245,197,24,.08), 0 16px 48px rgba(0,0,0,.9);
+  max-height:88vh; display:flex; flex-direction:column;
+}
+.money-head {
+  display:flex; align-items:center; padding:12px 14px 10px;
+  background:linear-gradient(180deg,var(--wood-top),var(--wood-bot));
+  border-bottom:2px solid var(--gold); flex-shrink:0;
+  border-radius:17px 17px 0 0;
+}
+.money-body { padding:14px 16px 16px; overflow-y:auto; flex:1; min-height:0; }
+.money-head h2 {
+  font-family:'Lilita One',sans-serif; font-size:clamp(.9rem,4vw,1.15rem);
+  color:var(--gold-l); text-shadow:0 2px 0 var(--gold-d); flex:1;
+}
+.money-close {
+  width:30px; height:30px; border-radius:50%;
+  background:linear-gradient(180deg,#cc0000,#880000);
+  border:2.5px solid #ff4040;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; font-size:.85rem; color:#fff;
+  flex-shrink:0;
+  box-shadow:0 2px 0 #440000, 0 0 8px rgba(255,0,0,.3);
+}
+
+/* Boutique */
+.shop-pack {
+  display:flex; align-items:center; gap:12px;
+  padding:12px 14px; margin-bottom:8px;
+  border-radius:14px; cursor:pointer;
+  border:2px solid transparent; position:relative; overflow:hidden;
+  transition:transform .08s;
+}
+.shop-pack:active { transform:scale(.97); }
+.shop-pack.basic   { background:linear-gradient(135deg,#0f2a10,#071508); border-color:#388e3c; }
+.shop-pack.value   { background:linear-gradient(135deg,#0a1a3a,#050e20); border-color:#1565c0; }
+.shop-pack.premium { background:linear-gradient(135deg,#3a1000,#200800); border-color:#e65100; }
+.pack-icon  { font-size:2rem; flex-shrink:0; }
+.pack-info  { flex:1; }
+.pack-name  { font-family:'Lilita One',sans-serif; font-size:.82rem; color:#fff; display:block; }
+.pack-desc  { font-size:.58rem; color:rgba(255,255,255,.45); font-family:'Nunito',sans-serif; font-weight:700; }
+.pack-price { font-family:'Lilita One',sans-serif; font-size:1rem; color:var(--gold-l); flex-shrink:0; }
+.best-badge {
+  position:absolute; top:0; right:0;
+  background:#1565c0; color:#fff;
+  font-family:'Lilita One',sans-serif; font-size:.42rem;
+  padding:3px 10px; border-radius:0 12px 0 10px; letter-spacing:.5px;
+}
+.best-badge.fire { background:linear-gradient(90deg,#e65100,#bf360c); }
+
+.pack-price-col { display:flex; flex-direction:column; align-items:flex-end; gap:2px; flex-shrink:0; }
+.pack-old-price { font-family:'Nunito',sans-serif; font-size:.6rem; color:rgba(255,255,255,.3); text-decoration:line-through; }
+.pack-unit { font-size:.52rem; color:rgba(255,255,255,.3); font-family:'Nunito',sans-serif; font-weight:600; margin-top:2px; display:block; }
+.pack-btn-buy {
+  background:linear-gradient(180deg,#ffcc00,#ff9500); color:#3a1800;
+  font-family:'Lilita One',sans-serif; font-size:.62rem;
+  padding:4px 10px; border-radius:8px; margin-top:4px;
+  box-shadow:0 2px 0 #7a4000;
+}
+.shop-wheel-banner {
+  display:flex; align-items:center; gap:10px;
+  padding:11px 14px; margin-bottom:8px;
+  background:linear-gradient(135deg,rgba(80,0,120,.6),rgba(40,0,70,.8));
+  border:2px solid #9c27b0; border-radius:14px; cursor:pointer;
+  transition:transform .08s;
+}
+.shop-wheel-banner:active { transform:scale(.97); }
+.shop-wheel-banner.disabled { opacity:.6; cursor:default; pointer-events:none; }
+.wheel-countdown {
+  font-family:'Lilita One',sans-serif; font-size:.72rem;
+  color:rgba(255,255,255,.5); flex-shrink:0; text-align:right;
+}
+.shop-free-banner {
+  display:flex; align-items:center; gap:10px;
+  padding:11px 14px; margin-bottom:10px;
+  background:linear-gradient(135deg,rgba(27,94,32,.6),rgba(10,50,15,.8));
+  border:2px solid #2e7d32; border-radius:14px; cursor:pointer;
+  transition:transform .08s;
+}
+.shop-free-banner:active { transform:scale(.97); }
+.shop-divider {
+  text-align:center; font-family:'Nunito',sans-serif; font-size:.58rem;
+  color:rgba(255,255,255,.25); margin:4px 0 10px; letter-spacing:1px;
+}
+.shop-pack.ultimate {
+  background:linear-gradient(135deg,#1a0030,#0d001a);
+  border-color:#ab47bc;
+}
+
+/* Roue */
+#wheel-canvas { display:block; margin:0 auto 10px; border-radius:50%; box-shadow:0 0 20px rgba(245,197,24,.4); }
+.wheel-ptr { text-align:center; font-size:1.4rem; margin-bottom:4px; }
+.wheel-spin-btn {
+  width:100%; padding:11px; border:none; border-radius:12px;
+  background:linear-gradient(180deg,#ffcc00,#ff9500); color:#3a1800;
+  font-family:'Lilita One',sans-serif; font-size:.9rem;
+  cursor:pointer; box-shadow:0 4px 0 #7a4000; transition:transform .08s;
+}
+.wheel-spin-btn:disabled { background:#333; color:#666; box-shadow:0 2px 0 #111; cursor:not-allowed; }
+.wheel-result { text-align:center; margin-top:8px; font-family:'Lilita One',sans-serif; font-size:.9rem; color:var(--gold-l); min-height:22px; }
+
+/* Pub */
+.ad-screen {
+  background:#111; border-radius:12px; aspect-ratio:16/9;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:6px; margin-bottom:12px; border:2px solid rgba(255,255,255,.08);
+  transition:background .5s;
+}
+.ad-lbl   { font-size:.58rem; color:rgba(255,255,255,.35); font-family:'Nunito',sans-serif; font-weight:700; letter-spacing:1px; }
+.ad-brand { font-size:2.2rem; transition:all .4s; }
+.ad-count { font-family:'Lilita One',sans-serif; font-size:1.6rem; color:#fff; }
+.ad-bar   { width:75%; height:5px; background:rgba(255,255,255,.12); border-radius:3px; overflow:hidden; }
+.ad-fill  { height:100%; background:var(--gold); width:0%; transition:width .9s linear; }
+.ad-rew   { font-size:.6rem; color:rgba(255,255,255,.45); font-family:'Nunito',sans-serif; font-weight:700; }
+.ad-btn {
+  width:100%; padding:11px; border:none; border-radius:12px;
+  background:linear-gradient(180deg,#2e7d32,#1b5e20); color:#fff;
+  font-family:'Lilita One',sans-serif; font-size:.88rem;
+  cursor:pointer; box-shadow:0 4px 0 #0a2e0c; transition:transform .08s;
+}
+.ad-btn:active { transform:scale(.97); }
+
+/* FOMO overlay */
+.fomo-card {
+  background:linear-gradient(180deg,#1a0000,#0d0000) !important;
+  border:2px solid #cc0000 !important;
+  text-align:center; padding:20px 18px !important;
+}
+.fomo-skull { font-size:2.8rem; animation:fomoPulse .6s ease infinite alternate; }
+@keyframes fomoPulse { from{transform:scale(1)} to{transform:scale(1.15)} }
+.fomo-title { color:#ff3333 !important; font-size:1.1rem !important; margin:6px 0 2px; }
+.fomo-sub   { font-size:.65rem; color:rgba(255,255,255,.55); font-family:'Nunito',sans-serif; font-weight:700; margin:0 0 10px; }
+.fomo-score-row {
+  display:flex; justify-content:space-between; align-items:center;
+  background:rgba(255,255,255,.05); border-radius:10px; padding:8px 14px; margin-bottom:12px;
+}
+.fomo-label { font-size:.62rem; color:rgba(255,255,255,.4); font-family:'Nunito',sans-serif; font-weight:700; }
+.fomo-score { font-family:'Lilita One',sans-serif; font-size:1.2rem; color:var(--gold-l); }
+/* Anneau countdown SVG */
+.fomo-timer-wrap {
+  position:relative; width:60px; height:60px; margin:0 auto 6px;
+}
+.fomo-ring { width:60px; height:60px; transform:rotate(-90deg); }
+.fomo-ring-bg { fill:none; stroke:rgba(255,255,255,.1); stroke-width:5; }
+.fomo-ring-fg {
+  fill:none; stroke:#ff3333; stroke-width:5;
+  stroke-dasharray:163.4; stroke-dashoffset:0;
+  transition:stroke-dashoffset 1s linear;
+  stroke-linecap:round;
+}
+.fomo-countdown {
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  font-family:'Lilita One',sans-serif; font-size:1.3rem; color:#fff;
+}
+.fomo-hint { font-size:.6rem; color:rgba(255,100,100,.7); font-family:'Nunito',sans-serif; font-weight:700; margin:0 0 12px; }
+.fomo-btn-watch {
+  width:100%; padding:13px; border:none; border-radius:14px; margin-bottom:8px;
+  background:linear-gradient(180deg,#ff5722,#e64a19); color:#fff;
+  font-family:'Lilita One',sans-serif; font-size:.88rem;
+  cursor:pointer; box-shadow:0 4px 0 #7a2000;
+  animation:fomoGlow 1s ease infinite alternate;
+  transition:transform .08s;
+}
+.fomo-btn-watch:active { transform:scale(.97); }
+@keyframes fomoGlow {
+  from{ box-shadow:0 4px 0 #7a2000, 0 0 10px rgba(255,87,34,.3); }
+  to  { box-shadow:0 4px 0 #7a2000, 0 0 20px rgba(255,87,34,.7); }
+}
+.fomo-btn-skip {
+  width:100%; padding:8px; border:none; border-radius:10px;
+  background:transparent; color:rgba(255,255,255,.25);
+  font-family:'Nunito',sans-serif; font-weight:700; font-size:.6rem;
+  cursor:pointer; text-decoration:underline;
+}
+
+/* Coffre */
+.chest-icon { font-size:4rem; text-align:center; display:block; margin:6px 0 4px;
+  animation:chestBounce .5s ease infinite alternate;
+  filter:drop-shadow(0 0 14px rgba(245,197,24,.7));
+}
+@keyframes chestBounce { from{transform:translateY(0) rotate(-3deg)} to{transform:translateY(-6px) rotate(3deg)} }
+.chest-sub { text-align:center; font-family:'Nunito',sans-serif; font-weight:800; font-size:.65rem; color:rgba(255,255,255,.45); margin-bottom:10px; }
+.chest-rewards { display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin:10px 0 14px; }
+.chest-item {
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+  background:rgba(255,255,255,.05); border:1px solid rgba(245,197,24,.18);
+  border-radius:12px; padding:10px 16px;
+}
+.chest-item .ci-ico { font-size:1.7rem; }
+.chest-item .ci-qty { font-family:'Lilita One',sans-serif; font-size:.72rem; color:var(--gold-l); }
+.chest-open-btn {
+  width:100%; padding:11px; border:none; border-radius:12px;
+  background:linear-gradient(180deg,#ffcc00,#ff9500); color:#3a1800;
+  font-family:'Lilita One',sans-serif; font-size:.9rem;
+  cursor:pointer; box-shadow:0 4px 0 #7a4000; transition:transform .08s;
+}
+.chest-open-btn:active { transform:translateY(2px); }
