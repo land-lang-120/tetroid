@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>SOS Proches</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+    <style>
+        :root {
+            --primary: #1A56DB; --primary-dark: #1340A8;
+            --primary-light: #EFF6FF; --bg: #F8FAFC;
+            --text-main: #0F172A; --text-muted: #64748B;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #E2E8F0; font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text-main); height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+        #root { width: 100%; height: 100%; display: flex; justify-content: center; }
+        .app-shell { width: 100%; max-width: 430px; height: 100%; background: var(--bg); position: relative; display: flex; flex-direction: column; box-shadow: 0 0 50px rgba(0,0,0,0.15); overflow: hidden; }
+        .scroll-area { flex: 1; overflow-y: auto; padding: 16px; padding-bottom: 100px; scrollbar-width: none; }
+        .scroll-area::-webkit-scrollbar { display: none; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes popIn { from { opacity: 0; transform: translateX(-50%) scale(0.8) translateY(5px); } to { opacity: 1; transform: translateX(-50%) scale(1) translateY(0); } }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
+
+        /* POST CARD */
+        .post-card { background: white; border-radius: 24px; margin-bottom: 14px; border: 1px solid #F1F5F9; box-shadow: 0 4px 12px rgba(0,0,0,0.04); animation: fadeUp 0.4s ease both; overflow: hidden; cursor: pointer; }
+        .post-card:nth-child(2) { animation-delay: 0.08s; } .post-card:nth-child(3) { animation-delay: 0.16s; } .post-card:nth-child(4) { animation-delay: 0.24s; }
+        .post-photo { width: 100%; height: 200px; object-fit: cover; display: block; }
+        .post-photo-wrap { position: relative; }
+        .post-status-badge { position: absolute; top: 10px; right: 10px; font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 10px; letter-spacing: 0.5px; }
+        .post-prime-badge { position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.65); backdrop-filter: blur(6px); color: #FBBF24; font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 10px; }
+        .badge-recherche { background: rgba(254,242,242,0.92); color: #DC2626; }
+        .badge-disparu   { background: rgba(255,247,237,0.92); color: #EA580C; }
+        .badge-perdu     { background: rgba(239,246,255,0.92); color: #1A56DB; }
+        .post-body { padding: 14px 16px; }
+        .reaction-bubble { position: absolute; bottom: 48px; left: 50%; transform: translateX(-50%); background: white; padding: 8px 14px; border-radius: 40px; display: flex; gap: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.12); border: 1px solid #F1F5F9; z-index: 100; animation: popIn 0.2s ease both; }
+        .emoji-pick { font-size: 22px; cursor: pointer; transition: transform 0.15s; }
+        .emoji-pick:hover { transform: scale(1.3); }
+
+        /* SEARCH */
+        .geo-row { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+        .geo-row::-webkit-scrollbar { display: none; }
+        .geo-pill { padding: 6px 13px; border-radius: 10px; font-size: 11px; font-weight: 700; border: 1.5px solid #E2E8F0; background: white; cursor: pointer; white-space: nowrap; color: #64748B; transition: all 0.15s; font-family: inherit; }
+        .geo-pill.active { background: #EFF6FF; color: #1A56DB; border-color: #BFDBFE; }
+        .filters-row { display: flex; gap: 8px; margin-bottom: 12px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+        .filters-row::-webkit-scrollbar { display: none; }
+        .filter-chip { padding: 8px 16px; border-radius: 12px; font-size: 12px; font-weight: 700; box-shadow: 0 2px 6px rgba(0,0,0,0.05); cursor: pointer; transition: all 0.2s; white-space: nowrap; border: none; font-family: inherit; }
+
+        /* NAV */
+        .nav-bar { position: absolute; bottom: 0; width: 100%; height: 90px; background: rgba(255,255,255,0.97); backdrop-filter: blur(15px); border-top: 1px solid #E2E8F0; display: flex; justify-content: space-around; align-items: center; padding: 0 10px 20px; }
+        .sos-btn-container { margin-top: -50px; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .sos-circle { width: 64px; height: 64px; border-radius: 22px; background: linear-gradient(135deg, #2563EB, #1340A8); border: none; box-shadow: 0 8px 25px rgba(26,86,219,0.45); display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; }
+        .sos-circle:active { transform: scale(0.94); }
+        .sos-label { font-size: 10px; font-weight: 800; color: var(--primary); letter-spacing: 0.5px; }
+        .nav-item { text-align: center; cursor: pointer; transition: opacity 0.2s; padding: 4px 10px; }
+        .nav-item p { font-size: 10px; font-weight: 700; margin-top: 4px; }
+        .action-btn { flex: 1; background: none; border: none; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; font-weight: 600; color: #64748B; cursor: pointer; font-family: inherit; padding: 4px 0; transition: color 0.15s; }
+        .action-btn:hover { color: var(--primary); }
+
+        /* MESSAGES */
+        .msg-item { background: white; border-radius: 18px; padding: 14px 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 14px; border: 1px solid #F1F5F9; cursor: pointer; animation: fadeUp 0.35s ease both; }
+        .msg-avatar { width: 50px; height: 50px; border-radius: 16px; object-fit: cover; flex-shrink: 0; }
+        .msg-unread { width: 9px; height: 9px; background: #1A56DB; border-radius: 50%; flex-shrink: 0; }
+
+        /* ALERTES */
+        .alert-item { background: white; border-radius: 18px; padding: 14px 16px; margin-bottom: 10px; display: flex; gap: 12px; animation: fadeUp 0.35s ease both; }
+
+        /* PROFIL */
+        .profile-header { background: linear-gradient(160deg, #1A56DB, #1340A8); padding: 28px 25px 28px; color: white; text-align: center; }
+        .profile-avatar { width: 90px; height: 90px; border-radius: 28px; object-fit: cover; border: 3px solid rgba(255,255,255,0.4); margin: 0 auto 12px; display: block; }
+        .profile-stat-row { display: flex; justify-content: center; gap: 32px; margin-top: 18px; }
+        .profile-stat { text-align: center; }
+        .profile-stat span { display: block; font-size: 20px; font-weight: 800; }
+        .profile-stat p { font-size: 11px; opacity: 0.75; }
+        .menu-item { background: white; border-radius: 16px; padding: 14px 18px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; border: 1px solid #F1F5F9; cursor: pointer; }
+        .menu-item-left { display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 600; }
+
+        /* FORM MODAL */
+        .form-modal { position: absolute; inset: 0; background: var(--bg); z-index: 200; display: flex; flex-direction: column; animation: slideIn 0.3s ease; }
+        .form-header { padding: 46px 18px 18px; background: #1A56DB; color: white; display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+        .form-body { flex: 1; overflow-y: auto; padding: 18px; scrollbar-width: none; padding-bottom: 30px; }
+        .form-body::-webkit-scrollbar { display: none; }
+        .form-field { margin-bottom: 14px; }
+        .form-field label { font-size: 11px; font-weight: 700; color: #64748B; margin-bottom: 6px; display: block; letter-spacing: 0.3px; }
+        .form-field input, .form-field textarea, .form-field select { width: 100%; padding: 12px 14px; border: 1.5px solid #E2E8F0; border-radius: 14px; font-family: inherit; font-size: 14px; color: var(--text-main); background: white; outline: none; transition: border-color 0.2s; }
+        .form-field input:focus, .form-field textarea:focus { border-color: #1A56DB; }
+        .form-field textarea { resize: none; height: 80px; }
+        .photo-upload-zone { border: 2px dashed #CBD5E1; border-radius: 16px; padding: 24px; text-align: center; color: #94A3B8; cursor: pointer; font-size: 13px; font-weight: 600; background: white; }
+        .submit-btn { width: 100%; padding: 15px; background: linear-gradient(135deg, #2563EB, #1340A8); color: white; border: none; border-radius: 16px; font-family: inherit; font-size: 15px; font-weight: 800; cursor: pointer; margin-top: 6px; box-shadow: 0 8px 20px rgba(26,86,219,0.35); }
+        .back-btn { background: rgba(255,255,255,0.2); border: none; border-radius: 12px; padding: 8px; cursor: pointer; color: white; display: flex; align-items: center; flex-shrink: 0; }
+        .cat-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+        .cat-pill { padding: 7px 14px; border-radius: 12px; font-size: 12px; font-weight: 700; border: 2px solid #E2E8F0; background: white; cursor: pointer; transition: all 0.2s; color: #64748B; font-family: inherit; }
+        .cat-pill.active { background: #1A56DB; color: white; border-color: #1A56DB; }
+
+        /* DETAIL VIEW */
+        .detail-modal { position: absolute; inset: 0; background: var(--bg); z-index: 150; display: flex; flex-direction: column; animation: slideIn 0.28s ease; }
+        .detail-scroll { flex: 1; overflow-y: auto; scrollbar-width: none; padding-bottom: 20px; }
+        .detail-scroll::-webkit-scrollbar { display: none; }
+        .detail-photo { width: 100%; height: 260px; object-fit: cover; display: block; }
+        .detail-photo-wrap { position: relative; }
+        .detail-back-btn { position: absolute; top: 50px; left: 14px; background: rgba(0,0,0,0.45); backdrop-filter: blur(6px); border: none; border-radius: 12px; padding: 8px; cursor: pointer; color: white; display: flex; align-items: center; }
+        .detail-share-btn { position: absolute; top: 50px; right: 14px; background: rgba(0,0,0,0.45); backdrop-filter: blur(6px); border: none; border-radius: 12px; padding: 8px; cursor: pointer; color: white; display: flex; align-items: center; }
+        .detail-body { padding: 18px; }
+        .info-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+        .info-chip { display: flex; align-items: center; gap: 5px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 6px 12px; font-size: 12px; font-weight: 600; color: #475569; }
+        .prime-box { background: linear-gradient(135deg, #FEF9C3, #FEF3C7); border: 1px solid #FDE68A; border-radius: 16px; padding: 14px 16px; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+        .chercheur-box { background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 16px; padding: 14px 16px; margin-bottom: 14px; }
+        .contact-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #2563EB, #1340A8); color: white; border: none; border-radius: 16px; font-family: inherit; font-size: 14px; font-weight: 800; cursor: pointer; margin-bottom: 10px; box-shadow: 0 6px 18px rgba(26,86,219,0.3); }
+        .share-row { display: flex; gap: 8px; }
+        .share-network-btn { flex: 1; padding: 11px 6px; border: 1.5px solid #E2E8F0; background: white; border-radius: 14px; font-family: inherit; font-size: 11px; font-weight: 700; cursor: pointer; color: #475569; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+
+        /* PROFIL SECURITE */
+        .sos-profile-modal { position: absolute; inset: 0; background: var(--bg); z-index: 200; display: flex; flex-direction: column; animation: slideIn 0.3s ease; }
+        .toggle-row { display: flex; align-items: center; justify-content: space-between; background: white; border-radius: 16px; padding: 14px 16px; margin-bottom: 10px; border: 1px solid #F1F5F9; }
+        .toggle-left { display: flex; align-items: center; gap: 12px; }
+        .toggle-track { width: 44px; height: 26px; border-radius: 13px; position: relative; cursor: pointer; transition: background 0.25s; border: none; padding: 0; }
+        .toggle-thumb { position: absolute; top: 3px; width: 20px; height: 20px; background: white; border-radius: 50%; box-shadow: 0 1px 4px rgba(0,0,0,0.2); transition: left 0.25s; }
+        .section-label { font-size: 11px; font-weight: 800; color: #94A3B8; letter-spacing: 1px; margin: 18px 0 10px; }
+        .timer-display { background: linear-gradient(135deg, #1A56DB, #1340A8); border-radius: 20px; padding: 20px; text-align: center; color: white; margin-bottom: 14px; }
+        .timer-big { font-size: 42px; font-weight: 800; line-height: 1; }
+        .timer-sub { font-size: 12px; opacity: 0.75; margin-top: 6px; }
+        .timer-btn-row { display: flex; gap: 8px; margin-top: 14px; }
+        .timer-btn { flex: 1; padding: 10px; border-radius: 12px; font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; border: none; }
+    </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    const Icon = ({ name, size = 24, color = "currentColor" }) => {
+        const icons = {
+            home:     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
+            plus:     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+            chat:     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>,
+            bell:     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>,
+            user:     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+            heart:    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>,
+            share:    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>,
+            comment:  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
+            back:     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>,
+            map:      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>,
+            shield:   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+            settings: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
+            chevron:  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>,
+            photo:    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>,
+            search:   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
+            age:      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+            geo:      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>,
+            lock:     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
+            timer:    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+            sos:      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>,
+            saved:    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>,
+        };
+        return icons[name] || null;
+    };
+
+    /* DONNÉES */
+    const FILTERS = ['Tout', 'Personnes', 'Animaux', 'Biens'];
+    const GEO_FILTERS = ['Partout', 'Yaoundé', 'Douala', 'Bafoussam', 'Limbé'];
+    const BADGE_CLASS = { 'RECHERCHÉ': 'badge-recherche', 'DISPARU': 'badge-disparu', 'PERDU': 'badge-perdu' };
+
+    const ALL_POSTS = [
+        { id:1, category:'Personnes', name:"Amina Bello", age:16, loc:"Yaoundé, Bastos", time:"2h", status:"RECHERCHÉ",
+          desc:"Amina n'est pas rentrée du lycée hier soir. Elle portait un manteau rouge et un sac bleu marine. Toute information est précieuse.",
+          chercheur_msg:"À tous ceux qui voient ceci : une famille entière vous supplie. Chaque partage compte. Merci du fond du cœur.",
+          prime:"50 000 FCFA", contact:"+237 6 90 00 00 00",
+          img:"https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=600&h=400&fit=crop" },
+        { id:2, category:'Animaux', name:"Rex — Berger Allemand", age:null, loc:"Douala, Akwa", time:"5h", status:"DISPARU",
+          desc:"Chien très amical égaré près du marché central. Collier en cuir marron avec plaque 'Rex'. Il répond à son prénom.",
+          chercheur_msg:"Rex est toute notre famille. Si vous l'avez vu, même de loin, n'hésitez pas à appeler. Dieu vous bénisse.",
+          prime:"20 000 FCFA", contact:"+237 6 75 00 00 00",
+          img:"https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=600&h=400&fit=crop" },
+        { id:3, category:'Biens', name:"Sac à dos noir Eastpak", age:null, loc:"Bafoussam, Centre-ville", time:"1j", status:"PERDU",
+          desc:"Sac à dos noir perdu dans un taxi. Contient des documents d'identité, un ordinateur portable et des clés.",
+          chercheur_msg:"Ces documents sont vitaux pour mes démarches. Je vous serais éternellement reconnaissant de me les retourner.",
+          prime:"10 000 FCFA", contact:"+237 6 55 00 00 00",
+          img:"https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&h=400&fit=crop" },
+        { id:4, category:'Personnes', name:"Paul Nkeng", age:72, loc:"Limbé, Beach Road", time:"3h", status:"RECHERCHÉ",
+          desc:"Mon grand-père est sorti seul ce matin. Il a des problèmes de mémoire. Taille moyenne, cheveux blancs, chemise bleue.",
+          chercheur_msg:"Il est âgé et vulnérable. Chaque minute compte. Si vous le voyez, appelez-nous immédiatement. Merci infiniment.",
+          prime:"30 000 FCFA", contact:"+237 6 82 00 00 00",
+          img:"https://images.unsplash.com/photo-1566616213894-2d4e1baee5d8?w=600&h=400&fit=crop" },
+    ];
+
+    const MESSAGES_DATA = [
+        { id:1, name:"Marie Nguema", preview:"Je crois avoir vu votre fille près du marché 🙏", time:"14:32", unread:true, img:"https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" },
+        { id:2, name:"Police Yaoundé", preview:"Nous avons pris en charge votre signalement.", time:"09:15", unread:true, img:"https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop" },
+        { id:3, name:"Jean-Pierre K.", preview:"J'ai peut-être vu Rex ce matin près du stade.", time:"Hier", unread:false, img:"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" },
+    ];
+
+    const ALERTES_DATA = [
+        { id:1, color:'#DC2626', title:"Nouveau signalement près de vous", desc:"Une personne recherchée a été signalée à 2 km de votre position à Yaoundé.", time:"15 min" },
+        { id:2, color:'#16A34A', title:"Rex retrouvé sain et sauf ! 🎉", desc:"Le berger allemand signalé à Douala a été retrouvé. Merci à la communauté.", time:"1h" },
+        { id:3, color:'#1A56DB', title:"Votre signalement approuvé", desc:"L'alerte 'Sac Eastpak' est maintenant visible par toute la communauté.", time:"Hier" },
+        { id:4, color:'#DC2626', title:"Alerte urgente — Paul Nkeng", desc:"Un homme âgé est recherché à Limbé. Partagez un maximum !", time:"3h" },
+    ];
+
+    /* TOGGLE */
+    const Toggle = ({ on, onChange }) => (
+        <button className="toggle-track" style={{ background: on ? '#1A56DB' : '#CBD5E1' }} onClick={() => onChange(!on)}>
+            <div className="toggle-thumb" style={{ left: on ? '21px' : '3px' }} />
+        </button>
+    );
+
+    /* POST CARD */
+    const Post = ({ data, onOpen }) => {
+        const [reaction, setReaction] = useState(null);
+        const [showReactions, setShowReactions] = useState(false);
+        return (
+            <div className="post-card" onClick={onOpen}>
+                <div className="post-photo-wrap">
+                    <img src={data.img} alt={data.name} className="post-photo" />
+                    <span className={`post-status-badge ${BADGE_CLASS[data.status] || 'badge-perdu'}`}>{data.status}</span>
+                    {data.prime && <span className="post-prime-badge">🏆 {data.prime}</span>}
+                </div>
+                <div className="post-body">
+                    <h3 style={{ fontSize:15, fontWeight:700 }}>{data.name}</h3>
+                    <p style={{ fontSize:11, color:'#94A3B8', fontWeight:600, marginTop:2 }}>
+                        {data.age ? `${data.age} ans · ` : ''}{data.loc} · {data.time}
+                    </p>
+                    <p style={{ marginTop:8, fontSize:13, color:'#475569', lineHeight:1.55 }}>{data.desc}</p>
+                    <div style={{ marginTop:10, background:'#EFF6FF', borderRadius:12, padding:'10px 12px', borderLeft:'3px solid #1A56DB' }} onClick={e=>e.stopPropagation()}>
+                        <p style={{ fontSize:12, color:'#1E40AF', lineHeight:1.5, fontStyle:'italic' }}>💬 "{data.chercheur_msg}"</p>
+                    </div>
+                    <div style={{ height:1, background:'#F1F5F9', margin:'12px 0' }} />
+                    <div style={{ display:'flex', position:'relative' }} onClick={e=>e.stopPropagation()}>
+                        <div style={{ flex:1, position:'relative' }} onMouseLeave={()=>setShowReactions(false)}>
+                            {showReactions && (
+                                <div className="reaction-bubble">
+                                    {['😢','🤝','🙏','💪','🕊️'].map(em => (
+                                        <span key={em} className="emoji-pick" onClick={()=>{ setReaction(em); setShowReactions(false); }}>{em}</span>
+                                    ))}
+                                </div>
+                            )}
+                            <button className="action-btn" onClick={()=>setShowReactions(!showReactions)} style={{ color:reaction?'#1A56DB':'#64748B' }}>
+                                {reaction ? <span style={{fontSize:17}}>{reaction}</span> : <Icon name="heart" size={16} color="#94A3B8" />}
+                                Soutenir
+                            </button>
+                        </div>
+                        <button className="action-btn"><Icon name="comment" size={16} color="#94A3B8" /> Commenter</button>
+                        <button className="action-btn"><Icon name="share" size={16} color="#94A3B8" /> Partager</button>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    /* DETAIL VIEW */
+    const DetailView = ({ data, onClose }) => (
+        <div className="detail-modal">
+            <div className="detail-scroll">
+                <div className="detail-photo-wrap">
+                    <img src={data.img} alt={data.name} className="detail-photo" />
+                    <button className="detail-back-btn" onClick={onClose}><Icon name="back" size={20} color="white" /></button>
+                    <button className="detail-share-btn"><Icon name="share" size={20} color="white" /></button>
+                    <span className={`post-status-badge ${BADGE_CLASS[data.status]||'badge-perdu'}`} style={{ top:'auto', bottom:10, right:12 }}>{data.status}</span>
+                </div>
+                <div className="detail-body">
+                    <h2 style={{ fontSize:20, fontWeight:800, marginBottom:6 }}>{data.name}</h2>
+                    <div className="info-row">
+                        {data.age && <div className="info-chip"><Icon name="age" size={13} color="#64748B"/>{data.age} ans</div>}
+                        <div className="info-chip"><Icon name="map" size={13} color="#64748B"/>{data.loc}</div>
+                        <div className="info-chip">⏰ {data.time}</div>
+                        <div className="info-chip">{data.category==='Personnes'?'👤':data.category==='Animaux'?'🐾':'🎒'} {data.category}</div>
+                    </div>
+                    {data.prime && (
+                        <div className="prime-box">
+                            <span style={{ fontSize:28 }}>🏆</span>
+                            <div>
+                                <p style={{ fontSize:12, fontWeight:700, color:'#92400E' }}>RÉCOMPENSE OFFERTE</p>
+                                <p style={{ fontSize:20, fontWeight:800, color:'#92400E' }}>{data.prime}</p>
+                            </div>
+                        </div>
+                    )}
+                    <p style={{ fontSize:14, color:'#475569', lineHeight:1.65, marginBottom:14 }}>{data.desc}</p>
+                    <div className="chercheur-box">
+                        <p style={{ fontSize:11, fontWeight:800, color:'#1A56DB', marginBottom:6 }}>💬 MESSAGE AUX CHERCHEURS</p>
+                        <p style={{ fontSize:13, color:'#1E40AF', lineHeight:1.6, fontStyle:'italic' }}>{data.chercheur_msg}</p>
+                    </div>
+                    <button className="contact-btn">📞 Contacter — {data.contact}</button>
+                    <p style={{ fontSize:12, fontWeight:700, color:'#64748B', marginBottom:8 }}>PARTAGER SUR :</p>
+                    <div className="share-row">
+                        {[['WhatsApp','💬'],['Facebook','📘'],['Twitter','🐦'],['SMS','✉️']].map(([net,ico])=>(
+                            <button key={net} className="share-network-btn"><span style={{fontSize:20}}>{ico}</span>{net}</button>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+
+    /* MESSAGES */
+    const MessagesScreen = () => (
+        <div className="scroll-area">
+            <h2 style={{ fontSize:18, fontWeight:800, marginBottom:14 }}>Messages</h2>
+            {MESSAGES_DATA.map((m,i) => (
+                <div key={m.id} className="msg-item" style={{ animationDelay:`${i*0.08}s` }}>
+                    <img src={m.img} alt={m.name} className="msg-avatar" />
+                    <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ display:'flex', justifyContent:'space-between' }}>
+                            <span style={{ fontWeight:700, fontSize:14 }}>{m.name}</span>
+                            <span style={{ fontSize:11, color:'#94A3B8' }}>{m.time}</span>
+                        </div>
+                        <p style={{ fontSize:12, color:'#64748B', marginTop:3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{m.preview}</p>
+                    </div>
+                    {m.unread && <div className="msg-unread" />}
+                </div>
+            ))}
+        </div>
+    );
+
+    /* ALERTES */
+    const AlertesScreen = () => (
+        <div className="scroll-area">
+            <h2 style={{ fontSize:18, fontWeight:800, marginBottom:14 }}>Alertes</h2>
+            {ALERTES_DATA.map((a,i) => (
+                <div key={a.id} className="alert-item" style={{ animationDelay:`${i*0.08}s`, borderLeft:`4px solid ${a.color}` }}>
+                    <div style={{ flex:1 }}>
+                        <div style={{ display:'flex', justifyContent:'space-between', marginBottom:4 }}>
+                            <span style={{ fontWeight:700, fontSize:13 }}>{a.title}</span>
+                            <span style={{ fontSize:10, color:'#94A3B8', flexShrink:0, marginLeft:8 }}>il y a {a.time}</span>
+                        </div>
+                        <p style={{ fontSize:12, color:'#64748B', lineHeight:1.5 }}>{a.desc}</p>
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+
+    /* PROFIL SÉCURITÉ */
+    const ProfilSecuriteModal = ({ onClose }) => {
+        const [geoOn, setGeoOn] = useState(false);
+        const [timerOn, setTimerOn] = useState(false);
+        const [mailOn, setMailOn] = useState(false);
+        const [secondsLeft, setSecondsLeft] = useState(300);
+        const [timerRunning, setTimerRunning] = useState(false);
+        const interval = useRef(null);
+        useEffect(() => {
+            if (timerRunning && timerOn) {
+                interval.current = setInterval(() => {
+                    setSecondsLeft(s => { if(s<=1){clearInterval(interval.current);setTimerRunning(false);return 0;} return s-1; });
+                }, 1000);
+            } else { clearInterval(interval.current); }
+            return () => clearInterval(interval.current);
+        }, [timerRunning, timerOn]);
+        const fmt = s => `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+        return (
+            <div className="sos-profile-modal">
+                <div className="form-header">
+                    <button className="back-btn" onClick={onClose}><Icon name="back" size={22} color="white"/></button>
+                    <div>
+                        <h2 style={{ fontWeight:800, fontSize:17 }}>Mon Profil de Sécurité</h2>
+                        <p style={{ opacity:0.75, fontSize:11 }}>Protégez-vous si vous vous perdez</p>
+                    </div>
+                </div>
+                <div className="form-body">
+                    <p className="section-label">MES INFORMATIONS D'URGENCE</p>
+                    <div className="form-field"><label>NOM COMPLET</label><input type="text" defaultValue="Sophie Martin"/></div>
+                    <div className="form-field"><label>ÂGE</label><input type="number" defaultValue="28"/></div>
+                    <div className="form-field"><label>SIGNES DISTINCTIFS</label><textarea>Taille 1m68, cheveux noirs bouclés, lunettes rondes.</textarea></div>
+                    <div className="form-field"><label>CONTACT D'URGENCE (téléphone)</label><input type="tel" defaultValue="+237 6 90 12 34 56"/></div>
+                    <div className="form-field"><label>EMAIL D'URGENCE</label><input type="email" defaultValue="urgence@famille.com"/></div>
+                    <div className="photo-upload-zone" style={{ marginBottom:14 }}>
+                        <Icon name="photo" size={28} color="#CBD5E1"/>
+                        <p style={{ marginTop:6, fontSize:12 }}>Ma photo d'urgence</p>
+                    </div>
+
+                    <p className="section-label">FONCTIONS DE PROTECTION</p>
+
+                    <div className="toggle-row">
+                        <div className="toggle-left">
+                            <div style={{ width:38,height:38,borderRadius:12,background:'#EFF6FF',display:'flex',alignItems:'center',justifyContent:'center' }}>
+                                <Icon name="geo" size={17} color="#1A56DB"/>
+                            </div>
+                            <div>
+                                <p style={{ fontWeight:700, fontSize:13 }}>Géolocalisation d'urgence</p>
+                                <p style={{ fontSize:11, color:'#94A3B8' }}>Partager ma position si je suis perdu</p>
+                            </div>
+                        </div>
+                        <Toggle on={geoOn} onChange={setGeoOn}/>
+                    </div>
+
+                    <div className="toggle-row">
+                        <div className="toggle-left">
+                            <div style={{ width:38,height:38,borderRadius:12,background:'#EFF6FF',display:'flex',alignItems:'center',justifyContent:'center' }}>
+                                <Icon name="lock" size={17} color="#1A56DB"/>
+                            </div>
+                            <div>
+                                <p style={{ fontWeight:700, fontSize:13 }}>Envoi auto — Mail & SMS</p>
+                                <p style={{ fontSize:11, color:'#94A3B8' }}>Alerter mes contacts si inactif trop longtemps</p>
+                            </div>
+                        </div>
+                        <Toggle on={mailOn} onChange={setMailOn}/>
+                    </div>
+
+                    <div className="toggle-row">
+                        <div className="toggle-left">
+                            <div style={{ width:38,height:38,borderRadius:12,background:'#EFF6FF',display:'flex',alignItems:'center',justifyContent:'center' }}>
+                                <Icon name="timer" size={17} color="#1A56DB"/>
+                            </div>
+                            <div>
+                                <p style={{ fontWeight:700, fontSize:13 }}>Timer d'inactivité SOS</p>
+                                <p style={{ fontSize:11, color:'#94A3B8' }}>Déclenche une alerte si inactif trop longtemps</p>
+                            </div>
+                        </div>
+                        <Toggle on={timerOn} onChange={v => { setTimerOn(v); if(!v){setTimerRunning(false);setSecondsLeft(300);} }}/>
+                    </div>
+
+                    {timerOn && (
+                        <div className="timer-display">
+                            <p style={{ fontSize:11, opacity:0.75, marginBottom:8 }}>TEMPS AVANT ALERTE SOS</p>
+                            <div className="timer-big">{fmt(secondsLeft)}</div>
+                            <p className="timer-sub">{timerRunning ? "Cliquez 'Je suis OK' pour réinitialiser" : "Démarrez, puis confirmez régulièrement votre présence"}</p>
+                            <div className="timer-btn-row">
+                                <button className="timer-btn"
+                                    style={{ background:timerRunning?'#FEF2F2':'#EFF6FF', color:timerRunning?'#DC2626':'#1A56DB' }}
+                                    onClick={()=>{ if(timerRunning){setTimerRunning(false);setSecondsLeft(300);}else{setTimerRunning(true);setSecondsLeft(300);} }}>
+                                    {timerRunning ? '⏹ Arrêter' : '▶ Démarrer'}
+                                </button>
+                                {timerRunning && (
+                                    <button className="timer-btn" style={{ background:'#D1FAE5', color:'#065F46', flex:2 }}
+                                        onClick={()=>setSecondsLeft(300)}>
+                                        ✅ Je suis OK — Réinitialiser
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                    <button className="submit-btn">💾 Enregistrer mon profil de sécurité</button>
+                </div>
+            </div>
+        );
+    };
+
+    /* PROFIL */
+    const ProfilScreen = ({ onOpenSecurity }) => {
+        const menus = [
+            { icon:'shield', label:'Mes signalements', count:'3', badge:null, action:null },
+            { icon:'saved',  label:'Alertes sauvegardées', count:'7', badge:null, action:null },
+            { icon:'sos',    label:'Mon Profil de Sécurité', count:null, badge:'NOUVEAU', action:onOpenSecurity },
+            { icon:'map',    label:'Ma zone de surveillance', count:null, badge:null, action:null },
+            { icon:'settings',label:'Paramètres', count:null, badge:null, action:null },
+        ];
+        return (
+            <div style={{ flex:1, overflowY:'auto', paddingBottom:100, scrollbarWidth:'none' }}>
+                <div className="profile-header">
+                    <img src="https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=200&h=200&fit=crop" alt="Profil" className="profile-avatar"/>
+                    <h2 style={{ fontWeight:800, fontSize:18 }}>Sophie Martin</h2>
+                    <p style={{ opacity:0.7, fontSize:12, marginTop:3 }}>Yaoundé, Cameroun · Membre depuis 2024</p>
+                    <div className="profile-stat-row">
+                        <div className="profile-stat"><span>3</span><p>Signalements</p></div>
+                        <div className="profile-stat"><span>24</span><p>Soutiens</p></div>
+                        <div className="profile-stat"><span>1</span><p>Résolus</p></div>
+                    </div>
+                </div>
+                <div style={{ padding:'18px' }}>
+                    {menus.map((m,i) => (
+                        <div key={i} className="menu-item" onClick={m.action||undefined}>
+                            <div className="menu-item-left">
+                                <div style={{ width:38,height:38,borderRadius:12,background:m.icon==='sos'?'#FEF2F2':'#EFF6FF',display:'flex',alignItems:'center',justifyContent:'center' }}>
+                                    <Icon name={m.icon} size={18} color={m.icon==='sos'?'#DC2626':'#1A56DB'}/>
+                                </div>
+                                {m.label}
+                            </div>
+                            <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                                {m.count && <span style={{ background:'#1A56DB',color:'white',borderRadius:8,padding:'2px 8px',fontSize:11,fontWeight:700 }}>{m.count}</span>}
+                                {m.badge && <span style={{ background:'#FEF2F2',color:'#DC2626',borderRadius:8,padding:'2px 8px',fontSize:10,fontWeight:800 }}>{m.badge}</span>}
+                                <Icon name="chevron" size={16} color="#CBD5E1"/>
+                            </div>
+                        </div>
+                    ))}
+                    <button style={{ width:'100%',padding:'14px',background:'#FEF2F2',color:'#DC2626',border:'none',borderRadius:16,fontFamily:'inherit',fontWeight:700,fontSize:14,cursor:'pointer',marginTop:8 }}>
+                        Se déconnecter
+                    </button>
+                </div>
+            </div>
+        );
+    };
+
+    /* FORMULAIRE */
+    const SignalementForm = ({ onClose }) => {
+        const [cat, setCat] = useState('Personnes');
+        const cats = ['Personnes','Animaux','Biens'];
+        return (
+            <div className="form-modal">
+                <div className="form-header">
+                    <button className="back-btn" onClick={onClose}><Icon name="back" size={22} color="white"/></button>
+                    <div>
+                        <h2 style={{ fontWeight:800, fontSize:17 }}>Nouveau signalement</h2>
+                        <p style={{ opacity:0.75, fontSize:11 }}>Aidez la communauté à retrouver vos proches</p>
+                    </div>
+                </div>
+                <div className="form-body">
+                    <div className="form-field">
+                        <label>CATÉGORIE</label>
+                        <div className="cat-pills">{cats.map(c=><button key={c} className={`cat-pill ${cat===c?'active':''}`} onClick={()=>setCat(c)}>{c}</button>)}</div>
+                    </div>
+                    <div className="form-field"><label>NOM / DESCRIPTION</label><input type="text" placeholder="Ex : Amina Bello, 16 ans..."/></div>
+                    {cat==='Personnes' && <div className="form-field"><label>ÂGE</label><input type="number" placeholder="Ex : 16"/></div>}
+                    <div className="form-field"><label>LOCALISATION (région, ville, quartier)</label><input type="text" placeholder="Ex : Yaoundé, Bastos, Rue Kennedy..."/></div>
+                    <div className="form-field"><label>DESCRIPTION DÉTAILLÉE</label><textarea placeholder="Signes distinctifs, tenue, circonstances de la disparition..."></textarea></div>
+                    <div className="form-field"><label>MESSAGE AUX CHERCHEURS</label><textarea placeholder="Un mot pour motiver ceux qui cherchent. Apparaîtra sur votre annonce."></textarea></div>
+                    <div className="form-field"><label>PRIME / RÉCOMPENSE (optionnel)</label><input type="text" placeholder="Ex : 50 000 FCFA"/></div>
+                    <div className="form-field">
+                        <label>PHOTO</label>
+                        <div className="photo-upload-zone"><Icon name="photo" size={28} color="#CBD5E1"/><p style={{ marginTop:6,fontSize:12 }}>Appuyer pour ajouter une photo</p></div>
+                    </div>
+                    <div className="form-field"><label>CONTACT D'URGENCE</label><input type="tel" placeholder="+237 6 00 00 00 00"/></div>
+                    <button className="submit-btn">🚨 Publier le signalement</button>
+                </div>
+            </div>
+        );
+    };
+
+    /* APP */
+    const App = () => {
+        const [tab, setTab] = useState('home');
+        const [filter, setFilter] = useState(0);
+        const [geoFilter, setGeoFilter] = useState(0);
+        const [search, setSearch] = useState('');
+        const [showForm, setShowForm] = useState(false);
+        const [showSecurity, setShowSecurity] = useState(false);
+        const [detailPost, setDetailPost] = useState(null);
+
+        const visiblePosts = ALL_POSTS.filter(p => {
+            const catOk  = filter===0 || p.category===FILTERS[filter];
+            const geoOk  = geoFilter===0 || p.loc.toLowerCase().includes(GEO_FILTERS[geoFilter].toLowerCase());
+            const srchOk = search==='' || p.name.toLowerCase().includes(search.toLowerCase()) || p.loc.toLowerCase().includes(search.toLowerCase()) || p.desc.toLowerCase().includes(search.toLowerCase());
+            return catOk && geoOk && srchOk;
+        });
+
+        const navItems = [
+            { id:'home',  icon:'home',  label:'Accueil' },
+            { id:'msg',   icon:'chat',  label:'Messages' },
+            { id:'alert', icon:'bell',  label:'Alertes' },
+            { id:'user',  icon:'user',  label:'Profil' },
+        ];
+
+        const CommonHeader = ({ title, sub }) => (
+            <header style={{ padding:'46px 22px 18px', background:'#1A56DB', color:'white', flexShrink:0 }}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                    <div><h1 style={{ fontSize:20,fontWeight:800 }}>{title}</h1><p style={{ fontSize:11,opacity:0.8 }}>{sub}</p></div>
+                    <div style={{ width:42,height:42,borderRadius:14,background:'rgba(255,255,255,0.2)',display:'flex',alignItems:'center',justifyContent:'center' }}>
+                        <Icon name="bell" color="white" size={19}/>
+                    </div>
+                </div>
+            </header>
+        );
+
+        const renderContent = () => {
+            switch(tab) {
+                case 'msg':   return <><CommonHeader title="Messages" sub="Vos conversations"/><MessagesScreen/></>;
+                case 'alert': return <><CommonHeader title="Alertes" sub="Notifications récentes"/><AlertesScreen/></>;
+                case 'user':  return <><CommonHeader title="Mon Profil" sub="Yaoundé, Cameroun"/><ProfilScreen onOpenSecurity={()=>setShowSecurity(true)}/></>;
+                default: return (
+                    <>
+                        <header style={{ padding:'46px 20px 16px', background:'#1A56DB', color:'white', flexShrink:0 }}>
+                            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
+                                <div><h1 style={{ fontSize:20,fontWeight:800 }}>SOS Proches</h1><p style={{ fontSize:11,opacity:0.8 }}>Solidarité & Entraide</p></div>
+                                <div style={{ width:42,height:42,borderRadius:14,background:'rgba(255,255,255,0.2)',display:'flex',alignItems:'center',justifyContent:'center' }}>
+                                    <Icon name="bell" color="white" size={19}/>
+                                </div>
+                            </div>
+                            <div style={{ background:'rgba(255,255,255,0.15)',borderRadius:14,padding:'9px 14px',display:'flex',alignItems:'center',gap:8 }}>
+                                <Icon name="search" size={16} color="rgba(255,255,255,0.7)"/>
+                                <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Rechercher un nom, une ville..."
+                                    style={{ flex:1,border:'none',outline:'none',background:'transparent',color:'white',fontSize:13,fontFamily:'inherit' }}/>
+                            </div>
+                        </header>
+                        <div className="scroll-area">
+                            <div className="filters-row">
+                                {FILTERS.map((c,i)=>(
+                                    <button key={c} className="filter-chip" onClick={()=>setFilter(i)}
+                                        style={{ background:filter===i?'#1A56DB':'white', color:filter===i?'white':'#64748B' }}>{c}</button>
+                                ))}
+                            </div>
+                            <div className="geo-row">
+                                <span style={{ fontSize:11,fontWeight:700,color:'#94A3B8',alignSelf:'center',flexShrink:0,display:'flex',alignItems:'center',gap:4 }}>
+                                    <Icon name="map" size={11} color="#94A3B8"/> Zone :
+                                </span>
+                                {GEO_FILTERS.map((g,i)=>(
+                                    <button key={g} className={`geo-pill ${geoFilter===i?'active':''}`} onClick={()=>setGeoFilter(i)}>{g}</button>
+                                ))}
+                            </div>
+                            <p style={{ fontSize:11,color:'#94A3B8',fontWeight:600,marginBottom:12 }}>
+                                {visiblePosts.length} alerte{visiblePosts.length!==1?'s':''} trouvée{visiblePosts.length!==1?'s':''}
+                            </p>
+                            {visiblePosts.length > 0
+                                ? visiblePosts.map(p=><Post key={p.id} data={p} onOpen={()=>setDetailPost(p)}/>)
+                                : <div style={{ textAlign:'center',color:'#94A3B8',marginTop:50 }}>
+                                    <div style={{ fontSize:40,marginBottom:10 }}>🔍</div>
+                                    <p style={{ fontWeight:700,fontSize:14 }}>Aucune alerte trouvée</p>
+                                    <p style={{ fontSize:12,marginTop:4 }}>Essayez d'autres filtres ou une autre zone</p>
+                                  </div>
+                            }
+                        </div>
+                    </>
+                );
+            }
+        };
+
+        return (
+            <div className="app-shell">
+                {showForm     && <SignalementForm onClose={()=>setShowForm(false)}/>}
+                {showSecurity && <ProfilSecuriteModal onClose={()=>setShowSecurity(false)}/>}
+                {detailPost   && <DetailView data={detailPost} onClose={()=>setDetailPost(null)}/>}
+
+                <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
+                    {renderContent()}
+                </div>
+
+                <nav className="nav-bar">
+                    {navItems.slice(0,2).map(item=>(
+                        <div key={item.id} className="nav-item" onClick={()=>setTab(item.id)} style={{ opacity:tab===item.id?1:0.4 }}>
+                            <Icon name={item.icon} color={tab===item.id?'#1A56DB':'#64748B'}/>
+                            <p style={{ color:tab===item.id?'#1A56DB':'#64748B' }}>{item.label}</p>
+                        </div>
+                    ))}
+                    <div className="sos-btn-container">
+                        <button className="sos-circle" onClick={()=>setShowForm(true)}><Icon name="plus" size={30} color="white"/></button>
+                        <span className="sos-label">SIGNALER</span>
+                    </div>
+                    {navItems.slice(2).map(item=>(
+                        <div key={item.id} className="nav-item" onClick={()=>setTab(item.id)} style={{ opacity:tab===item.id?1:0.4 }}>
+                            <Icon name={item.icon} color={tab===item.id?'#1A56DB':'#64748B'}/>
+                            <p style={{ color:tab===item.id?'#1A56DB':'#64748B' }}>{item.label}</p>
+                        </div>
+                    ))}
+                </nav>
+            </div>
+        );
+    };
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>

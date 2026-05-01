@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CloneX — Studio de jeux & apps mobiles</title>
+<meta name="description" content="CloneX cree des jeux et applications mobiles immersives. Decouvrez nos creations et telechargez-les directement.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════
+   CLONEX — Site Vitrine
+   Style: Dark gaming studio
+══════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#0a0a0f;
+  --bg2:#12121a;
+  --surface:#1a1a26;
+  --border:#2a2a3a;
+  --text:#e8e8f0;
+  --text2:#8888a0;
+  --accent:#7c3aed;
+  --accent2:#a855f7;
+  --accent-glow:rgba(124,58,237,.25);
+  --green:#22c55e;
+  --orange:#f97316;
+  --cyan:#06b6d4;
+  --pink:#ec4899;
+  --gold:#f5c518;
+  --radius:16px;
+}
+
+/* ── MODE CLAIR ── */
+body.light{
+  --bg:#f5f5f8;
+  --bg2:#eeeef2;
+  --surface:#ffffff;
+  --border:#d8d8e0;
+  --text:#1a1a2e;
+  --text2:#6b6b80;
+  --accent:#7c3aed;
+  --accent2:#9333ea;
+  --accent-glow:rgba(124,58,237,.12);
+  --green:#16a34a;
+  --orange:#ea580c;
+  --cyan:#0891b2;
+  --pink:#db2777;
+  --gold:#d97706;
+}
+body.light nav{background:rgba(245,245,248,.9)}
+body.light .app-thumb.tetroid{background:linear-gradient(135deg,#c4b5fd,#a78bfa)}
+body.light .app-thumb.blockblast{background:linear-gradient(135deg,#bfdbfe,#93c5fd)}
+body.light .app-thumb.bounce{background:linear-gradient(135deg,#a7f3d0,#6ee7b7)}
+body.light .app-thumb.pharmadroid{background:linear-gradient(135deg,#c7d2fe,#a5b4fc)}
+body.light .app-thumb.sequoia{background:linear-gradient(135deg,#e7e5e4,#d6d3d1)}
+body.light .app-thumb.dailynote{background:linear-gradient(135deg,#fef3c7,#fde68a);color:#78350f}
+
+html{scroll-behavior:smooth}
+body{
+  font-family:'Inter',system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.6;
+  overflow-x:hidden;
+}
+
+/* ── NAV ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  padding:16px 24px;
+  background:rgba(10,10,15,.85);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.logo{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:1.6rem;font-weight:700;
+  background:linear-gradient(135deg,var(--accent2),var(--cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  letter-spacing:-1px;
+}
+.logo span{opacity:.5;font-size:.8rem;letter-spacing:2px;-webkit-text-fill-color:var(--text2)}
+.nav-links{display:flex;gap:24px;list-style:none}
+.nav-links a{
+  color:var(--text2);text-decoration:none;font-size:.85rem;font-weight:600;
+  transition:color .2s;
+}
+.nav-links a:hover{color:var(--text)}
+.theme-toggle{
+  width:38px;height:38px;border-radius:50%;
+  background:var(--surface);border:1.5px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:1.1rem;
+  transition:transform .15s,background .2s;
+  flex-shrink:0;
+}
+.theme-toggle:hover{transform:scale(1.1)}
+.theme-toggle:active{transform:scale(.95)}
+
+/* ── HERO ── */
+.hero{
+  min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;
+  padding:120px 24px 80px;
+  position:relative;
+  overflow:hidden;
+}
+.hero::before{
+  content:'';position:absolute;top:-200px;left:50%;transform:translateX(-50%);
+  width:800px;height:800px;
+  background:radial-gradient(circle,var(--accent-glow) 0%,transparent 70%);
+  pointer-events:none;
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:8px 16px;border-radius:50px;
+  background:var(--surface);border:1px solid var(--border);
+  font-size:.8rem;font-weight:600;color:var(--accent2);
+  margin-bottom:24px;
+}
+.hero-badge::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+.hero h1{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:clamp(2.5rem,7vw,5rem);
+  font-weight:700;line-height:1.05;
+  letter-spacing:-2px;
+  margin-bottom:20px;
+}
+.hero h1 .gradient{
+  background:linear-gradient(135deg,var(--accent2),var(--cyan),var(--pink));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.hero p{
+  font-size:clamp(1rem,2.5vw,1.25rem);
+  color:var(--text2);max-width:560px;margin-bottom:40px;
+}
+.hero-cta{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:14px 32px;border-radius:50px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff;font-weight:700;font-size:1rem;
+  text-decoration:none;
+  box-shadow:0 4px 24px var(--accent-glow);
+  transition:transform .15s,box-shadow .15s;
+}
+.hero-cta:hover{transform:translateY(-2px);box-shadow:0 8px 32px var(--accent-glow)}
+
+/* ── STATS ── */
+.stats{
+  display:flex;justify-content:center;gap:48px;flex-wrap:wrap;
+  padding:60px 24px;
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  background:var(--bg2);
+}
+.stat{text-align:center}
+.stat-num{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:clamp(2rem,5vw,3rem);font-weight:700;
+  background:linear-gradient(135deg,var(--gold),var(--orange));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.stat-label{font-size:.85rem;color:var(--text2);font-weight:600;margin-top:4px}
+
+/* ── SECTION TITLES ── */
+.section{padding:80px 24px;max-width:1200px;margin:0 auto}
+.section-title{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:clamp(1.8rem,4vw,2.5rem);
+  font-weight:700;letter-spacing:-1px;
+  margin-bottom:12px;
+}
+.section-sub{color:var(--text2);font-size:1rem;margin-bottom:48px;max-width:500px}
+
+/* ── APP CARDS ── */
+.apps-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+  gap:24px;
+}
+.app-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  overflow:hidden;
+  transition:transform .2s,box-shadow .2s;
+  position:relative;
+}
+.app-card:hover{
+  transform:translateY(-4px);
+  box-shadow:0 12px 40px rgba(0,0,0,.4);
+}
+.app-thumb{
+  width:100%;height:200px;
+  object-fit:cover;
+  display:flex;align-items:center;justify-content:center;
+  font-size:4rem;
+  position:relative;
+}
+.app-thumb.tetroid{background:linear-gradient(135deg,#1a1a4e,#2d1b6e)}
+.app-thumb.blockblast{background:linear-gradient(135deg,#0f172a,#1e3a5f)}
+.app-thumb.bounce{background:linear-gradient(135deg,#064e3b,#065f46)}
+.app-thumb.pharmadroid{background:linear-gradient(135deg,#1e1b4b,#312e81)}
+.app-thumb.sequoia{background:linear-gradient(135deg,#1c1917,#44403c)}
+.app-thumb.dailynote{background:linear-gradient(135deg,#fef3c7,#f59e0b);color:#78350f}
+
+.app-badge{
+  position:absolute;top:12px;right:12px;
+  padding:4px 10px;border-radius:50px;
+  font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;
+}
+.badge-live{background:var(--green);color:#000}
+.badge-soon{background:var(--orange);color:#000}
+.badge-dev{background:var(--border);color:var(--text2)}
+
+.app-body{padding:20px}
+.app-name{font-weight:700;font-size:1.15rem;margin-bottom:4px}
+.app-cat{font-size:.75rem;color:var(--accent2);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.app-desc{font-size:.85rem;color:var(--text2);margin-bottom:16px;line-height:1.5}
+.app-actions{display:flex;gap:10px;flex-wrap:wrap}
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:10px 20px;border-radius:50px;
+  font-size:.8rem;font-weight:700;
+  text-decoration:none;
+  transition:transform .1s,opacity .15s;
+  border:none;cursor:pointer;
+}
+.btn:active{transform:scale(.96)}
+.btn-primary{
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff;
+}
+.btn-outline{
+  background:transparent;
+  border:1.5px solid var(--border);
+  color:var(--text);
+}
+.btn-outline:hover{border-color:var(--accent2);color:var(--accent2)}
+.btn-disabled{opacity:.4;pointer-events:none}
+
+/* ── ABOUT ── */
+.about{
+  background:var(--bg2);
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+}
+.about-content{
+  display:flex;gap:48px;align-items:center;flex-wrap:wrap;
+}
+.about-text{flex:1;min-width:280px}
+.about-text h3{font-size:1.3rem;margin-bottom:12px}
+.about-text p{color:var(--text2);font-size:.95rem;margin-bottom:12px}
+.about-visual{
+  flex:0 0 280px;height:280px;
+  border-radius:var(--radius);
+  background:linear-gradient(135deg,var(--accent),var(--cyan));
+  display:flex;align-items:center;justify-content:center;
+  font-size:6rem;
+}
+
+/* ── FOOTER ── */
+footer{
+  padding:40px 24px;text-align:center;
+  border-top:1px solid var(--border);
+  color:var(--text2);font-size:.8rem;
+}
+footer a{color:var(--accent2);text-decoration:none}
+
+/* ── RESPONSIVE ── */
+@media(max-width:640px){
+  .nav-links{display:none}
+  .stats{gap:24px}
+  .about-visual{display:none}
+  .apps-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">CloneX <span>STUDIO</span></div>
+  <div style="display:flex;align-items:center;gap:20px">
+    <ul class="nav-links">
+      <li><a href="#apps">Nos Apps</a></li>
+      <li><a href="#about">A propos</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Changer de theme">🌙</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge"><span>Studio indie actif</span></div>
+  <h1>Des experiences<br><span class="gradient">mobiles immersives.</span></h1>
+  <p>CloneX est un studio independant qui concoit des jeux et applications mobiles innovantes. Jouez, explorez et telechargez directement.</p>
+  <a href="#apps" class="hero-cta">Decouvrir nos apps ↓</a>
+</section>
+
+<!-- STATS -->
+<section class="stats">
+  <div class="stat">
+    <div class="stat-num">6</div>
+    <div class="stat-label">Applications</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">12</div>
+    <div class="stat-label">Langues supportees</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">100%</div>
+    <div class="stat-label">Gratuit</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">PWA</div>
+    <div class="stat-label">Installable sur mobile</div>
+  </div>
+</section>
+
+<!-- APPS -->
+<section class="section" id="apps">
+  <h2 class="section-title">Nos applications</h2>
+  <p class="section-sub">Des jeux immersifs aux outils du quotidien. Testez dans le navigateur ou installez en un clic.</p>
+
+  <div class="apps-grid">
+
+    <!-- TETROID -->
+    <div class="app-card">
+      <div class="app-thumb tetroid">
+        <span class="app-badge badge-live">En ligne</span>
+        🧱
+      </div>
+      <div class="app-body">
+        <div class="app-cat">Jeu Arcade / Puzzle</div>
+        <div class="app-name">TETROID</div>
+        <div class="app-desc">Le Tetris nouvelle generation. 4 boosters devastateurs, classement mondial, roue de la fortune et 12 langues. Deviendras-tu Divin ?</div>
+        <div class="app-actions">
+          <a href="tetroid.html" class="btn btn-primary">▶ Jouer</a>
+          <a href="tetroid.html?install=1" class="btn btn-outline">Telecharger</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- BLOCK BLAST ROYAL -->
+    <div class="app-card">
+      <div class="app-thumb blockblast">
+        <span class="app-badge badge-soon">Bientot</span>
+        💥
+      </div>
+      <div class="app-body">
+        <div class="app-cat">Jeu Puzzle / Strategie</div>
+        <div class="app-name">Block Blast Royal</div>
+        <div class="app-desc">Un puzzle de blocs explosif ou chaque placement compte. Enchaine les combos et grimpe dans le classement.</div>
+        <div class="app-actions">
+          <a href="block-blast-royal.html" class="btn btn-primary">▶ Jouer</a>
+          <a href="#" class="btn btn-outline btn-disabled">Bientot</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOUNCE -->
+    <div class="app-card">
+      <div class="app-thumb bounce">
+        <span class="app-badge badge-soon">Bientot</span>
+        🏀
+      </div>
+      <div class="app-body">
+        <div class="app-cat">Jeu Arcade / Adresse</div>
+        <div class="app-name">Bounce</div>
+        <div class="app-desc">Fais rebondir la balle a travers des niveaux de plus en plus complexes. Reflexes et precision sont tes meilleurs allies.</div>
+        <div class="app-actions">
+          <a href="bounce-v4.html" class="btn btn-primary">▶ Jouer</a>
+          <a href="#" class="btn btn-outline btn-disabled">Bientot</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHARMADROID -->
+    <div class="app-card">
+      <div class="app-thumb pharmadroid">
+        <span class="app-badge badge-soon">Bientot</span>
+        💊
+      </div>
+      <div class="app-body">
+        <div class="app-cat">Application / Sante</div>
+        <div class="app-name">PharmaDroid</div>
+        <div class="app-desc">Ton assistant pharmacie intelligent. Recherche de medicaments, interactions, posologies et alertes personnalisees.</div>
+        <div class="app-actions">
+          <a href="pharmadroid.html" class="btn btn-primary">▶ Ouvrir</a>
+          <a href="#" class="btn btn-outline btn-disabled">Bientot</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEQUOIA -->
+    <div class="app-card">
+      <div class="app-thumb sequoia">
+        <span class="app-badge badge-soon">Bientot</span>
+        🌲
+      </div>
+      <div class="app-body">
+        <div class="app-cat">Application / Productivite</div>
+        <div class="app-name">Sequoia</div>
+        <div class="app-desc">Une application pensee pour t'aider a organiser, planifier et atteindre tes objectifs au quotidien.</div>
+        <div class="app-actions">
+          <a href="sequoia.html" class="btn btn-primary">▶ Ouvrir</a>
+          <a href="#" class="btn btn-outline btn-disabled">Bientot</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- DAILYNOTE -->
+    <div class="app-card">
+      <div class="app-thumb dailynote">
+        <span class="app-badge badge-dev">En dev</span>
+        📝
+      </div>
+      <div class="app-body">
+        <div class="app-cat">Application / Notes</div>
+        <div class="app-name">DailyNote</div>
+        <div class="app-desc">Capture tes pensees, idees et to-do lists chaque jour. Simple, rapide, elegant — un journal quotidien numerique.</div>
+        <div class="app-actions">
+          <a href="#" class="btn btn-primary btn-disabled">▶ Bientot</a>
+          <a href="#" class="btn btn-outline btn-disabled">Bientot</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="about" id="about">
+  <div class="section" style="padding-top:60px;padding-bottom:60px">
+    <div class="about-content">
+      <div class="about-text">
+        <h3>A propos de CloneX</h3>
+        <p>CloneX est un studio independant passionne par la creation de jeux et d'applications mobiles. Notre mission : concevoir des experiences immersives, utiles et accessibles a tous.</p>
+        <p>Toutes nos applications sont disponibles gratuitement en tant que PWA — installables directement depuis le navigateur, sans passer par un store. Les versions Play Store arrivent bientot.</p>
+        <p style="color:var(--accent2);font-weight:600">Made with ❤ and a lot of code.</p>
+      </div>
+      <div class="about-visual">🎮</div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer id="contact">
+  <p>&copy; 2026 CloneX Studio. Tous droits reserves.</p>
+  <p style="margin-top:8px">
+    <a href="https://github.com/land-lang-120">GitHub</a> &nbsp;·&nbsp;
+    Contact : <a href="mailto:landonjouajosephpino120@gmail.com">landonjouajosephpino120@gmail.com</a>
+  </p>
+</footer>
+
+<div id="cx-toast" style="
+  position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);
+  background:var(--surface);border:1px solid var(--border);
+  color:var(--text);padding:12px 24px;border-radius:50px;
+  font-size:.85rem;font-weight:600;z-index:200;
+  box-shadow:0 8px 32px rgba(0,0,0,.3);
+  transition:transform .3s ease,opacity .3s ease;opacity:0;pointer-events:none;
+"></div>
+
+<script>
+// ── Toast notification ──
+function showCxToast(msg, duration=3500){
+  const t = document.getElementById('cx-toast');
+  t.textContent = msg;
+  t.style.transform = 'translateX(-50%) translateY(0)';
+  t.style.opacity = '1';
+  clearTimeout(t._tid);
+  t._tid = setTimeout(()=>{
+    t.style.transform = 'translateX(-50%) translateY(80px)';
+    t.style.opacity = '0';
+  }, duration);
+}
+
+// ── PWA Install ──
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+});
+
+function installApp(url){
+  // Ouvrir la page de l'app avec le flag install=1
+  // L'app detectera ce flag et declenchera le prompt d'installation
+  window.location.href = url + '?install=1';
+}
+
+// ── Theme toggle (clair/sombre) ──
+(function(){
+  const btn = document.getElementById('theme-toggle');
+  const saved = localStorage.getItem('clonex_theme');
+  if(saved === 'light'){
+    document.body.classList.add('light');
+    btn.textContent = '☀️';
+  }
+  btn.addEventListener('click', ()=>{
+    document.body.classList.toggle('light');
+    const isLight = document.body.classList.contains('light');
+    btn.textContent = isLight ? '☀️' : '🌙';
+    localStorage.setItem('clonex_theme', isLight ? 'light' : 'dark');
+  });
+})();
+</script>
+</body>
+</html>

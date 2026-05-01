@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Pharmadroid</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --green:#00A86B;--green-dark:#007A4D;--green-light:#E6F7F1;--green-mid:#B3E8D4;
+  --white:#FFFFFF;--grey-50:#F8FAFB;--grey-100:#F0F4F7;--grey-200:#DDE4EC;
+  --grey-400:#9AAAB8;--grey-600:#5A6B7A;--grey-800:#1E2D3A;
+  --red:#FF4757;--orange:#FF6B35;--blue:#4F80FF;--purple:#8B5CF6;--yellow:#FFB800;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif;background:var(--white);}
+
+/* SPLASH */
+#splash{position:fixed;inset:0;z-index:200;background:linear-gradient(160deg,#007A4D 0%,#00A86B 55%,#00C97D 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;animation:splashExit 0.6s ease 2.6s forwards;}
+@keyframes splashExit{to{opacity:0;pointer-events:none;transform:scale(1.04);}}
+.splash-logo{width:140px;height:140px;animation:logoIn 0.7s cubic-bezier(0.34,1.56,0.64,1) 0.3s both;}
+@keyframes logoIn{from{opacity:0;transform:scale(0.4) rotate(-20deg);}to{opacity:1;transform:scale(1) rotate(0);}}
+.splash-name{color:white;font-size:34px;font-weight:800;margin-top:18px;letter-spacing:-0.5px;animation:fadeUp 0.6s ease 0.9s both;}
+.splash-tagline{color:rgba(255,255,255,0.72);font-size:14px;margin-top:7px;animation:fadeUp 0.6s ease 1.1s both;}
+.splash-dots{position:absolute;bottom:48px;display:flex;gap:8px;animation:fadeUp 0.5s ease 1.3s both;}
+.dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.35);}
+.dot.active{background:white;width:22px;border-radius:3px;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+
+/* APP */
+#app{position:fixed;inset:0;display:flex;flex-direction:column;background:var(--grey-100);animation:appIn 0.5s ease 3s both;opacity:0;}
+@keyframes appIn{to{opacity:1;}}
+
+/* STATUS BAR */
+.status-bar{height:44px;background:white;display:flex;align-items:center;justify-content:space-between;padding:0 22px;flex-shrink:0;}
+.status-time{font-size:15px;font-weight:600;color:var(--grey-800);}
+.status-icons{display:flex;gap:6px;align-items:center;}
+
+/* SCREENS */
+.screens{flex:1;overflow:hidden;position:relative;}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;transform:translateX(24px);transition:opacity 0.28s ease,transform 0.28s ease;overflow:hidden;}
+.screen.active{opacity:1;pointer-events:all;transform:translateX(0);}
+
+/* BOTTOM NAV */
+.bottom-nav{background:white;border-top:1.5px solid var(--grey-200);display:flex;align-items:center;justify-content:space-around;padding:10px 0 18px;flex-shrink:0;transition:opacity 0.2s,transform 0.2s;}
+.bottom-nav.hidden{opacity:0;pointer-events:none;transform:translateY(100%);}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:2px 12px;user-select:none;}
+.nav-label{font-size:10px;font-weight:600;color:var(--grey-400);transition:color 0.2s;}
+.nav-item.active .nav-label{color:var(--green);}
+.nav-dot{width:4px;height:4px;border-radius:50%;background:var(--green);margin-top:1px;}
+.scan-fab{width:52px;height:52px;border-radius:18px;background:linear-gradient(135deg,#00C97D,#007A4D);display:flex;align-items:center;justify-content:center;margin-top:-20px;box-shadow:0 6px 20px rgba(0,168,107,0.45);cursor:pointer;}
+
+/* SHARED */
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.scroll::-webkit-scrollbar{display:none;}
+.section-hd{display:flex;align-items:center;justify-content:space-between;padding:18px 22px 10px;}
+.section-title{font-size:16px;font-weight:700;color:var(--grey-800);}
+.section-link{font-size:13px;font-weight:600;color:var(--green);cursor:pointer;}
+
+/* HOME */
+.home-header{background:white;padding:14px 22px 18px;flex-shrink:0;box-shadow:0 1px 0 var(--grey-200);}
+.home-header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.greeting-sub{font-size:12px;color:var(--grey-400);font-weight:500;}
+.greeting-name{font-size:21px;font-weight:800;color:var(--grey-800);margin-top:2px;}
+.header-actions{display:flex;gap:10px;}
+.icon-btn{width:42px;height:42px;border-radius:14px;background:var(--grey-100);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;}
+.notif-badge{position:absolute;top:8px;right:9px;width:8px;height:8px;border-radius:50%;background:var(--red);border:2px solid white;}
+.avatar{width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,#00A86B,#007A4D);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:16px;cursor:pointer;}
+.search-bar{display:flex;align-items:center;gap:10px;background:var(--grey-100);border-radius:14px;padding:11px 14px;cursor:pointer;}
+.search-bar input{flex:1;border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--grey-800);outline:none;cursor:pointer;pointer-events:none;}
+.search-bar input::placeholder{color:var(--grey-400);}
+.search-filter{width:30px;height:30px;border-radius:9px;background:var(--green);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.banner{margin:0 22px;background:linear-gradient(135deg,var(--green-dark) 0%,var(--green) 100%);border-radius:20px;padding:20px;position:relative;overflow:hidden;cursor:pointer;}
+.banner-bg{position:absolute;right:-10px;top:-10px;width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,0.07);}
+.banner-bg2{position:absolute;right:28px;bottom:-20px;width:70px;height:70px;border-radius:50%;background:rgba(255,255,255,0.05);}
+.banner-tag{background:rgba(255,255,255,0.2);color:white;font-size:10px;font-weight:700;letter-spacing:1px;padding:4px 10px;border-radius:20px;display:inline-block;text-transform:uppercase;margin-bottom:10px;}
+.banner-title{color:white;font-size:18px;font-weight:800;line-height:1.3;margin-bottom:5px;}
+.banner-sub{color:rgba(255,255,255,0.72);font-size:12px;}
+.banner-btn{margin-top:15px;background:white;color:var(--green-dark);border:none;border-radius:11px;padding:10px 20px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;display:inline-block;}
+.pharmacy-list{display:flex;flex-direction:column;gap:10px;padding:0 22px;}
+.pharmacy-card{background:white;border-radius:16px;border:1.5px solid var(--grey-200);padding:14px;display:flex;gap:13px;align-items:center;cursor:pointer;}
+.pharma-icon{width:52px;height:52px;border-radius:14px;background:var(--green-light);flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.pharma-info{flex:1;min-width:0;}
+.pharma-name{font-size:14px;font-weight:700;color:var(--grey-800);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pharma-address{font-size:12px;color:var(--grey-400);margin-top:2px;}
+.pharma-meta{display:flex;align-items:center;gap:8px;margin-top:7px;}
+.pharma-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;}
+.badge-open{background:#E6F7F1;color:var(--green-dark);}
+.badge-closed{background:#FFE8E8;color:var(--red);}
+.pharma-dist{font-size:11px;color:var(--grey-400);font-weight:500;}
+.pharma-rating{margin-left:auto;display:flex;align-items:center;gap:3px;font-size:12px;font-weight:700;color:var(--grey-800);}
+
+/* MAP */
+.map-container{flex:1;position:relative;overflow:hidden;}
+.map-bg{position:absolute;inset:0;background:linear-gradient(145deg,#d4e8d0 0%,#c8dfc4 30%,#b8d4b4 60%,#cce0cc 100%);}
+.map-road{position:absolute;background:white;border-radius:4px;opacity:0.7;}
+.road-h1{top:38%;left:0;right:0;height:10px;transform:rotate(-2deg);}
+.road-h2{top:62%;left:0;right:0;height:7px;}
+.road-v1{top:0;bottom:0;left:35%;width:8px;transform:rotate(1deg);}
+.road-v2{top:0;bottom:0;left:65%;width:6px;}
+.map-label{position:absolute;background:rgba(255,255,255,0.85);font-size:9px;font-weight:700;color:var(--grey-600);padding:2px 6px;border-radius:4px;text-transform:uppercase;}
+.map-pin{position:absolute;display:flex;flex-direction:column;align-items:center;cursor:pointer;transform:translate(-50%,-100%);}
+.pin-bubble{background:var(--green);border-radius:12px 12px 12px 2px;padding:6px 10px;box-shadow:0 4px 12px rgba(0,168,107,0.35);white-space:nowrap;transition:transform 0.2s;}
+.pin-bubble.closed{background:var(--grey-600);}
+.pin-bubble.sel{background:var(--green-dark);transform:scale(1.08);}
+.pin-name{font-size:10px;font-weight:700;color:white;}
+.pin-tail{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;}
+.pt-green{border-top:6px solid var(--green);}
+.pt-grey{border-top:6px solid var(--grey-600);}
+.pt-dark{border-top:6px solid var(--green-dark);}
+.user-pin{position:absolute;width:18px;height:18px;background:var(--blue);border-radius:50%;border:3px solid white;box-shadow:0 2px 8px rgba(79,128,255,0.5);transform:translate(-50%,-50%);}
+.user-pulse{position:absolute;width:40px;height:40px;background:rgba(79,128,255,0.2);border-radius:50%;transform:translate(-50%,-50%);animation:pulse 2s ease-out infinite;}
+@keyframes pulse{0%{transform:translate(-50%,-50%) scale(0.5);opacity:1}100%{transform:translate(-50%,-50%) scale(2);opacity:0}}
+.map-search{position:absolute;top:16px;left:16px;right:16px;z-index:5;background:white;border-radius:14px;padding:11px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 20px rgba(0,0,0,0.12);}
+.map-search input{flex:1;border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--grey-800);outline:none;}
+.map-search input::placeholder{color:var(--grey-400);}
+.map-filters{position:absolute;top:72px;left:16px;right:16px;z-index:5;display:flex;gap:8px;overflow-x:auto;}
+.map-filters::-webkit-scrollbar{display:none;}
+.filter-chip{flex-shrink:0;background:white;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--grey-600);box-shadow:0 2px 8px rgba(0,0,0,0.1);cursor:pointer;border:none;font-family:'Plus Jakarta Sans',sans-serif;}
+.filter-chip.active{background:var(--green);color:white;}
+.map-bottom-sheet{position:absolute;bottom:0;left:0;right:0;z-index:5;background:white;border-radius:20px 20px 0 0;padding:12px 22px 20px;box-shadow:0 -4px 20px rgba(0,0,0,0.1);}
+.sheet-handle{width:36px;height:4px;background:var(--grey-200);border-radius:2px;margin:0 auto 16px;}
+.sheet-title{font-size:14px;font-weight:700;color:var(--grey-800);margin-bottom:12px;}
+.sheet-cards{display:flex;gap:12px;overflow-x:auto;padding-bottom:4px;}
+.sheet-cards::-webkit-scrollbar{display:none;}
+.sheet-card{flex-shrink:0;width:190px;background:var(--grey-50);border-radius:14px;padding:12px;cursor:pointer;border:1.5px solid var(--grey-200);}
+.sheet-card.sel{border-color:var(--green);background:var(--green-light);}
+.sc-name{font-size:13px;font-weight:700;color:var(--grey-800);}
+.sc-addr{font-size:11px;color:var(--grey-400);margin-top:2px;}
+.sc-meta{display:flex;align-items:center;gap:6px;margin-top:8px;}
+.sc-btn{margin-top:10px;width:100%;background:var(--green);color:white;border:none;border-radius:10px;padding:9px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
+
+/* PHARMACY PROFILE */
+#screen-pharma{overflow:hidden;}
+.pharma-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.pharma-scroll::-webkit-scrollbar{display:none;}
+.pharma-cover{height:200px;position:relative;overflow:hidden;flex-shrink:0;background:linear-gradient(160deg,#1a4a32 0%,#2d7a50 40%,#1f5c3e 70%,#0d3320 100%);}
+.pharma-cover::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 120px 80px at 50% 110%,rgba(0,168,107,0.4) 0%,transparent 70%),linear-gradient(to bottom,transparent 50%,rgba(0,0,0,0.3) 100%);}
+.cover-sign{position:absolute;bottom:40px;left:50%;transform:translateX(-50%);background:rgba(0,168,107,0.9);border-radius:8px;padding:8px 20px;display:flex;align-items:center;gap:8px;box-shadow:0 4px 16px rgba(0,0,0,0.3);white-space:nowrap;}
+.cover-sign-name{color:white;font-size:12px;font-weight:800;}
+.cover-back{position:absolute;top:14px;left:16px;width:36px;height:36px;border-radius:12px;background:rgba(0,0,0,0.35);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.cover-actions{position:absolute;top:14px;right:16px;display:flex;gap:8px;}
+.cover-btn{width:36px;height:36px;border-radius:12px;background:rgba(0,0,0,0.35);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.pharma-logo-anchor{position:relative;height:36px;background:white;}
+.pharma-logo-big{position:absolute;top:-36px;left:22px;width:72px;height:72px;border-radius:22px;background:white;border:3px solid white;box-shadow:0 6px 20px rgba(0,0,0,0.18);display:flex;align-items:center;justify-content:center;z-index:5;}
+.pharma-meta-bar{background:white;padding:0 22px 16px;border-bottom:1px solid var(--grey-200);}
+.pharma-badge-row{display:flex;align-items:center;justify-content:flex-end;height:36px;}
+.pharma-open-badge{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;}
+.pharma-name-big{font-size:20px;font-weight:800;color:var(--grey-800);margin-top:10px;}
+.pharma-addr-big{font-size:13px;color:var(--grey-400);margin-top:4px;display:flex;align-items:center;gap:4px;}
+.pharma-stats-row{display:flex;background:var(--grey-50);border-radius:14px;overflow:hidden;margin-top:14px;}
+.pstat-item{flex:1;padding:12px 8px;text-align:center;border-right:1px solid var(--grey-200);}
+.pstat-item:last-child{border-right:none;}
+.pstat-val{font-size:15px;font-weight:800;color:var(--grey-800);}
+.pstat-key{font-size:10px;font-weight:600;color:var(--grey-400);margin-top:2px;text-transform:uppercase;letter-spacing:0.3px;}
+.pharma-tabs-sticky{position:sticky;top:0;z-index:10;display:flex;background:white;padding:0 22px;border-bottom:1.5px solid var(--grey-200);box-shadow:0 1px 8px rgba(0,0,0,0.06);}
+.ptab{flex:1;padding:12px 0;text-align:center;font-size:13px;font-weight:600;color:var(--grey-400);cursor:pointer;border-bottom:2.5px solid transparent;transition:all 0.2s;}
+.ptab.active{color:var(--green);border-bottom-color:var(--green);}
+
+/* PRODUCTS */
+.products-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px 16px 120px;}
+.product-card{background:white;border-radius:16px;padding:14px;cursor:pointer;border:1.5px solid var(--grey-200);}
+.prod-img{height:80px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;}
+.prod-name{font-size:13px;font-weight:700;color:var(--grey-800);line-height:1.3;}
+.prod-dci{font-size:11px;color:var(--grey-400);margin-top:2px;}
+.prod-footer{display:flex;align-items:center;justify-content:space-between;margin-top:10px;}
+.prod-price{font-size:14px;font-weight:800;color:var(--green);}
+.prod-add{width:28px;height:28px;border-radius:9px;background:var(--green);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+
+/* PHARMA INFO TAB */
+.pharma-info-list{padding:16px 22px 100px;display:flex;flex-direction:column;gap:10px;}
+.info-card{background:white;border-radius:14px;padding:14px 16px;}
+.info-card-title{font-size:12px;font-weight:700;color:var(--grey-400);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;}
+.info-row2{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--grey-100);}
+.info-row2:last-child{border-bottom:none;}
+.ir2-key{font-size:13px;color:var(--grey-400);flex:1;}
+.ir2-val{font-size:13px;font-weight:600;color:var(--grey-800);}
+
+/* REVIEWS */
+.reviews-list{padding:16px 22px 100px;display:flex;flex-direction:column;gap:10px;}
+.review-card{background:white;border-radius:14px;padding:14px 16px;}
+.rc-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.rc-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#00A86B,#007A4D);display:flex;align-items:center;justify-content:center;color:white;font-size:14px;font-weight:700;flex-shrink:0;}
+.rc-name{font-size:13px;font-weight:700;color:var(--grey-800);}
+.rc-date{font-size:11px;color:var(--grey-400);}
+.rc-stars{display:flex;gap:2px;margin-left:auto;}
+.rc-text{font-size:13px;color:var(--grey-600);line-height:1.55;}
+
+/* FLOATING CART */
+.cart-fab{position:absolute;bottom:20px;left:22px;right:22px;z-index:20;background:var(--green-dark);border-radius:18px;padding:14px 18px;display:flex;align-items:center;gap:12px;cursor:pointer;box-shadow:0 8px 28px rgba(0,122,77,0.45);opacity:0;transform:translateY(80px);pointer-events:none;transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1),opacity 0.3s;}
+.cart-fab.visible{opacity:1;transform:translateY(0);pointer-events:all;}
+.cart-badge{width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;position:relative;}
+.cart-count{position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:white;border:2px solid var(--green-dark);}
+.cart-label{flex:1;}
+.cart-items-text{color:rgba(255,255,255,0.8);font-size:11px;}
+.cart-total{color:white;font-size:16px;font-weight:800;}
+.cart-checkout-btn{background:white;color:var(--green-dark);border:none;border-radius:12px;padding:10px 16px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap;}
+
+/* CART DRAWER */
+.cart-drawer{position:absolute;inset:0;z-index:30;background:rgba(30,45,58,0.5);display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity 0.3s;}
+.cart-drawer.open{opacity:1;pointer-events:all;}
+.cart-sheet{background:white;border-radius:24px 24px 0 0;width:100%;padding:12px 22px 32px;max-height:80%;overflow-y:auto;transform:translateY(100%);transition:transform 0.35s cubic-bezier(0.32,0.72,0,1);}
+.cart-sheet::-webkit-scrollbar{display:none;}
+.cart-drawer.open .cart-sheet{transform:translateY(0);}
+.drawer-handle{width:36px;height:4px;background:var(--grey-200);border-radius:2px;margin:0 auto 20px;}
+.drawer-title{font-size:18px;font-weight:800;color:var(--grey-800);margin-bottom:16px;}
+.cart-line{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--grey-100);}
+.cart-line:last-of-type{border-bottom:none;}
+.cl-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.cl-info{flex:1;}
+.cl-name{font-size:13px;font-weight:700;color:var(--grey-800);}
+.cl-unit{font-size:12px;color:var(--grey-400);}
+.cl-qty{display:flex;align-items:center;gap:8px;}
+.qty-btn{width:26px;height:26px;border-radius:8px;background:var(--grey-100);border:none;cursor:pointer;font-size:16px;color:var(--grey-800);font-weight:700;display:flex;align-items:center;justify-content:center;}
+.qty-val{font-size:14px;font-weight:700;color:var(--grey-800);min-width:20px;text-align:center;}
+.cl-price{font-size:14px;font-weight:700;color:var(--green);margin-left:auto;}
+.cart-summary{background:var(--grey-50);border-radius:14px;padding:14px;margin:16px 0 12px;}
+.cs-row{display:flex;justify-content:space-between;padding:5px 0;}
+.cs-label{font-size:13px;color:var(--grey-400);}
+.cs-val{font-size:13px;font-weight:600;color:var(--grey-800);}
+.cs-row.total .cs-label{font-size:15px;font-weight:700;color:var(--grey-800);}
+.cs-row.total .cs-val{font-size:16px;font-weight:800;color:var(--green);}
+.pay-methods{display:flex;gap:8px;margin-bottom:16px;}
+.pay-btn{flex:1;padding:10px;border-radius:12px;border:1.5px solid var(--grey-200);background:white;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;color:var(--grey-600);}
+.pay-btn.sel{border-color:var(--green);background:var(--green-light);color:var(--green-dark);}
+.place-order-btn{width:100%;background:var(--green);color:white;border:none;border-radius:16px;padding:16px;font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:800;cursor:pointer;}
+
+/* SCANNER */
+.scanner-screen{flex:1;background:#000;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.scanner-overlay{position:absolute;inset:0;background:radial-gradient(ellipse 200px 200px at center,transparent 100px,rgba(0,0,0,0.75) 100px);}
+.scanner-frame{width:220px;height:220px;position:relative;z-index:2;}
+.sf-c{position:absolute;width:24px;height:24px;border-color:var(--green);border-style:solid;}
+.sf-tl{top:0;left:0;border-width:3px 0 0 3px;border-radius:4px 0 0 0;}
+.sf-tr{top:0;right:0;border-width:3px 3px 0 0;border-radius:0 4px 0 0;}
+.sf-bl{bottom:0;left:0;border-width:0 0 3px 3px;border-radius:0 0 0 4px;}
+.sf-br{bottom:0;right:0;border-width:0 3px 3px 0;border-radius:0 0 4px 0;}
+.scanner-line{position:absolute;left:10px;right:10px;height:2px;background:linear-gradient(90deg,transparent,var(--green),transparent);top:10px;animation:scanLine 2s ease-in-out infinite;z-index:3;}
+@keyframes scanLine{0%,100%{top:10px;}50%{top:200px;}}
+.scanner-top{position:absolute;top:0;left:0;right:0;padding:16px 22px;z-index:5;display:flex;align-items:center;justify-content:space-between;}
+.scanner-close{width:36px;height:36px;border-radius:12px;background:rgba(255,255,255,0.15);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.scanner-title{color:white;font-size:16px;font-weight:700;}
+.scanner-text{position:absolute;bottom:160px;left:0;right:0;z-index:5;text-align:center;}
+.scanner-text p{color:rgba(255,255,255,0.7);font-size:13px;}
+.scanner-text strong{color:white;font-size:15px;font-weight:700;display:block;margin-bottom:6px;}
+.scanner-actions{position:absolute;bottom:60px;left:0;right:0;z-index:5;display:flex;justify-content:center;gap:24px;}
+.sab{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;}
+.sab-icon{width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,0.15);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.sab-label{color:rgba(255,255,255,0.7);font-size:11px;font-weight:600;}
+.scan-confirm{position:absolute;inset:0;z-index:10;background:rgba(0,0,0,0.85);display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.3s;}
+.scan-confirm.show{opacity:1;pointer-events:all;}
+.scan-confirm-sheet{background:white;border-radius:24px 24px 0 0;padding:24px 22px 36px;width:100%;}
+.confirm-icon{width:64px;height:64px;border-radius:24px;background:var(--green-light);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;}
+.confirm-title{font-size:18px;font-weight:800;color:var(--grey-800);text-align:center;}
+.confirm-sub{font-size:13px;color:var(--grey-400);text-align:center;margin-top:4px;}
+.confirm-order{background:var(--grey-50);border-radius:14px;padding:14px;margin:16px 0;}
+.co-pharmacy{font-size:13px;font-weight:700;color:var(--grey-800);}
+.co-items{font-size:12px;color:var(--grey-400);margin-top:4px;}
+.co-total{font-size:14px;font-weight:800;color:var(--green);margin-top:8px;}
+.confirm-btn{width:100%;background:var(--green);color:white;border:none;border-radius:14px;padding:15px;font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px;}
+.confirm-btn-sec{width:100%;background:var(--grey-100);color:var(--grey-600);border:none;border-radius:14px;padding:14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-top:8px;}
+
+/* ORDERS */
+.orders-tabs{display:flex;background:white;padding:0 22px;border-bottom:1.5px solid var(--grey-200);flex-shrink:0;}
+.otab{flex:1;padding:12px 0;text-align:center;font-size:13px;font-weight:600;color:var(--grey-400);cursor:pointer;border-bottom:2.5px solid transparent;transition:all 0.2s;}
+.otab.active{color:var(--green);border-bottom-color:var(--green);}
+.order-card{background:white;border-radius:16px;border:1.5px solid var(--grey-200);margin:0 22px;padding:16px;cursor:pointer;}
+.oc-header{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.oc-icon{width:44px;height:44px;border-radius:13px;background:var(--green-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.oc-info{flex:1;}
+.oc-name{font-size:14px;font-weight:700;color:var(--grey-800);}
+.oc-date{font-size:12px;color:var(--grey-400);margin-top:2px;}
+.oc-status{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;}
+.s-ready{background:#E6F7F1;color:var(--green-dark);}
+.s-transit{background:#EEF4FF;color:var(--blue);}
+.oc-items{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;}
+.oc-item{display:flex;align-items:center;justify-content:space-between;}
+.oci-name{font-size:13px;font-weight:500;color:var(--grey-800);}
+.oci-qty{font-size:12px;color:var(--grey-400);}
+.oci-price{font-size:13px;font-weight:700;color:var(--grey-800);}
+.oc-divider{height:1px;background:var(--grey-200);margin:10px 0;}
+.oc-total-row{display:flex;align-items:center;justify-content:space-between;}
+.oc-total-label{font-size:13px;font-weight:600;color:var(--grey-600);}
+.oc-total-val{font-size:15px;font-weight:800;color:var(--green);}
+.oc-footer{display:flex;gap:8px;margin-top:12px;}
+.oc-btn-p{flex:1;background:var(--green);color:white;border:none;border-radius:11px;padding:11px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
+.oc-btn-s{flex:1;background:var(--grey-100);color:var(--grey-600);border:none;border-radius:11px;padding:11px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;}
+
+/* MEDS */
+.med-search-bar{background:white;padding:12px 22px 14px;flex-shrink:0;border-bottom:1.5px solid var(--grey-200);}
+.msb-inner{display:flex;align-items:center;gap:10px;background:var(--grey-100);border-radius:14px;padding:11px 14px;}
+.msb-inner input{flex:1;border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--grey-800);outline:none;}
+.msb-inner input::placeholder{color:var(--grey-400);}
+.med-cats{display:flex;gap:8px;padding:14px 22px 4px;overflow-x:auto;flex-shrink:0;}
+.med-cats::-webkit-scrollbar{display:none;}
+.cat-chip{flex-shrink:0;border-radius:20px;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;border:none;font-family:'Plus Jakarta Sans',sans-serif;background:var(--grey-100);color:var(--grey-600);}
+.cat-chip.active{background:var(--green);color:white;}
+.med-card{background:white;border-radius:16px;border:1.5px solid var(--grey-200);margin:0 22px;padding:14px;display:flex;gap:13px;align-items:center;cursor:pointer;}
+.med-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.med-info{flex:1;min-width:0;}
+.med-name{font-size:14px;font-weight:700;color:var(--grey-800);}
+.med-dci{font-size:12px;color:var(--grey-400);margin-top:2px;}
+.med-meta{display:flex;align-items:center;gap:8px;margin-top:6px;}
+.med-price{font-size:14px;font-weight:800;color:var(--green);}
+.med-stock{font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:#E6F7F1;color:var(--green-dark);}
+.med-stock.low{background:#FFF3EE;color:var(--orange);}
+.info-section{background:white;border-radius:16px;margin:0 22px 12px;padding:16px;}
+.info-section-title{font-size:13px;font-weight:700;color:var(--grey-600);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;}
+.info-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--grey-100);}
+.info-row:last-child{border-bottom:none;}
+.info-key{font-size:13px;color:var(--grey-400);font-weight:500;flex:1;}
+.info-val{font-size:13px;color:var(--grey-800);font-weight:600;flex:1.5;text-align:right;}
+.info-text{font-size:13px;color:var(--grey-800);line-height:1.6;}
+.avail-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--grey-100);}
+.avail-item:last-child{border-bottom:none;}
+.avail-pharma{font-size:13px;font-weight:600;color:var(--grey-800);}
+.avail-dist{font-size:12px;color:var(--grey-400);}
+.avail-price{font-size:13px;font-weight:700;color:var(--green);}
+
+/* CHAT */
+.chat-header{background:white;padding:14px 22px 16px;flex-shrink:0;border-bottom:1.5px solid var(--grey-200);}
+.chat-header-inner{display:flex;align-items:center;gap:12px;}
+.ph-avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#00A86B,#007A4D);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:14px;flex-shrink:0;position:relative;}
+.online-dot{position:absolute;bottom:1px;right:1px;width:10px;height:10px;border-radius:50%;background:#22C55E;border:2px solid white;}
+.ph-name{font-size:15px;font-weight:700;color:var(--grey-800);}
+.ph-status{font-size:12px;color:#22C55E;font-weight:600;}
+.ph-spec{font-size:11px;color:var(--grey-400);}
+.chat-messages{flex:1;overflow-y:auto;padding:16px 22px;display:flex;flex-direction:column;gap:12px;}
+.chat-messages::-webkit-scrollbar{display:none;}
+.msg{display:flex;gap:8px;max-width:85%;}
+.msg.user{align-self:flex-end;flex-direction:row-reverse;}
+.msg-avatar{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;margin-top:auto;}
+.msg-avatar.ph{background:var(--green-light);color:var(--green);}
+.msg-avatar.user{background:var(--grey-100);color:var(--grey-600);}
+.msg-bubble{padding:10px 14px;border-radius:16px;font-size:13px;line-height:1.55;color:var(--grey-800);background:white;border:1.5px solid var(--grey-200);}
+.msg.user .msg-bubble{background:var(--green);color:white;border-color:var(--green);border-radius:16px 16px 4px 16px;}
+.msg:not(.user) .msg-bubble{border-radius:16px 16px 16px 4px;}
+.msg-time{font-size:10px;color:var(--grey-400);margin-top:4px;text-align:right;}
+.msg.user .msg-time{color:rgba(255,255,255,0.7);}
+.chat-qr{display:flex;gap:8px;padding:0 22px 10px;overflow-x:auto;flex-shrink:0;}
+.chat-qr::-webkit-scrollbar{display:none;}
+.qr-chip{flex-shrink:0;border-radius:20px;padding:7px 14px;font-size:12px;font-weight:600;color:var(--green);background:var(--green-light);border:1.5px solid var(--green-mid);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
+.chat-input-bar{background:white;border-top:1.5px solid var(--grey-200);padding:10px 22px 18px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.chat-input{flex:1;border:1.5px solid var(--grey-200);border-radius:22px;padding:10px 16px;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--grey-800);outline:none;background:var(--grey-50);}
+.chat-input::placeholder{color:var(--grey-400);}
+.chat-send{width:42px;height:42px;border-radius:50%;background:var(--green);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+/* PROFILE */
+.profile-hero{background:linear-gradient(160deg,var(--green-dark),var(--green));padding:28px 22px 32px;flex-shrink:0;text-align:center;}
+.profile-avatar{width:80px;height:80px;border-radius:28px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;color:white;font-size:32px;font-weight:800;margin:0 auto 12px;border:3px solid rgba(255,255,255,0.3);}
+.profile-name{color:white;font-size:20px;font-weight:800;margin-bottom:4px;}
+.profile-email{color:rgba(255,255,255,0.7);font-size:13px;}
+.profile-stats{display:flex;margin-top:20px;background:rgba(255,255,255,0.15);border-radius:16px;overflow:hidden;}
+.ps-item{flex:1;padding:14px;text-align:center;}
+.ps-item+.ps-item{border-left:1px solid rgba(255,255,255,0.15);}
+.ps-val{color:white;font-size:20px;font-weight:800;}
+.ps-key{color:rgba(255,255,255,0.7);font-size:11px;margin-top:2px;}
+.profile-section{background:white;border-radius:16px;margin:12px 22px 0;overflow:hidden;}
+.profile-row{display:flex;align-items:center;gap:14px;padding:14px 16px;border-bottom:1px solid var(--grey-100);cursor:pointer;}
+.profile-row:last-child{border-bottom:none;}
+.prow-icon{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.prow-label{flex:1;font-size:14px;font-weight:600;color:var(--grey-800);}
+.prow-value{font-size:13px;color:var(--grey-400);}
+.logout-btn{margin:16px 22px;width:calc(100% - 44px);background:white;color:var(--red);border:1.5px solid #FFE8E8;border-radius:14px;padding:14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;}
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <svg class="splash-logo" viewBox="0 0 120 130" fill="none">
+    <line x1="42" y1="20" x2="33" y2="8" stroke="white" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="31" cy="6" r="3.5" fill="white"/>
+    <line x1="78" y1="20" x2="87" y2="8" stroke="white" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="89" cy="6" r="3.5" fill="white"/>
+    <path d="M26 44 C26 28 40 18 60 18 C80 18 94 28 94 44 L94 60 C94 65 90 68 85 68 L35 68 C30 68 26 65 26 60 Z" fill="white"/>
+    <circle cx="45" cy="42" r="5" fill="#00A86B"/><circle cx="75" cy="42" r="5" fill="#00A86B"/>
+    <rect x="28" y="72" width="64" height="44" rx="8" fill="white"/>
+    <rect x="14" y="72" width="12" height="34" rx="6" fill="white"/>
+    <rect x="94" y="72" width="12" height="34" rx="6" fill="white"/>
+    <rect x="36" y="85" width="48" height="18" rx="4" fill="#00A86B"/>
+    <rect x="51" y="76" width="18" height="36" rx="4" fill="#00A86B"/>
+    <rect x="36" y="118" width="18" height="10" rx="5" fill="rgba(255,255,255,0.5)"/>
+    <rect x="66" y="118" width="18" height="10" rx="5" fill="rgba(255,255,255,0.5)"/>
+  </svg>
+  <div class="splash-name">Pharmadroid</div>
+  <div class="splash-tagline">Vos pharmacies, partout à Yaoundé</div>
+  <div class="splash-dots"><div class="dot active"></div><div class="dot"></div><div class="dot"></div></div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="status-bar">
+    <span class="status-time" id="clock">9:41</span>
+    <div class="status-icons">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="#1E2D3A"><rect x="2" y="7" width="4" height="10" rx="1"/><rect x="8" y="4" width="4" height="13" rx="1"/><rect x="14" y="2" width="4" height="15" rx="1"/><rect x="20" y="1" width="2" height="16" rx="1"/></svg>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="2" y="7" width="18" height="11" rx="2" stroke="#1E2D3A" stroke-width="2"/><path d="M20 10h2v5h-2" stroke="#1E2D3A" stroke-width="2" stroke-linecap="round"/><rect x="4" y="9" width="10" height="7" rx="1" fill="#1E2D3A"/></svg>
+    </div>
+  </div>
+
+  <div class="screens">
+
+    <!-- HOME -->
+    <div class="screen active" id="screen-home">
+      <div class="home-header">
+        <div class="home-header-top">
+          <div><div class="greeting-sub">📍 Yaoundé, Bastos</div><div class="greeting-name">Bonjour, Lando 👋</div></div>
+          <div class="header-actions">
+            <button class="icon-btn"><div class="notif-badge"></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="#1E2D3A" stroke-width="2" stroke-linecap="round"/><path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="#1E2D3A" stroke-width="2" stroke-linecap="round"/></svg></button>
+            <div class="avatar" id="btn-to-profile">L</div>
+          </div>
+        </div>
+        <div class="search-bar" id="btn-to-meds"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="8" stroke="#9AAAB8" stroke-width="2"/><path d="m21 21-4.35-4.35" stroke="#9AAAB8" stroke-width="2" stroke-linecap="round"/></svg><input type="text" placeholder="Médicament, pharmacie..." readonly><button class="search-filter"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><line x1="4" y1="6" x2="20" y2="6" stroke="white" stroke-width="2.5" stroke-linecap="round"/><line x1="7" y1="12" x2="17" y2="12" stroke="white" stroke-width="2.5" stroke-linecap="round"/><line x1="10" y1="18" x2="14" y2="18" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg></button></div>
+      </div>
+      <div class="scroll">
+        <div class="section-hd" style="padding-top:16px;"><span class="section-title">Garde cette nuit</span><span class="section-link" id="btn-garde-all">Voir toutes →</span></div>
+        <div class="banner" id="btn-banner-lac"><div class="banner-bg"></div><div class="banner-bg2"></div><div class="banner-tag">⚡ Ouverte 24h/24</div><div class="banner-title">Pharmacie du Lac<br>Centre-ville</div><div class="banner-sub">Médicaments d'urgence disponibles · 4.9 ⭐</div><button class="banner-btn">Voir la pharmacie</button></div>
+        <div class="section-hd"><span class="section-title">Proches de vous</span><span class="section-link" id="btn-home-map">Voir tout</span></div>
+        <div class="pharmacy-list">
+          <div class="pharmacy-card js-pharma" data-n="Pharmacie Biyem-Assi" data-a="Av. Kennedy, Biyem-Assi" data-d="0.8 km" data-o="1">
+            <div class="pharma-icon"><svg width="30" height="30" viewBox="0 0 120 130" fill="none"><line x1="42" y1="20" x2="33" y2="8" stroke="#00A86B" stroke-width="5" stroke-linecap="round"/><circle cx="31" cy="6" r="4.5" fill="#00A86B"/><line x1="78" y1="20" x2="87" y2="8" stroke="#00A86B" stroke-width="5" stroke-linecap="round"/><circle cx="89" cy="6" r="4.5" fill="#00A86B"/><path d="M26 44 C26 28 40 18 60 18 C80 18 94 28 94 44 L94 60 C94 65 90 68 85 68 L35 68 C30 68 26 65 26 60 Z" fill="#00A86B"/><circle cx="45" cy="42" r="5.5" fill="white"/><circle cx="75" cy="42" r="5.5" fill="white"/><rect x="28" y="72" width="64" height="44" rx="8" fill="#00A86B"/><rect x="14" y="72" width="12" height="34" rx="6" fill="#00A86B"/><rect x="94" y="72" width="12" height="34" rx="6" fill="#00A86B"/><rect x="36" y="85" width="48" height="18" rx="4" fill="white"/><rect x="51" y="76" width="18" height="36" rx="4" fill="white"/></svg></div>
+            <div class="pharma-info"><div class="pharma-name">Pharmacie Biyem-Assi</div><div class="pharma-address">Av. Kennedy, Biyem-Assi</div><div class="pharma-meta"><span class="pharma-badge badge-open">Ouverte</span><span class="pharma-dist">• 0.8 km</span><div class="pharma-rating"><svg width="12" height="12" viewBox="0 0 24 24" fill="#FFB800"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>4.8</div></div></div>
+          </div>
+          <div class="pharmacy-card js-pharma" data-n="Pcie de l'Hippodrome" data-a="Rue Foe, Bastos" data-d="1.4 km" data-o="0">
+            <div class="pharma-icon"><svg width="30" height="30" viewBox="0 0 120 130" fill="none"><line x1="42" y1="20" x2="33" y2="8" stroke="#00A86B" stroke-width="5" stroke-linecap="round"/><circle cx="31" cy="6" r="4.5" fill="#00A86B"/><line x1="78" y1="20" x2="87" y2="8" stroke="#00A86B" stroke-width="5" stroke-linecap="round"/><circle cx="89" cy="6" r="4.5" fill="#00A86B"/><path d="M26 44 C26 28 40 18 60 18 C80 18 94 28 94 44 L94 60 C94 65 90 68 85 68 L35 68 C30 68 26 65 26 60 Z" fill="#00A86B"/><circle cx="45" cy="42" r="5.5" fill="white"/><circle cx="75" cy="42" r="5.5" fill="white"/><rect x="28" y="72" width="64" height="44" rx="8" fill="#00A86B"/><rect x="14" y="72" width="12" height="34" rx="6" fill="#00A86B"/><rect x="94" y="72" width="12" height="34" rx="6" fill="#00A86B"/><rect x="36" y="85" width="48" height="18" rx="4" fill="white"/><rect x="51" y="76" width="18" height="36" rx="4" fill="white"/></svg></div>
+            <div class="pharma-info"><div class="pharma-name">Pharmacie de l'Hippodrome</div><div class="pharma-address">Rue Foe, Bastos</div><div class="pharma-meta"><span class="pharma-badge badge-closed">Fermée</span><span class="pharma-dist">• 1.4 km</span><div class="pharma-rating"><svg width="12" height="12" viewBox="0 0 24 24" fill="#FFB800"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>4.5</div></div></div>
+          </div>
+          <div class="pharmacy-card js-pharma" data-n="Pharmacie Djoungolo" data-a="Carrefour Djoungolo" data-d="2.1 km" data-o="1">
+            <div class="pharma-icon"><svg width="30" height="30" viewBox="0 0 120 130" fill="none"><line x1="42" y1="20" x2="33" y2="8" stroke="#00A86B" stroke-width="5" stroke-linecap="round"/><circle cx="31" cy="6" r="4.5" fill="#00A86B"/><line x1="78" y1="20" x2="87" y2="8" stroke="#00A86B" stroke-width="5" stroke-linecap="round"/><circle cx="89" cy="6" r="4.5" fill="#00A86B"/><path d="M26 44 C26 28 40 18 60 18 C80 18 94 28 94 44 L94 60 C94 65 90 68 85 68 L35 68 C30 68 26 65 26 60 Z" fill="#00A86B"/><circle cx="45" cy="42" r="5.5" fill="white"/><circle cx="75" cy="42" r="5.5" fill="white"/><rect x="28" y="72" width="64" height="44" rx="8" fill="#00A86B"/><rect x="14" y="72" width="12" height="34" rx="6" fill="#00A86B"/><rect x="94" y="72" width="12" height="34" rx="6" fill="#00A86B"/><rect x="36" y="85" width="48" height="18" rx="4" fill="white"/><rect x="51" y="76" width="18" height="36" rx="4" fill="white"/></svg></div>
+            <div class="pharma-info"><div class="pharma-name">Pharmacie Djoungolo</div><div class="pharma-address">Carrefour Djoungolo</div><div class="pharma-meta"><span class="pharma-badge badge-open">Ouverte</span><span class="pharma-dist">• 2.1 km</span><div class="pharma-rating"><svg width="12" height="12" viewBox="0 0 24 24" fill="#FFB800"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>4.6</div></div></div>
+          </div>
+          <div class="pharmacy-card js-pharma" data-n="Pharmacie Nlongkak" data-a="Quartier Nlongkak" data-d="2.8 km" data-o="1">
+            <div class="pharma-icon"><svg width="30" height="30" viewBox="0 0 120 130" fill="none"><line x1="42" y1="20" x2="33" y2="8" stroke="#00A86B" stroke-width="5" stroke-linecap="round"/><circle cx="31" cy="6" r="4.5" fill="#00A86B"/><line x1="78" y1="20" x2="87" y2="8" stroke="#00A86B" stroke-width="5" stroke-linecap="round"/><circle cx="89" cy="6" r="4.5" fill="#00A86B"/><path d="M26 44 C26 28 40 18 60 18 C80 18 94 28 94 44 L94 60 C94 65 90 68 85 68 L35 68 C30 68 26 65 26 60 Z" fill="#00A86B"/><circle cx="45" cy="42" r="5.5" fill="white"/><circle cx="75" cy="42" r="5.5" fill="white"/><rect x="28" y="72" width="64" height="44" rx="8" fill="#00A86B"/><rect x="14" y="72" width="12" height="34" rx="6" fill="#00A86B"/><rect x="94" y="72" width="12" height="34" rx="6" fill="#00A86B"/><rect x="36" y="85" width="48" height="18" rx="4" fill="white"/><rect x="51" y="76" width="18" height="36" rx="4" fill="white"/></svg></div>
+            <div class="pharma-info"><div class="pharma-name">Pharmacie Nlongkak</div><div class="pharma-address">Quartier Nlongkak</div><div class="pharma-meta"><span class="pharma-badge badge-open">Ouverte</span><span class="pharma-dist">• 2.8 km</span><div class="pharma-rating"><svg width="12" height="12" viewBox="0 0 24 24" fill="#FFB800"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>4.7</div></div></div>
+          </div>
+        </div>
+        <div style="height:20px;"></div>
+      </div>
+    </div>
+
+    <!-- MAP -->
+    <div class="screen" id="screen-map">
+      <div class="map-container">
+        <div class="map-bg"></div>
+        <div class="map-road road-h1"></div><div class="map-road road-h2"></div>
+        <div class="map-road road-v1"></div><div class="map-road road-v2"></div>
+        <div class="map-label" style="top:42%;left:38%;">Bastos</div>
+        <div class="map-label" style="top:65%;left:15%;">Biyem-Assi</div>
+        <div class="map-label" style="top:30%;left:60%;">Nlongkak</div>
+        <div class="map-label" style="top:68%;left:58%;">Djoungolo</div>
+        <div class="map-pin js-pharma" style="left:50%;top:44%;" data-n="Pharmacie du Lac" data-a="Centre-ville" data-d="0.3 km" data-o="1"><div class="pin-bubble sel"><span class="pin-name">Phcie du Lac</span></div><div class="pin-tail pt-dark"></div></div>
+        <div class="map-pin js-pharma" style="left:30%;top:68%;" data-n="Pharmacie Biyem-Assi" data-a="Av. Kennedy" data-d="0.8 km" data-o="1"><div class="pin-bubble"><span class="pin-name">Biyem-Assi</span></div><div class="pin-tail pt-green"></div></div>
+        <div class="map-pin js-pharma" style="left:62%;top:32%;" data-n="Pharmacie Nlongkak" data-a="Qtr Nlongkak" data-d="1.2 km" data-o="1"><div class="pin-bubble"><span class="pin-name">Nlongkak</span></div><div class="pin-tail pt-green"></div></div>
+        <div class="map-pin js-pharma" style="left:68%;top:70%;" data-n="Pharmacie Djoungolo" data-a="Carrefour Djoungolo" data-d="2.1 km" data-o="0"><div class="pin-bubble closed"><span class="pin-name">Djoungolo</span></div><div class="pin-tail pt-grey"></div></div>
+        <div class="map-pin js-pharma" style="left:22%;top:38%;" data-n="Pharmacie Hippodrome" data-a="Rue Foe, Bastos" data-d="1.4 km" data-o="0"><div class="pin-bubble closed"><span class="pin-name">Hippodrome</span></div><div class="pin-tail pt-grey"></div></div>
+        <div class="user-pulse" style="left:48%;top:56%;"></div>
+        <div class="user-pin" style="left:48%;top:56%;"></div>
+        <div class="map-search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="8" stroke="#9AAAB8" stroke-width="2"/><path d="m21 21-4.35-4.35" stroke="#9AAAB8" stroke-width="2" stroke-linecap="round"/></svg><input type="text" placeholder="Rechercher une pharmacie..."></div>
+        <div class="map-filters"><button class="filter-chip active">Toutes</button><button class="filter-chip">Ouvertes</button><button class="filter-chip">Garde 24h</button><button class="filter-chip">&lt; 1 km</button></div>
+        <div class="map-bottom-sheet">
+          <div class="sheet-handle"></div>
+          <div class="sheet-title">5 pharmacies trouvées</div>
+          <div class="sheet-cards">
+            <div class="sheet-card sel js-pharma" data-n="Pharmacie du Lac" data-a="Centre-ville" data-d="0.3 km" data-o="1"><div class="sc-name">Pharmacie du Lac</div><div class="sc-addr">Centre-ville · 0.3 km</div><div class="sc-meta"><span class="pharma-badge badge-open">24h/24</span></div><button class="sc-btn">Voir la boutique</button></div>
+            <div class="sheet-card js-pharma" data-n="Pharmacie Biyem-Assi" data-a="Av. Kennedy" data-d="0.8 km" data-o="1"><div class="sc-name">Phcie Biyem-Assi</div><div class="sc-addr">Av. Kennedy · 0.8 km</div><div class="sc-meta"><span class="pharma-badge badge-open">Ouverte</span></div><button class="sc-btn">Voir la boutique</button></div>
+            <div class="sheet-card js-pharma" data-n="Pharmacie Nlongkak" data-a="Qtr Nlongkak" data-d="1.2 km" data-o="1"><div class="sc-name">Phcie Nlongkak</div><div class="sc-addr">Qtr Nlongkak · 1.2 km</div><div class="sc-meta"><span class="pharma-badge badge-open">Ouverte</span></div><button class="sc-btn">Voir la boutique</button></div>
+            <div class="sheet-card js-pharma" data-n="Pharmacie Hippodrome" data-a="Rue Foe" data-d="1.4 km" data-o="0"><div class="sc-name">Phcie Hippodrome</div><div class="sc-addr">Rue Foe · 1.4 km</div><div class="sc-meta"><span class="pharma-badge badge-closed">Fermée</span></div><button class="sc-btn" style="background:var(--grey-400);">Indisponible</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHARMACIE PROFIL -->
+    <div class="screen" id="screen-pharma">
+      <div class="pharma-scroll" id="pharmaScroll">
+        <div class="pharma-cover">
+          <div class="cover-sign"><svg width="20" height="20" viewBox="0 0 120 130" fill="none"><path d="M26 44 C26 28 40 18 60 18 C80 18 94 28 94 44 L94 58 C94 63 90 66 85 66 L35 66 C30 66 26 63 26 58 Z" fill="white"/><circle cx="45" cy="42" r="5" fill="#00A86B"/><circle cx="75" cy="42" r="5" fill="#00A86B"/><rect x="28" y="70" width="64" height="36" rx="7" fill="white"/><rect x="36" y="79" width="48" height="16" rx="3" fill="#00A86B"/><rect x="51" y="72" width="18" height="32" rx="3" fill="#00A86B"/></svg><span class="cover-sign-name" id="cover-pharma-name">Pharmacie</span></div>
+          <button class="cover-back" id="btn-pharma-back"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg></button>
+          <div class="cover-actions">
+            <button class="cover-btn" id="btn-pharma-map"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1 1 18 0z" fill="white" opacity=".9"/><circle cx="12" cy="10" r="3" fill="#00A86B"/></svg></button>
+            <button class="cover-btn" id="btn-pharma-chat"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="white" stroke-width="2"/></svg></button>
+          </div>
+        </div>
+        <div class="pharma-logo-anchor">
+          <div class="pharma-logo-big"><svg width="44" height="44" viewBox="0 0 120 130" fill="none"><line x1="42" y1="20" x2="33" y2="8" stroke="#00A86B" stroke-width="5" stroke-linecap="round"/><circle cx="31" cy="6" r="4.5" fill="#00A86B"/><line x1="78" y1="20" x2="87" y2="8" stroke="#00A86B" stroke-width="5" stroke-linecap="round"/><circle cx="89" cy="6" r="4.5" fill="#00A86B"/><path d="M26 44 C26 28 40 18 60 18 C80 18 94 28 94 44 L94 60 C94 65 90 68 85 68 L35 68 C30 68 26 65 26 60 Z" fill="#00A86B"/><circle cx="45" cy="42" r="5.5" fill="white"/><circle cx="75" cy="42" r="5.5" fill="white"/><rect x="28" y="72" width="64" height="44" rx="8" fill="#00A86B"/><rect x="14" y="72" width="12" height="34" rx="6" fill="#00A86B"/><rect x="94" y="72" width="12" height="34" rx="6" fill="#00A86B"/><rect x="36" y="85" width="48" height="18" rx="4" fill="white"/><rect x="51" y="76" width="18" height="36" rx="4" fill="white"/></svg></div>
+        </div>
+        <div class="pharma-meta-bar">
+          <div class="pharma-badge-row"><span class="pharma-open-badge badge-open" id="pharma-status-badge">● Ouverte maintenant</span></div>
+          <div class="pharma-name-big" id="pharma-name-title">Pharmacie Biyem-Assi</div>
+          <div class="pharma-addr-big" id="pharma-addr-title"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1 1 18 0z" fill="#9AAAB8"/><circle cx="12" cy="10" r="3" fill="white"/></svg>Av. Kennedy, Biyem-Assi · 0.8 km</div>
+          <div class="pharma-stats-row"><div class="pstat-item"><div class="pstat-val">4.8</div><div class="pstat-key">Note</div></div><div class="pstat-item"><div class="pstat-val">247</div><div class="pstat-key">Avis</div></div><div class="pstat-item"><div class="pstat-val">86</div><div class="pstat-key">Produits</div></div><div class="pstat-item"><div class="pstat-val">~12min</div><div class="pstat-key">Délai</div></div></div>
+        </div>
+        <div class="pharma-tabs-sticky">
+          <div class="ptab active" data-tab="tab-produits">Produits</div>
+          <div class="ptab" data-tab="tab-infos">Infos</div>
+          <div class="ptab" data-tab="tab-avis">Avis</div>
+        </div>
+        <!-- PRODUITS -->
+        <div id="tab-produits" style="background:var(--grey-100);">
+          <div class="section-hd" style="padding-top:14px;"><span class="section-title">Antalgiques</span></div>
+          <div class="products-grid" style="padding-top:0;">
+            <div class="product-card js-add-cart" data-pname="Paracétamol 1000mg" data-pdisp="1 200 FCFA" data-pval="1200"><div class="prod-img" style="background:#FFF0F0;"><svg width="40" height="40" viewBox="0 0 24 24" fill="none"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-5 0v-15A2.5 2.5 0 0 1 9.5 2z" fill="#FF6B6B" opacity=".4" stroke="#FF6B6B" stroke-width="1.5"/><path d="M14.5 2A2.5 2.5 0 0 1 17 4.5v15a2.5 2.5 0 0 1-5 0v-15A2.5 2.5 0 0 1 14.5 2z" fill="#FF6B6B" stroke="#FF6B6B" stroke-width="1.5"/></svg></div><div class="prod-name">Paracétamol 1000mg</div><div class="prod-dci">Boîte 8 cps</div><div class="prod-footer"><span class="prod-price">1 200 F</span><button class="prod-add js-add-cart" data-pname="Paracétamol 1000mg" data-pdisp="1 200 FCFA" data-pval="1200"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg></button></div></div>
+            <div class="product-card js-add-cart" data-pname="Doliprane 500mg" data-pdisp="1 200 FCFA" data-pval="1200"><div class="prod-img" style="background:#F0FFF8;"><svg width="40" height="40" viewBox="0 0 24 24" fill="none"><rect x="4" y="6" width="16" height="12" rx="4" fill="#00A86B" opacity=".3" stroke="#00A86B" stroke-width="1.5"/><path d="M8 12h8" stroke="#00A86B" stroke-width="2" stroke-linecap="round"/></svg></div><div class="prod-name">Doliprane 500mg</div><div class="prod-dci">Pédiatrique · 12 cps</div><div class="prod-footer"><span class="prod-price">1 200 F</span><button class="prod-add js-add-cart" data-pname="Doliprane 500mg" data-pdisp="1 200 FCFA" data-pval="1200"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg></button></div></div>
+          </div>
+          <div class="section-hd" style="padding-top:4px;"><span class="section-title">Antibiotiques</span></div>
+          <div class="products-grid" style="padding-top:0;">
+            <div class="product-card js-add-cart" data-pname="Amoxicilline 500mg" data-pdisp="4 200 FCFA" data-pval="4200"><div class="prod-img" style="background:#F0F4FF;"><svg width="40" height="40" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" fill="#4F80FF" opacity=".2" stroke="#4F80FF" stroke-width="1.5"/><path d="M8 12h8M12 8v8" stroke="#4F80FF" stroke-width="2" stroke-linecap="round"/></svg></div><div class="prod-name">Amoxicilline 500mg</div><div class="prod-dci">12 gélules</div><div class="prod-footer"><span class="prod-price">4 200 F</span><button class="prod-add js-add-cart" data-pname="Amoxicilline 500mg" data-pdisp="4 200 FCFA" data-pval="4200"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg></button></div></div>
+            <div class="product-card js-add-cart" data-pname="Azithromycine 500mg" data-pdisp="6 800 FCFA" data-pval="6800"><div class="prod-img" style="background:#FFF0FF;"><svg width="40" height="40" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" fill="#8B5CF6" opacity=".2" stroke="#8B5CF6" stroke-width="1.5"/><path d="M9 12l2 2 4-4" stroke="#8B5CF6" stroke-width="2" stroke-linecap="round"/></svg></div><div class="prod-name">Azithromycine 500mg</div><div class="prod-dci">3 comprimés</div><div class="prod-footer"><span class="prod-price">6 800 F</span><button class="prod-add js-add-cart" data-pname="Azithromycine 500mg" data-pdisp="6 800 FCFA" data-pval="6800"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg></button></div></div>
+          </div>
+          <div class="section-hd" style="padding-top:4px;"><span class="section-title">Vitamines</span></div>
+          <div class="products-grid" style="padding-top:0;padding-bottom:120px;">
+            <div class="product-card js-add-cart" data-pname="Vitamine C 1000mg" data-pdisp="1 900 FCFA" data-pval="1900"><div class="prod-img" style="background:#FFFAEC;"><svg width="40" height="40" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" fill="#FFB800" opacity=".2" stroke="#FFB800" stroke-width="1.5"/><path d="M12 8v4l2 2" stroke="#FFB800" stroke-width="2" stroke-linecap="round"/></svg></div><div class="prod-name">Vitamine C 1000mg</div><div class="prod-dci">Effervescent · 20 cps</div><div class="prod-footer"><span class="prod-price">1 900 F</span><button class="prod-add js-add-cart" data-pname="Vitamine C 1000mg" data-pdisp="1 900 FCFA" data-pval="1900"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg></button></div></div>
+            <div class="product-card js-add-cart" data-pname="Ibuprofène 400mg" data-pdisp="2 550 FCFA" data-pval="2550"><div class="prod-img" style="background:#E6F7F1;"><svg width="40" height="40" viewBox="0 0 24 24" fill="none"><rect x="4" y="6" width="16" height="12" rx="4" fill="#00A86B" opacity=".2" stroke="#00A86B" stroke-width="1.5"/><path d="M8 12h8" stroke="#00A86B" stroke-width="2" stroke-linecap="round"/></svg></div><div class="prod-name">Ibuprofène 400mg</div><div class="prod-dci">Boîte 30 cps</div><div class="prod-footer"><span class="prod-price">2 550 F</span><button class="prod-add js-add-cart" data-pname="Ibuprofène 400mg" data-pdisp="2 550 FCFA" data-pval="2550"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg></button></div></div>
+          </div>
+        </div>
+        <!-- INFOS -->
+        <div id="tab-infos" style="display:none;background:var(--grey-100);">
+          <div class="pharma-info-list">
+            <div class="info-card"><div class="info-card-title">Coordonnées</div><div class="info-row2"><span class="ir2-key">📍 Adresse</span><span class="ir2-val" id="pharma-info-addr">Av. Kennedy, Biyem-Assi</span></div><div class="info-row2"><span class="ir2-key">📞 Téléphone</span><span class="ir2-val" style="color:var(--green);">+237 6XX XXX XXX</span></div><div class="info-row2"><span class="ir2-key">🗺️ GPS</span><span class="ir2-val">3.8634° N, 11.5163° E</span></div></div>
+            <div class="info-card"><div class="info-card-title">Horaires</div><div class="info-row2"><span class="ir2-key">Lun – Ven</span><span class="ir2-val">07:30 – 21:00</span></div><div class="info-row2"><span class="ir2-key">Samedi</span><span class="ir2-val">08:00 – 20:00</span></div><div class="info-row2"><span class="ir2-key">Dimanche</span><span class="ir2-val">09:00 – 18:00</span></div></div>
+            <div class="info-card"><div class="info-card-title">Paiements</div><div class="info-row2"><span class="ir2-key">Mobile Money</span><span class="ir2-val">MTN · Orange</span></div><div class="info-row2"><span class="ir2-key">Carte</span><span class="ir2-val">Visa · Mastercard</span></div><div class="info-row2"><span class="ir2-key">Espèces</span><span class="ir2-val">FCFA</span></div></div>
+            <div class="info-card"><div class="info-card-title">Services</div><div class="info-row2"><span class="ir2-key">Livraison</span><span class="ir2-val">Oui · rayon 5 km</span></div><div class="info-row2"><span class="ir2-key">Click &amp; Collect</span><span class="ir2-val">Disponible</span></div><div class="info-row2"><span class="ir2-key">Conseil pharmacien</span><span class="ir2-val">Sur place &amp; chat</span></div></div>
+          </div>
+        </div>
+        <!-- AVIS -->
+        <div id="tab-avis" style="display:none;background:var(--grey-100);">
+          <div class="reviews-list">
+            <div style="background:white;border-radius:14px;padding:16px;display:flex;align-items:center;gap:16px;"><div style="text-align:center;"><div style="font-size:42px;font-weight:800;color:var(--green);line-height:1;">4.8</div><div style="display:flex;gap:2px;justify-content:center;margin-top:4px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="#FFB800"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#FFB800"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#FFB800"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#FFB800"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#FFB800"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><div style="font-size:11px;color:var(--grey-400);margin-top:4px;">247 avis</div></div><div style="flex:1;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;"><span style="font-size:11px;color:var(--grey-400);width:12px;">5</span><div style="flex:1;height:6px;border-radius:3px;background:var(--grey-100);overflow:hidden;"><div style="width:72%;height:100%;background:var(--yellow);border-radius:3px;"></div></div></div><div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;"><span style="font-size:11px;color:var(--grey-400);width:12px;">4</span><div style="flex:1;height:6px;border-radius:3px;background:var(--grey-100);overflow:hidden;"><div style="width:18%;height:100%;background:var(--yellow);border-radius:3px;"></div></div></div><div style="display:flex;align-items:center;gap:8px;"><span style="font-size:11px;color:var(--grey-400);width:12px;">1</span><div style="flex:1;height:6px;border-radius:3px;background:var(--grey-100);overflow:hidden;"><div style="width:3%;height:100%;background:var(--yellow);border-radius:3px;"></div></div></div></div></div>
+            <div class="review-card"><div class="rc-header"><div class="rc-avatar">A</div><div><div class="rc-name">Aline Fotso</div><div class="rc-date">Il y a 2 jours</div></div><div class="rc-stars"><svg width="12" height="12" viewBox="0 0 24 24" fill="#FFB800"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="12" height="12" viewBox="0 0 24 24" fill="#FFB800"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="12" height="12" viewBox="0 0 24 24" fill="#FFB800"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="12" height="12" viewBox="0 0 24 24" fill="#FFB800"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="12" height="12" viewBox="0 0 24 24" fill="#FFB800"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div></div><div class="rc-text">Service excellent ! Médicaments en stock, commande reçue en 15 min. Je recommande vivement.</div></div>
+            <div class="review-card"><div class="rc-header"><div class="rc-avatar" style="background:linear-gradient(135deg,#4F80FF,#7C5CBF);">M</div><div><div class="rc-name">Marcel Nkeng</div><div class="rc-date">Il y a 5 jours</div></div><div class="rc-stars"><svg width="12" height="12" viewBox="0 0 24 24" fill="#FFB800"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="12" height="12" viewBox="0 0 24 24" fill="#FFB800"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="12" height="12" viewBox="0 0 24 24" fill="#FFB800"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="12" height="12" viewBox="0 0 24 24" fill="#FFB800"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg width="12" height="12" viewBox="0 0 24 24" fill="#DDE4EC"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div></div><div class="rc-text">Bonne pharmacie, personnel aimable. Commande via l'app très pratique.</div></div>
+          </div>
+        </div>
+      </div>
+      <!-- FLOATING CART -->
+      <div class="cart-fab" id="cartFab">
+        <div class="cart-badge"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" stroke="white" stroke-width="2"/><line x1="3" y1="6" x2="21" y2="6" stroke="white" stroke-width="2"/><path d="M16 10a4 4 0 0 1-8 0" stroke="white" stroke-width="2"/></svg><div class="cart-count" id="cartCount">0</div></div>
+        <div class="cart-label"><div class="cart-items-text" id="cartItemsText">0 article</div><div class="cart-total" id="cartTotal">0 FCFA</div></div>
+        <button class="cart-checkout-btn" id="btn-open-cart">Valider →</button>
+      </div>
+      <!-- CART DRAWER -->
+      <div class="cart-drawer" id="cartDrawer">
+        <div class="cart-sheet">
+          <div class="drawer-handle"></div>
+          <div class="drawer-title">Mon panier</div>
+          <div id="cartLines"></div>
+          <div class="cart-summary"><div class="cs-row"><span class="cs-label">Sous-total</span><span class="cs-val" id="subtotalVal">0 F</span></div><div class="cs-row"><span class="cs-label">Frais de préparation</span><span class="cs-val">500 F</span></div><div class="cs-row total"><span class="cs-label">Total</span><span class="cs-val" id="totalVal">500 F</span></div></div>
+          <div style="font-size:13px;font-weight:700;color:var(--grey-600);margin-bottom:8px;">Paiement</div>
+          <div class="pay-methods">
+            <button class="pay-btn sel js-pay">MTN Money</button>
+            <button class="pay-btn js-pay">Orange Money</button>
+            <button class="pay-btn js-pay">Cash</button>
+          </div>
+          <button class="place-order-btn" id="btn-place-order">Commander · <span id="orderTotal">500 F</span></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCANNER -->
+    <div class="screen" id="screen-scanner">
+      <div class="scanner-screen">
+        <div class="scanner-overlay"></div>
+        <div class="scanner-top"><button class="scanner-close" id="btn-scan-close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg></button><span class="scanner-title">Scanner QR Code</span><div style="width:36px;"></div></div>
+        <div class="scanner-frame"><div class="sf-c sf-tl"></div><div class="sf-c sf-tr"></div><div class="sf-c sf-bl"></div><div class="sf-c sf-br"></div><div class="scanner-line"></div></div>
+        <div class="scanner-text"><strong>Pointez vers le QR Code</strong><p>Présentez le code à l'entrée de la pharmacie</p></div>
+        <div class="scanner-actions">
+          <div class="sab"><div class="sab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="white" stroke-width="2" stroke-linecap="round"/><polyline points="17 8 12 3 7 8" stroke="white" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="3" x2="12" y2="15" stroke="white" stroke-width="2" stroke-linecap="round"/></svg></div><span class="sab-label">Galerie</span></div>
+          <div class="sab" id="btn-do-scan"><div class="sab-icon" style="background:var(--green);width:64px;height:64px;box-shadow:0 0 0 8px rgba(0,168,107,0.2);"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1" stroke="white" stroke-width="2"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="white" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="white" stroke-width="2"/><circle cx="17.5" cy="17.5" r="2.5" fill="white"/></svg></div><span class="sab-label">Scanner</span></div>
+          <div class="sab"><div class="sab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="5" stroke="white" stroke-width="2"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72 1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="white" stroke-width="2" stroke-linecap="round"/></svg></div><span class="sab-label">Flash</span></div>
+        </div>
+        <div class="scan-confirm" id="scanConfirm">
+          <div class="scan-confirm-sheet">
+            <div class="confirm-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="#00A86B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="confirm-title">Commande trouvée !</div>
+            <div class="confirm-sub">Pharmacie Biyem-Assi vous attend</div>
+            <div class="confirm-order"><div class="co-pharmacy">📍 Pharmacie Biyem-Assi — Biyem-Assi</div><div class="co-items">• Paracétamol 1000mg × 2<br>• Amoxicilline 500mg × 1<br>• Vitamine C × 1</div><div class="co-total">Total : 8 500 FCFA</div></div>
+            <button class="confirm-btn" id="btn-scan-confirm">Confirmer la réception</button>
+            <button class="confirm-btn-sec" id="btn-scan-cancel">Annuler</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ORDERS -->
+    <div class="screen" id="screen-orders">
+      <div style="background:white;padding:14px 22px 16px;flex-shrink:0;box-shadow:0 1px 0 var(--grey-200);display:flex;align-items:center;justify-content:space-between;"><div><div class="greeting-sub">Suivi en temps réel</div><div style="font-size:19px;font-weight:800;color:var(--grey-800);">Mes commandes</div></div></div>
+      <div class="orders-tabs">
+        <div class="otab active js-otab">En cours</div>
+        <div class="otab js-otab">Prêtes</div>
+        <div class="otab js-otab">Historique</div>
+      </div>
+      <div class="scroll" style="padding:16px 0 0;display:flex;flex-direction:column;gap:12px;">
+        <div class="order-card">
+          <div class="oc-header"><div class="oc-icon"><svg width="26" height="26" viewBox="0 0 120 130" fill="none"><path d="M26 44 C26 28 40 18 60 18 C80 18 94 28 94 44 L94 60 C94 65 90 68 85 68 L35 68 C30 68 26 65 26 60 Z" fill="#00A86B"/><circle cx="45" cy="42" r="5.5" fill="white"/><circle cx="75" cy="42" r="5.5" fill="white"/><rect x="28" y="72" width="64" height="44" rx="8" fill="#00A86B"/><rect x="14" y="72" width="12" height="34" rx="6" fill="#00A86B"/><rect x="94" y="72" width="12" height="34" rx="6" fill="#00A86B"/><rect x="36" y="85" width="48" height="18" rx="4" fill="white"/><rect x="51" y="76" width="18" height="36" rx="4" fill="white"/></svg></div><div class="oc-info"><div class="oc-name">Pharmacie Biyem-Assi</div><div class="oc-date">Auj. 14:32 · #2847</div></div><span class="oc-status s-ready">✓ Prête</span></div>
+          <div class="oc-items"><div class="oc-item"><span class="oci-name">Paracétamol 1000mg</span><span class="oci-qty">×2</span><span class="oci-price">2 400 F</span></div><div class="oc-item"><span class="oci-name">Amoxicilline 500mg</span><span class="oci-qty">×1</span><span class="oci-price">4 200 F</span></div><div class="oc-item"><span class="oci-name">Vitamine C</span><span class="oci-qty">×1</span><span class="oci-price">1 900 F</span></div></div>
+          <div class="oc-divider"></div><div class="oc-total-row"><span class="oc-total-label">Total (MTN Money)</span><span class="oc-total-val">8 500 FCFA</span></div>
+          <div class="oc-footer"><button class="oc-btn-p" id="btn-order-scan">📱 Scanner QR</button><button class="oc-btn-s">Détails</button></div>
+        </div>
+        <div class="order-card">
+          <div class="oc-header"><div class="oc-icon"><svg width="26" height="26" viewBox="0 0 120 130" fill="none"><path d="M26 44 C26 28 40 18 60 18 C80 18 94 28 94 44 L94 60 C94 65 90 68 85 68 L35 68 C30 68 26 65 26 60 Z" fill="#00A86B"/><circle cx="45" cy="42" r="5.5" fill="white"/><circle cx="75" cy="42" r="5.5" fill="white"/><rect x="28" y="72" width="64" height="44" rx="8" fill="#00A86B"/><rect x="14" y="72" width="12" height="34" rx="6" fill="#00A86B"/><rect x="94" y="72" width="12" height="34" rx="6" fill="#00A86B"/><rect x="36" y="85" width="48" height="18" rx="4" fill="white"/><rect x="51" y="76" width="18" height="36" rx="4" fill="white"/></svg></div><div class="oc-info"><div class="oc-name">Pharmacie du Lac</div><div class="oc-date">Hier 09:15 · #2831</div></div><span class="oc-status s-transit">🚗 En transit</span></div>
+          <div class="oc-items"><div class="oc-item"><span class="oci-name">Doliprane 500mg</span><span class="oci-qty">×3</span><span class="oci-price">3 600 F</span></div><div class="oc-item"><span class="oci-name">Ibuprofène 400mg</span><span class="oci-qty">×2</span><span class="oci-price">5 100 F</span></div></div>
+          <div class="oc-divider"></div><div class="oc-total-row"><span class="oc-total-label">Total (Orange Money)</span><span class="oc-total-val">8 700 FCFA</span></div>
+          <div class="oc-footer"><button class="oc-btn-p" id="btn-order-map">📍 Suivre</button><button class="oc-btn-s">Contacter</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MEDS -->
+    <div class="screen" id="screen-meds">
+      <div id="medList" style="display:flex;flex-direction:column;height:100%;overflow:hidden;">
+        <div class="med-search-bar"><div class="msb-inner"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="8" stroke="#9AAAB8" stroke-width="2"/><path d="m21 21-4.35-4.35" stroke="#9AAAB8" stroke-width="2" stroke-linecap="round"/></svg><input type="text" placeholder="Médicament, principe actif..."></div></div>
+        <div class="med-cats"><button class="cat-chip active">Tous</button><button class="cat-chip">Antalgiques</button><button class="cat-chip">Antibiotiques</button><button class="cat-chip">Vitamines</button><button class="cat-chip">Cardio</button></div>
+        <div class="scroll" style="padding:12px 0 0;display:flex;flex-direction:column;gap:10px;">
+          <div class="med-card js-show-med"><div class="med-icon" style="background:#FFF0F0;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-5 0v-15A2.5 2.5 0 0 1 9.5 2z" fill="#FF6B6B" opacity=".4" stroke="#FF6B6B" stroke-width="1.5"/><path d="M14.5 2A2.5 2.5 0 0 1 17 4.5v15a2.5 2.5 0 0 1-5 0v-15A2.5 2.5 0 0 1 14.5 2z" fill="#FF6B6B" stroke="#FF6B6B" stroke-width="1.5"/></svg></div><div class="med-info"><div class="med-name">Paracétamol 1000mg</div><div class="med-dci">Paracétamol · Boîte 8 cps</div><div class="med-meta"><span class="med-price">1 200 FCFA</span><span class="med-stock">En stock — 18 phcies</span></div></div></div>
+          <div class="med-card js-show-med"><div class="med-icon" style="background:#F0F4FF;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" fill="#4F80FF" opacity=".2" stroke="#4F80FF" stroke-width="1.5"/><path d="M8 12h8M12 8v8" stroke="#4F80FF" stroke-width="2" stroke-linecap="round"/></svg></div><div class="med-info"><div class="med-name">Amoxicilline 500mg</div><div class="med-dci">Amoxicilline · 12 gél.</div><div class="med-meta"><span class="med-price">4 200 FCFA</span><span class="med-stock">En stock — 11 phcies</span></div></div></div>
+          <div class="med-card js-show-med"><div class="med-icon" style="background:#FFFAEC;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" fill="#FFB800" opacity=".2" stroke="#FFB800" stroke-width="1.5"/><path d="M12 7v5l3 3" stroke="#FFB800" stroke-width="2" stroke-linecap="round"/></svg></div><div class="med-info"><div class="med-name">Vitamine C 1000mg</div><div class="med-dci">Acide ascorbique · 20 cps</div><div class="med-meta"><span class="med-price">1 900 FCFA</span><span class="med-stock low">Stock faible — 4 phcies</span></div></div></div>
+          <div class="med-card js-show-med"><div class="med-icon" style="background:#F0FFF8;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"><rect x="4" y="6" width="16" height="12" rx="4" fill="#00A86B" opacity=".2" stroke="#00A86B" stroke-width="1.5"/><path d="M8 12h8" stroke="#00A86B" stroke-width="2" stroke-linecap="round"/></svg></div><div class="med-info"><div class="med-name">Ibuprofène 400mg</div><div class="med-dci">Ibuprofène · Boîte 30 cps</div><div class="med-meta"><span class="med-price">2 550 FCFA</span><span class="med-stock">En stock — 15 phcies</span></div></div></div>
+        </div>
+      </div>
+      <div id="medDetail" style="display:none;flex-direction:column;height:100%;overflow:hidden;">
+        <div style="background:white;padding:14px 22px;display:flex;align-items:center;gap:14px;border-bottom:1.5px solid var(--grey-200);flex-shrink:0;"><button class="icon-btn" id="btn-med-back" style="background:var(--grey-100);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="#1E2D3A" stroke-width="2.5" stroke-linecap="round"/></svg></button><span style="font-size:19px;font-weight:800;color:var(--grey-800);">Fiche médicament</span></div>
+        <div class="scroll" style="padding:0 0 20px;">
+          <div style="background:white;padding:20px 22px 22px;margin-bottom:10px;"><div style="background:var(--green-light);border-radius:18px;padding:24px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;"><svg width="64" height="64" viewBox="0 0 24 24" fill="none"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-5 0v-15A2.5 2.5 0 0 1 9.5 2z" fill="#00A86B" opacity=".3" stroke="#00A86B" stroke-width="1.5"/><path d="M14.5 2A2.5 2.5 0 0 1 17 4.5v15a2.5 2.5 0 0 1-5 0v-15A2.5 2.5 0 0 1 14.5 2z" fill="#00A86B" stroke="#00A86B" stroke-width="1.5"/></svg></div><div style="font-size:22px;font-weight:800;color:var(--grey-800);">Paracétamol 1000mg</div><div style="font-size:14px;color:var(--grey-400);margin-top:3px;">Doliprane · Efferalgan · Panadol</div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;"><div style="font-size:26px;font-weight:800;color:var(--green);">1 200 FCFA</div><button class="banner-btn" id="btn-med-to-pharma" style="background:var(--green);color:white;">Choisir pharmacie</button></div></div>
+          <div class="info-section"><div class="info-section-title">Informations</div><div class="info-row"><span class="info-key">Classe</span><span class="info-val">Antalgique / Antipyrétique</span></div><div class="info-row"><span class="info-key">DCI</span><span class="info-val">Paracétamol</span></div><div class="info-row"><span class="info-key">Forme</span><span class="info-val">Comprimé pelliculé</span></div></div>
+          <div class="info-section"><div class="info-section-title">Posologie</div><div class="info-text">1 comprimé toutes les 4 à 6 heures, sans dépasser 4 comprimés par jour. À prendre avec un grand verre d'eau.</div></div>
+          <div class="info-section"><div class="info-section-title">Indications</div><div class="info-text">Traitement des douleurs légères à modérées : maux de tête, fièvre, courbatures, douleurs dentaires.</div></div>
+          <div class="info-section"><div class="info-section-title">Disponibilité à Yaoundé</div><div class="avail-item"><div><div class="avail-pharma">Pharmacie Biyem-Assi</div><div class="avail-dist">0.8 km · Ouverte</div></div><span class="avail-price">1 200 F</span></div><div class="avail-item"><div><div class="avail-pharma">Pharmacie du Lac</div><div class="avail-dist">0.3 km · 24h/24</div></div><span class="avail-price">1 250 F</span></div><div class="avail-item"><div><div class="avail-pharma">Pharmacie Nlongkak</div><div class="avail-dist">1.2 km · Ouverte</div></div><span class="avail-price">1 200 F</span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHAT -->
+    <div class="screen" id="screen-chat">
+      <div class="chat-header"><div class="chat-header-inner"><button class="icon-btn" id="btn-chat-back" style="background:var(--grey-100);flex-shrink:0;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="#1E2D3A" stroke-width="2.5" stroke-linecap="round"/></svg></button><div class="ph-avatar">Dr<div class="online-dot"></div></div><div style="flex:1;"><div class="ph-name">Dr. Nguema Marie-Claire</div><div class="ph-status">● En ligne</div><div class="ph-spec">Pharmacienne — Biyem-Assi</div></div></div></div>
+      <div class="chat-messages" id="chatMessages">
+        <div class="msg"><div class="msg-avatar ph">Dr</div><div><div class="msg-bubble">Bonjour ! Je suis Dr. Nguema. Comment puis-je vous aider ? 😊</div><div class="msg-time">14:30</div></div></div>
+        <div class="msg"><div class="msg-avatar ph">Dr</div><div><div class="msg-bubble">Décrivez vos symptômes ou posez vos questions sur un médicament.</div><div class="msg-time">14:30</div></div></div>
+        <div class="msg user"><div class="msg-avatar user">L</div><div><div class="msg-bubble">Bonjour Docteur ! J'ai de la fièvre depuis hier, 38.5°C. Paracétamol 1000mg ?</div><div class="msg-time">14:32</div></div></div>
+        <div class="msg"><div class="msg-avatar ph">Dr</div><div><div class="msg-bubble">Oui, 1 comprimé toutes les 6h, max 4/jour. Beaucoup d'eau et de repos. 💊</div><div class="msg-time">14:33</div></div></div>
+      </div>
+      <div class="chat-qr">
+        <span class="qr-chip" data-reply="Quels sont les effets secondaires ?">Effets secondaires ?</span>
+        <span class="qr-chip" data-reply="Peut-on le combiner avec autre chose ?">Combinaisons ?</span>
+        <span class="qr-chip" data-reply="Posologie pour un enfant ?">Posologie enfant</span>
+        <span class="qr-chip" data-reply="Je voudrais commander ce médicament">Commander</span>
+      </div>
+      <div class="chat-input-bar"><input class="chat-input" id="chatInput" type="text" placeholder="Écrivez votre message..."><button class="chat-send" id="btn-send-msg"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="screen" id="screen-profile">
+      <div class="scroll" style="padding-bottom:20px;">
+        <div class="profile-hero"><div class="profile-avatar">L</div><div class="profile-name">Lando Mbappé</div><div class="profile-email">lando@email.cm</div><div class="profile-stats"><div class="ps-item"><div class="ps-val">12</div><div class="ps-key">Commandes</div></div><div class="ps-item"><div class="ps-val">3</div><div class="ps-key">Consult.</div></div><div class="ps-item"><div class="ps-val">4.9</div><div class="ps-key">Évaluation</div></div></div></div>
+        <div style="padding:16px 22px 8px;font-size:12px;font-weight:700;color:var(--grey-400);text-transform:uppercase;letter-spacing:0.5px;">Mon compte</div>
+        <div class="profile-section">
+          <div class="profile-row"><div class="prow-icon" style="background:#EEF4FF;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="#4F80FF" stroke-width="2"/><circle cx="12" cy="7" r="4" stroke="#4F80FF" stroke-width="2"/></svg></div><span class="prow-label">Informations personnelles</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="#DDE4EC" stroke-width="2.5" stroke-linecap="round"/></svg></div>
+          <div class="profile-row"><div class="prow-icon" style="background:#E6F7F1;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="2" y="5" width="20" height="14" rx="2" stroke="#00A86B" stroke-width="2"/><path d="M2 10h20" stroke="#00A86B" stroke-width="2"/></svg></div><span class="prow-label">Paiements</span><span class="prow-value">MTN Money</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="#DDE4EC" stroke-width="2.5" stroke-linecap="round"/></svg></div>
+        </div>
+        <div style="padding:16px 22px 8px;font-size:12px;font-weight:700;color:var(--grey-400);text-transform:uppercase;letter-spacing:0.5px;">Santé</div>
+        <div class="profile-section">
+          <div class="profile-row"><div class="prow-icon" style="background:#FFE8FF;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" stroke="#8B5CF6" stroke-width="2"/></svg></div><span class="prow-label">Ordonnances</span><span class="prow-value">2 actives</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="#DDE4EC" stroke-width="2.5" stroke-linecap="round"/></svg></div>
+          <div class="profile-row"><div class="prow-icon" style="background:#FFF0F0;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke="#FF4757" stroke-width="2"/><line x1="12" y1="9" x2="12" y2="13" stroke="#FF4757" stroke-width="2"/></svg></div><span class="prow-label">Allergies</span><span class="prow-value">Pénicilline</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="#DDE4EC" stroke-width="2.5" stroke-linecap="round"/></svg></div>
+        </div>
+        <button class="logout-btn">Se déconnecter</button>
+      </div>
+    </div>
+
+  </div><!-- /screens -->
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <div class="nav-item active" id="nav-home"><svg width="22" height="22" viewBox="0 0 24 24" id="ico-home"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="#00A86B"/></svg><span class="nav-label" style="color:var(--green)">Accueil</span><div class="nav-dot"></div></div>
+    <div class="nav-item" id="nav-map"><svg width="22" height="22" viewBox="0 0 24 24" id="ico-map"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1 1 18 0z" stroke="#9AAAB8" stroke-width="2" fill="none"/><circle cx="12" cy="10" r="3" stroke="#9AAAB8" stroke-width="2" fill="none"/></svg><span class="nav-label">Carte</span></div>
+    <div class="nav-item" id="nav-scan"><div class="scan-fab"><svg width="23" height="23" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1" stroke="white" stroke-width="2"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="white" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="white" stroke-width="2"/><circle cx="17.5" cy="17.5" r="2.5" fill="white"/></svg></div><span class="nav-label" style="margin-top:2px;">Scanner</span></div>
+    <div class="nav-item" id="nav-orders"><svg width="22" height="22" viewBox="0 0 24 24" id="ico-orders"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" stroke="#9AAAB8" stroke-width="2" fill="none"/><line x1="3" y1="6" x2="21" y2="6" stroke="#9AAAB8" stroke-width="2"/><path d="M16 10a4 4 0 0 1-8 0" stroke="#9AAAB8" stroke-width="2" fill="none"/></svg><span class="nav-label">Commandes</span></div>
+    <div class="nav-item" id="nav-profile"><svg width="22" height="22" viewBox="0 0 24 24" id="ico-profile"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="#9AAAB8" stroke-width="2" fill="none"/><circle cx="12" cy="7" r="4" stroke="#9AAAB8" stroke-width="2" fill="none"/></svg><span class="nav-label">Profil</span></div>
+  </div>
+</div>
+
+<script>
+/* ─── NAV ────────────────────────────────── */
+const NAV = {
+  home:    { nav:'nav-home',    ico:'ico-home',    screen:'screen-home',    active:'<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="#00A86B"/>',    inactive:'<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" stroke="#9AAAB8" stroke-width="2" fill="none"/>' },
+  map:     { nav:'nav-map',     ico:'ico-map',     screen:'screen-map',     active:'<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1 1 18 0z" fill="#00A86B"/><circle cx="12" cy="10" r="3" fill="white"/>',  inactive:'<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1 1 18 0z" stroke="#9AAAB8" stroke-width="2" fill="none"/><circle cx="12" cy="10" r="3" stroke="#9AAAB8" stroke-width="2" fill="none"/>' },
+  orders:  { nav:'nav-orders',  ico:'ico-orders',  screen:'screen-orders',  active:'<path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" fill="#00A86B"/><line x1="3" y1="6" x2="21" y2="6" stroke="white" stroke-width="2"/><path d="M16 10a4 4 0 0 1-8 0" stroke="white" stroke-width="2" fill="none"/>', inactive:'<path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" stroke="#9AAAB8" stroke-width="2" fill="none"/><line x1="3" y1="6" x2="21" y2="6" stroke="#9AAAB8" stroke-width="2"/><path d="M16 10a4 4 0 0 1-8 0" stroke="#9AAAB8" stroke-width="2" fill="none"/>' },
+  profile: { nav:'nav-profile', ico:'ico-profile', screen:'screen-profile', active:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" fill="#00A86B"/><circle cx="12" cy="7" r="4" fill="#00A86B"/>',                                                                inactive:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="#9AAAB8" stroke-width="2" fill="none"/><circle cx="12" cy="7" r="4" stroke="#9AAAB8" stroke-width="2" fill="none"/>' }
+};
+
+let currentScreen = 'home';
+let prevScreen    = 'home';
+
+function goTo(name) {
+  if (name === currentScreen) return;
+  prevScreen = currentScreen;
+  activate(name);
+}
+
+/* Pages sans bottom nav (sous-pages avec bouton retour) */
+var SUB_PAGES = { pharma:true, scanner:true, meds:true, chat:true };
+
+function activate(name) {
+  // hide all screens
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  var el = document.getElementById('screen-' + name);
+  if (el) el.classList.add('active');
+
+  // show/hide bottom nav
+  var nav = document.querySelector('.bottom-nav');
+  if (SUB_PAGES[name]) {
+    nav.classList.add('hidden');
+  } else {
+    nav.classList.remove('hidden');
+  }
+
+  // reset nav icons
+  Object.keys(NAV).forEach(function(k) {
+    var cfg = NAV[k];
+    var ni  = document.getElementById(cfg.nav);
+    if (!ni) return;
+    ni.classList.remove('active');
+    var dot = ni.querySelector('.nav-dot');
+    if (dot) dot.remove();
+    var lbl = ni.querySelector('.nav-label');
+    if (lbl) lbl.style.color = '';
+    var ico = document.getElementById(cfg.ico);
+    if (ico) ico.innerHTML = cfg.inactive;
+  });
+
+  // activate matching nav icon
+  var cfg = NAV[name];
+  if (cfg) {
+    var ni = document.getElementById(cfg.nav);
+    if (ni) {
+      ni.classList.add('active');
+      var lbl = ni.querySelector('.nav-label');
+      if (lbl) lbl.style.color = 'var(--green)';
+      var ico = document.getElementById(cfg.ico);
+      if (ico) ico.innerHTML = cfg.active;
+      var dot = document.createElement('div');
+      dot.className = 'nav-dot';
+      ni.appendChild(dot);
+    }
+  }
+  currentScreen = name;
+}
+
+/* ─── PHARMACY OPEN ──────────────────────── */
+function openPharma(n, a, d, o) {
+  prevScreen = currentScreen;
+  document.getElementById('cover-pharma-name').textContent  = n;
+  document.getElementById('pharma-name-title').textContent  = n;
+  document.getElementById('pharma-addr-title').textContent  = a + ' · ' + d;
+  document.getElementById('pharma-info-addr').textContent   = a;
+  var badge = document.getElementById('pharma-status-badge');
+  if (o) { badge.textContent = '● Ouverte maintenant'; badge.className = 'pharma-open-badge badge-open'; }
+  else   { badge.textContent = '● Fermée';             badge.className = 'pharma-open-badge badge-closed'; }
+  cart = [];
+  updateCart();
+  switchTab('tab-produits');
+  document.getElementById('pharmaScroll').scrollTop = 0;
+  activate('pharma');
+}
+
+/* ─── PHARMA TABS ────────────────────────── */
+function switchTab(tabId) {
+  document.querySelectorAll('.ptab').forEach(function(t){
+    var active = (t.dataset.tab === tabId);
+    t.classList.toggle('active', active);
+  });
+  ['tab-produits','tab-infos','tab-avis'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.style.display = (id === tabId) ? 'block' : 'none';
+  });
+}
+
+/* ─── CART ───────────────────────────────── */
+var cart = [];
+
+function addToCart(name, disp, val) {
+  var idx = cart.findIndex(function(i){ return i.name === name; });
+  if (idx >= 0) { cart[idx].qty++; cart[idx].total += val; }
+  else cart.push({ name: name, disp: disp, val: val, qty: 1, total: val });
+  updateCart();
+  var fab = document.getElementById('cartFab');
+  fab.style.transform = 'translateY(0) scale(1.05)';
+  setTimeout(function(){ fab.style.transform = 'translateY(0) scale(1)'; }, 150);
+}
+
+function changeQty(idx, delta) {
+  if (!cart[idx]) return;
+  cart[idx].qty += delta;
+  cart[idx].total = cart[idx].qty * cart[idx].val;
+  if (cart[idx].qty <= 0) cart.splice(idx, 1);
+  updateCart();
+}
+
+function updateCart() {
+  var total  = cart.reduce(function(s,i){ return s + i.qty; }, 0);
+  var subtot = cart.reduce(function(s,i){ return s + i.total; }, 0);
+  var grand  = subtot + 500;
+
+  document.getElementById('cartCount').textContent    = total;
+  document.getElementById('cartItemsText').textContent = total + ' article' + (total > 1 ? 's' : '');
+  document.getElementById('cartTotal').textContent    = subtot.toLocaleString('fr') + ' FCFA';
+  document.getElementById('subtotalVal').textContent  = subtot.toLocaleString('fr') + ' F';
+  document.getElementById('totalVal').textContent     = grand.toLocaleString('fr') + ' F';
+  document.getElementById('orderTotal').textContent   = grand.toLocaleString('fr') + ' F';
+
+  var fab = document.getElementById('cartFab');
+  if (total > 0) fab.classList.add('visible'); else fab.classList.remove('visible');
+
+  var lines = document.getElementById('cartLines');
+  lines.innerHTML = '';
+  if (cart.length === 0) { lines.innerHTML = '<div style="text-align:center;padding:24px;color:var(--grey-400);font-size:14px;">Panier vide</div>'; return; }
+  cart.forEach(function(item, i) {
+    var div = document.createElement('div');
+    div.className = 'cart-line';
+    div.innerHTML =
+      '<div class="cl-icon" style="background:var(--green-light);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="4" y="6" width="16" height="12" rx="4" fill="#00A86B" opacity=".3" stroke="#00A86B" stroke-width="1.5"/><path d="M8 12h8" stroke="#00A86B" stroke-width="2" stroke-linecap="round"/></svg></div>' +
+      '<div class="cl-info"><div class="cl-name">' + item.name + '</div><div class="cl-unit">' + item.disp + ' / unité</div></div>' +
+      '<div class="cl-qty"><button class="qty-btn js-qty" data-i="' + i + '" data-d="-1">−</button><span class="qty-val">' + item.qty + '</span><button class="qty-btn js-qty" data-i="' + i + '" data-d="1">+</button></div>' +
+      '<div class="cl-price">' + item.total.toLocaleString('fr') + ' F</div>';
+    lines.appendChild(div);
+  });
+}
+
+/* ─── EVENT WIRING ───────────────────────── */
+document.addEventListener('DOMContentLoaded', function() {
+
+  /* NAV items */
+  document.getElementById('nav-home').addEventListener('click',    function(){ goTo('home'); });
+  document.getElementById('nav-map').addEventListener('click',     function(){ goTo('map'); });
+  document.getElementById('nav-scan').addEventListener('click',    function(){ goTo('scanner'); });
+  document.getElementById('nav-orders').addEventListener('click',  function(){ goTo('orders'); });
+  document.getElementById('nav-profile').addEventListener('click', function(){ goTo('profile'); });
+
+  /* Home */
+  document.getElementById('btn-to-profile').addEventListener('click', function(){ goTo('profile'); });
+  document.getElementById('btn-to-meds').addEventListener('click',    function(){ goTo('meds'); });
+  document.getElementById('btn-garde-all').addEventListener('click',  function(){ goTo('map'); });
+  document.getElementById('btn-home-map').addEventListener('click',   function(){ goTo('map'); });
+  document.getElementById('btn-banner-lac').addEventListener('click', function(){ openPharma('Pharmacie du Lac','Centre-ville','0.3 km',true); });
+
+  /* Pharmacy cards */
+  document.querySelectorAll('.js-pharma').forEach(function(el) {
+    el.addEventListener('click', function(e) {
+      var t = e.currentTarget;
+      openPharma(t.dataset.n, t.dataset.a, t.dataset.d, t.dataset.o === '1');
+    });
+  });
+
+  /* Pharma profile back/map/chat */
+  document.getElementById('btn-pharma-back').addEventListener('click', function(){ activate(prevScreen); });
+  document.getElementById('btn-pharma-map').addEventListener('click',  function(){ goTo('map'); });
+  document.getElementById('btn-pharma-chat').addEventListener('click', function(){ goTo('chat'); });
+
+  /* Pharma tabs */
+  document.querySelectorAll('.ptab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      switchTab(tab.dataset.tab);
+    });
+  });
+
+  /* Add to cart */
+  document.querySelectorAll('.js-add-cart').forEach(function(el) {
+    el.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var t = e.currentTarget;
+      addToCart(t.dataset.pname, t.dataset.pdisp, parseInt(t.dataset.pval, 10));
+    });
+  });
+
+  /* Cart open/close */
+  document.getElementById('cartFab').addEventListener('click',       function(){ document.getElementById('cartDrawer').classList.add('open'); });
+  document.getElementById('btn-open-cart').addEventListener('click', function(e){ e.stopPropagation(); document.getElementById('cartDrawer').classList.add('open'); });
+  document.getElementById('cartDrawer').addEventListener('click',    function(e){ if (e.target === document.getElementById('cartDrawer')) document.getElementById('cartDrawer').classList.remove('open'); });
+  document.getElementById('btn-place-order').addEventListener('click', function() {
+    document.getElementById('cartDrawer').classList.remove('open');
+    cart = []; updateCart();
+    goTo('orders');
+  });
+
+  /* Qty buttons (delegated on cartLines) */
+  document.getElementById('cartLines').addEventListener('click', function(e) {
+    var btn = e.target.closest('.js-qty');
+    if (!btn) return;
+    changeQty(parseInt(btn.dataset.i, 10), parseInt(btn.dataset.d, 10));
+  });
+
+  /* Pay buttons */
+  document.querySelectorAll('.js-pay').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.js-pay').forEach(function(b){ b.classList.remove('sel'); });
+      btn.classList.add('sel');
+    });
+  });
+
+  /* Scanner */
+  document.getElementById('btn-scan-close').addEventListener('click',   function(){ goTo('home'); });
+  document.getElementById('btn-do-scan').addEventListener('click',      function(){ document.getElementById('scanConfirm').classList.add('show'); });
+  document.getElementById('btn-scan-confirm').addEventListener('click', function(){ document.getElementById('scanConfirm').classList.remove('show'); goTo('orders'); });
+  document.getElementById('btn-scan-cancel').addEventListener('click',  function(){ document.getElementById('scanConfirm').classList.remove('show'); });
+
+  /* Orders */
+  document.getElementById('btn-order-scan').addEventListener('click', function(){ goTo('scanner'); });
+  document.getElementById('btn-order-map').addEventListener('click',  function(){ goTo('map'); });
+  document.querySelectorAll('.js-otab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('.js-otab').forEach(function(t){ t.classList.remove('active'); });
+      tab.classList.add('active');
+    });
+  });
+
+  /* Meds */
+  document.querySelectorAll('.js-show-med').forEach(function(el) {
+    el.addEventListener('click', function() {
+      document.getElementById('medList').style.display   = 'none';
+      document.getElementById('medDetail').style.display = 'flex';
+    });
+  });
+  document.getElementById('btn-med-back').addEventListener('click', function() {
+    document.getElementById('medDetail').style.display = 'none';
+    document.getElementById('medList').style.display   = 'flex';
+  });
+  document.getElementById('btn-med-to-pharma').addEventListener('click', function(){ openPharma('Pharmacie Biyem-Assi','Av. Kennedy, Biyem-Assi','0.8 km',true); });
+
+  /* Chat */
+  document.getElementById('btn-chat-back').addEventListener('click', function(){ activate(prevScreen); });
+  document.getElementById('btn-send-msg').addEventListener('click',  sendMsg);
+  document.getElementById('chatInput').addEventListener('keydown',   function(e){ if (e.key === 'Enter') sendMsg(); });
+  document.querySelectorAll('.qr-chip').forEach(function(chip) {
+    chip.addEventListener('click', function(){ sendQuick(chip.dataset.reply); });
+  });
+
+  /* Clock */
+  function tick() {
+    var n = new Date();
+    document.getElementById('clock').textContent = n.getHours() + ':' + String(n.getMinutes()).padStart(2,'0');
+  }
+  tick();
+  setInterval(tick, 30000);
+});
+
+/* ─── CHAT ───────────────────────────────── */
+function sendMsg() {
+  var inp  = document.getElementById('chatInput');
+  var text = inp.value.trim();
+  if (!text) return;
+  addBubble(text, true);
+  inp.value = '';
+  setTimeout(function(){ addBubble('Merci pour votre message. Je vous réponds dans un instant. 🔍', false); }, 1200);
+}
+
+function sendQuick(text) {
+  addBubble(text, true);
+  setTimeout(function(){ addBubble('Bonne question ! Consultez la notice et n\'hésitez pas si vous avez d\'autres questions. 💊', false); }, 1200);
+}
+
+function addBubble(text, isUser) {
+  var c   = document.getElementById('chatMessages');
+  var n   = new Date();
+  var t   = n.getHours() + ':' + String(n.getMinutes()).padStart(2,'0');
+  var div = document.createElement('div');
+  div.className = 'msg' + (isUser ? ' user' : '');
+  div.innerHTML = '<div class="msg-avatar ' + (isUser ? 'user">L' : 'ph">Dr') + '</div><div><div class="msg-bubble">' + text + '</div><div class="msg-time">' + t + '</div></div>';
+  c.appendChild(div);
+  c.scrollTop = c.scrollHeight;
+}
+</script>
+</body>
+</html>

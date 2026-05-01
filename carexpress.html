@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <meta name="theme-color" content="#F5F6F8"/>
+  <title>CarExpress — Covoiturage Cameroun</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body,#root{height:100%;width:100%}
+    body{font-family:'Plus Jakarta Sans',sans-serif;background:#DCDFE4;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+    input,select,textarea,button{font-family:'Plus Jakarta Sans',sans-serif}
+    ::-webkit-scrollbar{width:3px}
+    ::-webkit-scrollbar-thumb{background:#E8EAED;border-radius:3px}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    @keyframes slideUp{from{opacity:0;transform:translateY(100%)}to{opacity:1;transform:translateY(0)}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes ping{0%{transform:scale(1);opacity:.7}100%{transform:scale(2.4);opacity:0}}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+    @keyframes popIn{0%{transform:scale(0.8);opacity:0}100%{transform:scale(1);opacity:1}}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+// ─── DESIGN TOKENS ────────────────────────────────────────────────────────────
+const C = {
+  bg:        "#F5F6F8",
+  card:      "#FFFFFF",
+  border:    "#E8EAED",
+  text:      "#111827",
+  textSec:   "#6B7280",
+  textLight: "#9CA3AF",
+  green:     "#25D366",
+  greenBg:   "#F0FBF4",
+  greenDark: "#1AAD54",
+  dark:      "#1F2937",
+  danger:    "#EF4444",
+  dangerBg:  "#FEF2F2",
+  shadow:    "0 1px 4px rgba(0,0,0,0.07)",
+  shadowMd:  "0 4px 20px rgba(0,0,0,0.11)",
+  shadowLg:  "0 8px 32px rgba(0,0,0,0.15)",
+};
+
+
+// ─── SVG ICONS ────────────────────────────────────────────────────────────────
+const Ic = {
+  map:     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>,
+  flag:    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>,
+  cal:     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
+  clock:   <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+  users:   <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>,
+  money:   <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>,
+  card:    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>,
+  pin:     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0112 2a8 8 0 018 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/></svg>,
+  car:     <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v9a2 2 0 01-2 2h-2"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>,
+  compass: <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>,
+  shield:  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+  check:   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
+  dblcheck:<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/><polyline points="16 6 5 17"/></svg>,
+  arrow:   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>,
+  back:    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>,
+  swap:    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>,
+  bell:    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>,
+  home:    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
+  hist:    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 100 2"/><polyline points="3 7 3 11 7 11"/></svg>,
+  heart:   <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>,
+  user:    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+  search:  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
+  phone:   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 8.81a2 2 0 012-2.18h3A2 2 0 0110 8.53l.7 2.81a2 2 0 01-.45 2.11L9.09 14.6a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45l2.81.7A2 2 0 0122 21v2z"/></svg>,
+  star:    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
+  warn:    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>,
+  bag:     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>,
+  sos:     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>,
+  chat:    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>,
+  send:    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>,
+  close:   <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+  timer:   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+};
+
+// ─── DATA ─────────────────────────────────────────────────────────────────────
+const CITIES = ["Yaoundé","Douala","Bafoussam","Bamenda","Kribi","Garoua","Maroua","Ngaoundéré","Bertoua","Ebolowa","Limbé","Buéa","Nkongsamba","Dschang","Kumba"];
+
+const PAYMENT_OPTS = [
+  { value:"all",    label:"Tout accepté",       sub:"MTN MoMo · Orange Money · Espèces" },
+  { value:"momo",   label:"MTN Mobile Money",   sub:"Paiement mobile MTN uniquement" },
+  { value:"orange", label:"Orange Money",       sub:"Paiement mobile Orange uniquement" },
+  { value:"cash",   label:"Espèces uniquement", sub:"Paiement en main propre" },
+];
+
+const DRIVERS = [
+  { id:1, name:"Jean-Paul Mbarga", ini:"JP", rating:4.9, trips:214, verified:true,  from:"Yaoundé", to:"Douala",    pickup:"Carrefour Bastos, en face de la pharmacie", dep:"06:30", dur:"5h30", seats:3, price:3500, wc:2, food:1, shop:0, luggage:["small","large"],          vehicle:"Toyota Hiace",     plate:"LT 4821 A", phone:"+237 699 123 456", pay:"all" },
+  { id:2, name:"Fatima Aboubakar", ini:"FA", rating:4.7, trips:89,  verified:false, from:"Yaoundé", to:"Douala",    pickup:"Rond-point Nlongkak, côté station Total",     dep:"08:00", dur:"6h00", seats:2, price:3000, wc:1, food:1, shop:1, luggage:["small"],               vehicle:"Mitsubishi L200",  plate:"CE 2247 B", phone:"+237 677 654 321", pay:"momo" },
+  { id:3, name:"Emmanuel Nkoa",    ini:"EN", rating:5.0, trips:412, verified:true,  from:"Yaoundé", to:"Douala",    pickup:"Agence Bini Voyages, Mvan — après le marché", dep:"10:00", dur:"5h15", seats:4, price:4000, wc:2, food:2, shop:0, luggage:["small","large","xlarge"], vehicle:"Mercedes Sprinter",plate:"LT 0093 C", phone:"+237 655 987 654", pay:"all" },
+  { id:4, name:"Alice Mbappe",     ini:"AM", rating:4.8, trips:156, verified:true,  from:"Yaoundé", to:"Bafoussam", pickup:"Carrefour Warda, en face du marché Mfoundi",  dep:"07:00", dur:"4h00", seats:2, price:2500, wc:1, food:1, shop:0, luggage:["small","large"],          vehicle:"Renault Trafic",   plate:"SW 5541 D", phone:"+237 690 111 222", pay:"orange" },
+];
+
+const HISTORY = [
+  { id:1, from:"Yaoundé",   to:"Douala",    date:"12 Mar 2026", price:3500, ok:true,  pts:35 },
+  { id:2, from:"Douala",    to:"Kribi",     date:"5 Mar 2026",  price:2000, ok:true,  pts:20 },
+  { id:3, from:"Bafoussam", to:"Yaoundé",   date:"20 Fév 2026", price:2500, ok:false, pts:0  },
+];
+const FAVS = [
+  { id:1, from:"Yaoundé", to:"Douala",  freq:"Hebdomadaire" },
+  { id:2, from:"Douala",  to:"Kribi",   freq:"Mensuel" },
+];
+const EMERGENCY = [
+  { label:"Police",     number:"117",               color:"#1D4ED8" },
+  { label:"Pompiers",   number:"118",               color:C.danger  },
+  { label:"SAMU",       number:"15",                color:C.green   },
+  { label:"Croix-Rouge",number:"+237 222 22 28 40", color:C.danger  },
+];
+const HOSPITALS = [
+  { name:"Hôpital Central de Yaoundé", dist:"1.2 km", type:"Hôpital"     },
+  { name:"Clinique Bastos",             dist:"2.4 km", type:"Clinique"    },
+  { name:"Dispensaire Mvog-Mbi",        dist:"3.1 km", type:"Dispensaire" },
+];
+
+
+const fmt  = n => (+n||0).toLocaleString("fr-FR");
+const plab = v => PAYMENT_OPTS.find(p=>p.value===v)?.label || v;
+const psub = v => PAYMENT_OPTS.find(p=>p.value===v)?.sub   || "";
+
+// ─── COUNTDOWN UTIL ───────────────────────────────────────────────────────────
+// 24h in ms = 86_400_000. For demo: we show real time but also allow "fast demo"
+const CHAT_WINDOW_MS = 24 * 60 * 60 * 1000; // 24 heures
+function useChatCountdown(bookedAt) {
+  const [remaining, setRemaining] = useState(null);
+  const [expired,   setExpired]   = useState(false);
+  useEffect(() => {
+    if (!bookedAt) return;
+    const tick = () => {
+      const diff = CHAT_WINDOW_MS - (Date.now() - bookedAt);
+      if (diff <= 0) { setExpired(true); setRemaining(null); return; }
+      const h  = Math.floor(diff / 3600000);
+      const m  = Math.floor((diff % 3600000) / 60000);
+      const s  = Math.floor((diff % 60000) / 1000);
+      setRemaining(`${h > 0 ? h + "h" : ""}${m.toString().padStart(2,"0")}m${s.toString().padStart(2,"0")}s`);
+    };
+    tick();
+    const t = setInterval(tick, 1000);
+    return () => clearInterval(t);
+  }, [bookedAt]);
+  return { remaining, expired };
+}
+
+// ─── PRIMITIVES ───────────────────────────────────────────────────────────────
+const Card = ({ children, style:s={}, onClick }) => (
+  <div onClick={onClick} style={{ background:C.card,borderRadius:16,border:`1px solid ${C.border}`,boxShadow:C.shadow,...s }}>
+    {children}
+  </div>
+);
+
+const Btn = ({ children, onClick, variant="dark", full, style:s={}, disabled }) => {
+  const v = {
+    dark:    { background:C.dark,    color:"#fff"    },
+    green:   { background:C.green,   color:"#fff"    },
+    outline: { background:"transparent", color:C.dark, border:`1.5px solid ${C.border}` },
+    danger:  { background:C.dangerBg, color:C.danger, border:`1px solid #FECACA` },
+  };
+  return (
+    <button onClick={onClick} disabled={disabled}
+      style={{ display:"flex",alignItems:"center",justifyContent:"center",gap:7,padding:"13px 20px",borderRadius:13,border:"none",cursor:disabled?"not-allowed":"pointer",fontWeight:700,fontSize:14,width:full?"100%":"auto",opacity:disabled?.5:1,transition:"opacity .15s,transform .15s",...v[variant],...s }}
+      onMouseEnter={e=>{if(!disabled){e.currentTarget.style.opacity=".85";e.currentTarget.style.transform="translateY(-1px)"}}}
+      onMouseLeave={e=>{e.currentTarget.style.opacity="1";e.currentTarget.style.transform=""}}>
+      {children}
+    </button>
+  );
+};
+
+const Label = ({ children }) => (
+  <p style={{ fontSize:11,fontWeight:700,color:C.textLight,textTransform:"uppercase",letterSpacing:.7,marginBottom:8 }}>{children}</p>
+);
+
+const inputCss = icon => ({
+  width:"100%",padding:icon?"13px 13px 13px 41px":"13px",
+  borderRadius:12,border:`1.5px solid ${C.border}`,
+  background:C.card,fontSize:14,color:C.text,outline:"none",transition:"border-color .2s",
+});
+
+const Field = ({ label, icon, value, onChange, type="text", placeholder }) => (
+  <div>
+    {label && <Label>{label}</Label>}
+    <div style={{ position:"relative" }}>
+      {icon && <span style={{ position:"absolute",left:13,top:"50%",transform:"translateY(-50%)",color:C.textSec,display:"flex" }}>{icon}</span>}
+      <input type={type} value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder}
+        style={inputCss(!!icon)}
+        onFocus={e=>e.target.style.borderColor=C.green}
+        onBlur={e=>e.target.style.borderColor=C.border} />
+    </div>
+  </div>
+);
+
+const Sel = ({ label, icon, value, onChange, options }) => (
+  <div>
+    {label && <Label>{label}</Label>}
+    <div style={{ position:"relative" }}>
+      {icon && <span style={{ position:"absolute",left:13,top:"50%",transform:"translateY(-50%)",color:C.textSec,display:"flex",zIndex:1 }}>{icon}</span>}
+      <select value={value} onChange={e=>onChange(e.target.value)}
+        style={{ ...inputCss(!!icon),appearance:"none",cursor:"pointer" }}
+        onFocus={e=>e.target.style.borderColor=C.green}
+        onBlur={e=>e.target.style.borderColor=C.border}>
+        {options.map(o=><option key={o.value||o} value={o.value||o}>{o.label||o}</option>)}
+      </select>
+      <span style={{ position:"absolute",right:13,top:"50%",transform:"translateY(-50%)",color:C.textSec,pointerEvents:"none",fontSize:11 }}>▾</span>
+    </div>
+  </div>
+);
+
+const Counter = ({ label, sub, value, onChange }) => (
+  <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"13px 14px",background:C.card,borderRadius:12,border:`1.5px solid ${C.border}` }}>
+    <div>
+      <p style={{ fontSize:14,fontWeight:600,color:C.text }}>{label}</p>
+      {sub&&<p style={{ fontSize:11,color:C.textLight,marginTop:2 }}>{sub}</p>}
+    </div>
+    <div style={{ display:"flex",alignItems:"center",gap:10 }}>
+      <button onClick={()=>onChange(Math.max(0,value-1))} style={{ width:29,height:29,borderRadius:8,border:`1.5px solid ${C.border}`,background:C.bg,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:C.dark,fontWeight:800,fontSize:17 }}>−</button>
+      <span style={{ fontSize:16,fontWeight:800,color:C.dark,minWidth:18,textAlign:"center" }}>{value}</span>
+      <button onClick={()=>onChange(Math.min(5,value+1))} style={{ width:29,height:29,borderRadius:8,border:"none",background:C.dark,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:800,fontSize:17 }}>+</button>
+    </div>
+  </div>
+);
+
+const VerBadge = ({ verified }) => (
+  <span style={{ display:"inline-flex",alignItems:"center",gap:4,padding:"2px 9px",borderRadius:20,fontSize:11,fontWeight:700,
+    background:verified?C.greenBg:"#FFFBEB",color:verified?C.greenDark:"#92400E",
+    border:`1px solid ${verified?"#A7F3D0":"#FDE68A"}` }}>
+    {verified
+      ? <><span style={{ color:C.green,display:"flex" }}>{Ic.check}</span>Vérifié</>
+      : <><span style={{ display:"flex" }}>{Ic.warn}</span>Non vérifié</>}
+  </span>
+);
+
+const Chip = ({ children }) => (
+  <span style={{ display:"inline-flex",alignItems:"center",padding:"4px 10px",borderRadius:20,fontSize:12,fontWeight:600,background:C.bg,color:C.textSec,border:`1px solid ${C.border}` }}>
+    {children}
+  </span>
+);
+
+// ─── BOTTOM NAV ───────────────────────────────────────────────────────────────
+const NAV = [
+  { k:"home",     icon:Ic.home,  label:"Accueil"   },
+  { k:"history",  icon:Ic.hist,  label:"Historique" },
+  { k:"favorites",icon:Ic.heart, label:"Favoris"   },
+  { k:"profile",  icon:Ic.user,  label:"Profil"    },
+];
+const BottomNav = ({ tab, setTab }) => (
+  <div style={{ position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:430,background:C.card,borderTop:`1px solid ${C.border}`,display:"flex",zIndex:100,paddingBottom:"env(safe-area-inset-bottom,8px)" }}>
+    {NAV.map(({ k,icon,label })=>{
+      const on = tab===k;
+      return (
+        <button key={k} onClick={()=>setTab(k)} style={{ flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:4,padding:"10px 4px 8px",border:"none",background:"transparent",cursor:"pointer" }}>
+          <span style={{ color:on?C.green:C.textLight,display:"flex",transition:"color .2s" }}>{icon}</span>
+          <span style={{ fontSize:10,fontWeight:700,color:on?C.green:C.textLight,transition:"color .2s" }}>{label}</span>
+          {on&&<div style={{ width:18,height:2,borderRadius:1,background:C.green }}/>}
+        </button>
+      );
+    })}
+  </div>
+);
+
+const PageHdr = ({ title, sub, onBack }) => (
+  <div style={{ display:"flex",alignItems:"center",gap:11,marginBottom:22 }}>
+    {onBack&&(
+      <button onClick={onBack} style={{ width:37,height:37,borderRadius:11,border:`1.5px solid ${C.border}`,background:C.card,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:C.dark,flexShrink:0 }}>
+        {Ic.back}
+      </button>
+    )}
+    <div>
+      <h2 style={{ fontWeight:800,fontSize:19,color:C.text }}>{title}</h2>
+      {sub&&<p style={{ fontSize:12,color:C.textSec,marginTop:2 }}>{sub}</p>}
+    </div>
+  </div>
+);
+
+// ─── FLOATING CHAT ────────────────────────────────────────────────────────────
+// Deux usages :
+//   MODE "adjust"  → renégocier les paramètres du trajet (point de RDV, prix, bagages, horaire, arrêts...)
+//   MODE "lost"    → signaler un oubli / objet perdu après le trajet
+// Le chat disparaît automatiquement 24 h après la réservation.
+
+const CHAT_MODES = {
+  adjust: {
+    label: "Ajuster le trajet",
+    icon: "✏️",
+    color: "#1F2937",
+    colorLight: "#F3F4F6",
+    intro: "Discutez ici des ajustements au trajet : nouveau point de rendez-vous, modification du prix, bagages supplémentaires, heure de départ, arrêts…",
+    suggestions: [
+      { icon: "📍", label: "Changer le point de RDV",   text: "Bonjour, serait-il possible de changer le point de prise en charge ?" },
+      { icon: "💰", label: "Renégocier le prix",         text: "Bonjour, peut-on s'accorder sur un ajustement du tarif ?" },
+      { icon: "🧳", label: "Bagage supplémentaire",      text: "J'ai un bagage en plus, est-ce que c'est possible ?" },
+      { icon: "⏰", label: "Modifier l'heure de départ", text: "Pourrait-on décaler légèrement l'heure de départ ?" },
+      { icon: "🛑", label: "Ajouter un arrêt",           text: "Est-ce qu'on peut prévoir un arrêt supplémentaire sur la route ?" },
+      { icon: "👥", label: "Place pour un +1",           text: "Je voudrais ajouter une personne, y a-t-il encore de la place ?" },
+    ],
+    replies: {
+      default: [
+        "Pas de problème, je suis flexible. Dites-moi ce qui vous convient.",
+        "C'est possible, on peut s'arranger. Parlez-moi des détails.",
+        "Je vais voir ce que je peux faire et vous réponds dans un instant.",
+        "Entendu. On s'adapte selon les besoins.",
+      ],
+      "Changer le point de RDV":    ["Aucun problème. Quel nouveau point vous convient le mieux ?", "Dites-moi l'adresse exacte, je m'y rendrai."],
+      "Renégocier le prix":         ["Je comprends. Quelle somme proposez-vous ?", "On peut discuter — faites votre proposition."],
+      "Bagage supplémentaire":      ["Décrivez le bagage, je vous dis si c'est faisable.", "Cela dépend de la taille. Quel type de bagage ?"],
+      "Modifier l'heure de départ": ["De combien de minutes souhaitez-vous décaler ?", "Possible dans une certaine limite. Quelle heure vous convient ?"],
+      "Ajouter un arrêt":           ["Où souhaitez-vous l'arrêt ? Je vérifie si c'est sur le trajet.", "Précisez le lieu, on en discute."],
+      "Place pour un +1":           ["Il me reste de la place. La personne sera au même point de RDV ?", "Pas de problème, prévenez-moi pour que je confirme."],
+    },
+  },
+  lost: {
+    label: "Objet perdu / oublié",
+    icon: "🔍",
+    color: "#92400E",
+    colorLight: "#FFFBEB",
+    intro: "Vous avez oublié quelque chose dans le véhicule, ou le chauffeur a retrouvé un objet ? Utilisez ce canal pour vous coordonner.",
+    suggestions: [
+      { icon: "🎒", label: "J'ai oublié un bagage",         text: "Bonjour, j'ai oublié un bagage dans votre véhicule. Pouvez-vous vérifier ?" },
+      { icon: "📱", label: "J'ai oublié mon téléphone",     text: "J'ai laissé mon téléphone dans la voiture. Il est toujours là ?" },
+      { icon: "👜", label: "J'ai oublié mon sac",           text: "Mon sac est resté dans le véhicule, comment puis-je le récupérer ?" },
+      { icon: "🔑", label: "J'ai oublié mes clés",          text: "Mes clés sont dans votre voiture. Comment faire pour les récupérer ?" },
+      { icon: "📄", label: "J'ai oublié des documents",     text: "J'ai laissé des documents importants dans le véhicule." },
+      { icon: "📦", label: "J'ai trouvé un objet (chauffeur)", text: "J'ai trouvé un objet oublié par un passager. Comment vous le remettre ?" },
+    ],
+    replies: {
+      default: [
+        "Je vérifie dans le véhicule et vous réponds de suite.",
+        "Laissez-moi regarder — je vous confirme dans un instant.",
+        "Je suis disponible pour l'organisation de la récupération.",
+        "D'accord, on va arranger ça. Dites-moi où vous trouvez.",
+      ],
+      "J'ai oublié un bagage":           ["Je vois un bagage ici. Décrivez-le pour confirmer.", "J'ai bien quelque chose. Comment souhaitez-vous récupérer ?"],
+      "J'ai oublié mon téléphone":       ["Je retrouve un téléphone. C'est quelle marque / couleur ?", "Il y a un téléphone ici. Comment vous le rendre ?"],
+      "J'ai oublié mon sac":             ["J'ai un sac. Décrivez sa couleur et son contenu pour confirmer.", "Retrouvé. On peut se retrouver à un point fixe."],
+      "J'ai oublié mes clés":            ["Effectivement j'ai des clés. À quel moment vous convient la récupération ?", "Je les garde en sécurité. Dites-moi où vous rejoindre."],
+      "J'ai oublié des documents":       ["Je vérifie — quels documents exactement ?", "Il y a des papiers ici. Décrivez-les pour confirmer que c'est bien les vôtres."],
+      "J'ai trouvé un objet (chauffeur)":["Merci de le signaler. Le passager va être notifié.", "Je transmets l'information. Gardez l'objet en sécurité."],
+    },
+  },
+};
+
+function FloatingChat({ trip, bookedAt }) {
+  const { remaining, expired } = useChatCountdown(bookedAt);
+  const [open,    setOpen]    = useState(false);
+  const [mode,    setMode]    = useState("adjust"); // "adjust" | "lost"
+  const [input,   setInput]   = useState("");
+  const [unread,  setUnread]  = useState(1);
+  const [typing,  setTyping]  = useState(false);
+  const [lastSug, setLastSug] = useState(null);   // dernière suggestion utilisée
+  const scrollRef = useRef(null);
+
+  const [msgs, setMsgs] = useState([{
+    id:1, from:"driver", mode:"adjust",
+    text:`Bonjour ! Je suis votre chauffeur pour ${trip.from} → ${trip.to}. Rendez-vous à ${trip.dep} au point convenu.\n\nSi vous souhaitez ajuster quoi que ce soit (point de RDV, horaire, bagages…) ou me contacter après le trajet pour un oubli, ce chat est disponible 24 h.`,
+    time:"à l'instant", read:true,
+  }]);
+
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  }, [msgs, open]);
+
+  useEffect(() => { if (open) setUnread(0); }, [open]);
+
+  if (expired || !bookedAt) return null;
+
+  const tsNow = () => { const d=new Date(); return `${d.getHours()}:${d.getMinutes().toString().padStart(2,"0")}`; };
+  const now = tsNow;
+
+  const sendText = (txt, sugLabel=null) => {
+    if (!txt.trim()) return;
+    setMsgs(p=>[...p,{ id:Date.now(), from:"me", mode, text:txt.trim(), time:now(), read:false }]);
+    setInput("");
+    setLastSug(sugLabel);
+    setTyping(true);
+    setTimeout(()=>{
+      setTyping(false);
+      const cfg = CHAT_MODES[mode];
+      const pool = (sugLabel && cfg.replies[sugLabel]) ? cfg.replies[sugLabel] : cfg.replies.default;
+      const reply = pool[Math.floor(Math.random()*pool.length)];
+      setMsgs(p=>[...p,{ id:Date.now()+1, from:"driver", mode, text:reply, time:now(), read:false }]);
+      if (!open) setUnread(u=>u+1);
+    }, 1400+Math.random()*700);
+  };
+
+  const currentMode = CHAT_MODES[mode];
+
+  // Mode tag colors
+  const modeTag = {
+    adjust:{ bg:"#F3F4F6", color:C.dark,   border:C.border   },
+    lost:  { bg:"#FFFBEB", color:"#92400E", border:"#FDE68A" },
+  };
+
+  return (
+    <>
+      {/* ── Chat trigger button (inline, positionné par FloatingStack) ── */}
+      {!open && (
+        <button onClick={()=>setOpen(true)}
+          style={{ width:56,height:56,borderRadius:"50%",background:C.dark,border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",boxShadow:"0 4px 20px rgba(0,0,0,0.25)",position:"relative",transition:"transform .2s,box-shadow .2s",animation:"popIn .3s ease .1s both" }}
+          onMouseEnter={e=>{e.currentTarget.style.transform="scale(1.08)";e.currentTarget.style.boxShadow="0 6px 28px rgba(0,0,0,0.3)"}}
+          onMouseLeave={e=>{e.currentTarget.style.transform="scale(1)";e.currentTarget.style.boxShadow="0 4px 20px rgba(0,0,0,0.25)"}}>
+          {Ic.chat}
+          {unread>0&&<div style={{ position:"absolute",top:1,right:1,width:17,height:17,borderRadius:"50%",background:C.danger,border:"2px solid #fff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:800,color:"#fff" }}>{unread}</div>}
+          <div style={{ position:"absolute",bottom:3,right:3,width:10,height:10,borderRadius:"50%",background:C.green,border:"2px solid #fff" }}/>
+        </button>
+      )}
+
+      {/* ── Chat panel ── */}
+      {open && (
+        <div style={{ position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:430,height:"76vh",background:C.card,borderRadius:"24px 24px 0 0",boxShadow:C.shadowLg,zIndex:300,display:"flex",flexDirection:"column",animation:"slideUp .3s ease" }}>
+
+          {/* Handle */}
+          <div style={{ width:36,height:3,borderRadius:2,background:C.border,margin:"10px auto 0" }}/>
+
+          {/* Header */}
+          <div style={{ display:"flex",alignItems:"center",gap:10,padding:"10px 14px",borderBottom:`1px solid ${C.border}` }}>
+            <div style={{ width:40,height:40,borderRadius:12,background:C.dark,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:14,color:"#fff",flexShrink:0,position:"relative" }}>
+              {trip.ini}
+              <div style={{ position:"absolute",bottom:-1,right:-1,width:11,height:11,borderRadius:"50%",background:C.green,border:"2px solid #fff" }}/>
+            </div>
+            <div style={{ flex:1,minWidth:0 }}>
+              <div style={{ display:"flex",alignItems:"center",gap:6,marginBottom:2 }}>
+                <span style={{ fontWeight:800,fontSize:14,color:C.text }}>{trip.name}</span>
+                <VerBadge verified={trip.verified}/>
+              </div>
+              <p style={{ fontSize:11,color:C.textSec }}>{trip.from} → {trip.to} · Dép. {trip.dep}</p>
+            </div>
+            <button onClick={()=>setOpen(false)} style={{ width:30,height:30,borderRadius:9,border:`1px solid ${C.border}`,background:C.bg,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:C.textSec,flexShrink:0 }}>
+              {Ic.close}
+            </button>
+          </div>
+
+          {/* ── Mode tabs ── */}
+          <div style={{ display:"flex",gap:8,padding:"10px 14px 0",borderBottom:`1px solid ${C.border}`,paddingBottom:10 }}>
+            {Object.entries(CHAT_MODES).map(([key,cfg])=>(
+              <button key={key} onClick={()=>setMode(key)} style={{
+                flex:1, display:"flex",alignItems:"center",justifyContent:"center",gap:6,
+                padding:"8px 10px", borderRadius:11,
+                border:`1.5px solid ${mode===key?(key==="lost"?"#FDE68A":C.green):C.border}`,
+                background: mode===key?(key==="lost"?"#FFFBEB":C.greenBg):C.bg,
+                cursor:"pointer", transition:"all .18s",
+                fontFamily:"'Plus Jakarta Sans',sans-serif",
+              }}>
+                <span style={{ fontSize:15 }}>{cfg.icon}</span>
+                <span style={{ fontSize:11,fontWeight:700,color:mode===key?(key==="lost"?"#92400E":C.greenDark):C.textSec }}>{cfg.label}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Countdown + context banner */}
+          <div style={{ padding:"7px 14px",background:C.bg,borderBottom:`1px solid ${C.border}` }}>
+            <p style={{ fontSize:11,color:C.textSec,lineHeight:1.5,marginBottom:4 }}>{currentMode.intro}</p>
+            <div style={{ display:"flex",alignItems:"center",gap:5 }}>
+              <span style={{ color:C.textSec,display:"flex" }}>{Ic.timer}</span>
+              <span style={{ fontSize:11,fontWeight:600,color:C.textSec }}>Disponible encore</span>
+              <span style={{ fontSize:11,fontWeight:800,color:C.dark,fontVariantNumeric:"tabular-nums" }}>{remaining}</span>
+            </div>
+          </div>
+
+          {/* Messages */}
+          <div ref={scrollRef} style={{ flex:1,overflowY:"auto",padding:"12px 14px 8px",display:"flex",flexDirection:"column",gap:10 }}>
+            <div style={{ textAlign:"center",marginBottom:2 }}>
+              <span style={{ fontSize:11,fontWeight:600,color:C.textLight,background:C.bg,padding:"3px 10px",borderRadius:20 }}>Aujourd'hui</span>
+            </div>
+
+            {msgs.map(msg=>{
+              const isMe = msg.from==="me";
+              const tag = msg.mode && modeTag[msg.mode];
+              return (
+                <div key={msg.id} style={{ display:"flex",flexDirection:"column",alignItems:isMe?"flex-end":"flex-start",animation:"fadeIn .2s ease" }}>
+                  {!isMe&&(
+                    <div style={{ display:"flex",alignItems:"flex-end",gap:7,maxWidth:"84%" }}>
+                      <div style={{ width:26,height:26,borderRadius:8,background:C.dark,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:800,color:"#fff",flexShrink:0 }}>{trip.ini}</div>
+                      <div>
+                        {/* Mode tag on driver messages */}
+                        {msg.mode&&<span style={{ display:"inline-block",fontSize:10,fontWeight:700,padding:"2px 7px",borderRadius:20,marginBottom:4,background:tag.bg,color:tag.color,border:`1px solid ${tag.border}` }}>{CHAT_MODES[msg.mode].icon} {CHAT_MODES[msg.mode].label}</span>}
+                        <div style={{ background:C.bg,border:`1px solid ${C.border}`,borderRadius:"14px 14px 14px 4px",padding:"9px 13px" }}>
+                          <p style={{ fontSize:13,color:C.text,lineHeight:1.55,whiteSpace:"pre-line" }}>{msg.text}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {isMe&&(
+                    <div style={{ maxWidth:"84%" }}>
+                      {msg.mode&&<div style={{ textAlign:"right",marginBottom:4 }}><span style={{ display:"inline-block",fontSize:10,fontWeight:700,padding:"2px 7px",borderRadius:20,background:tag.bg,color:tag.color,border:`1px solid ${tag.border}` }}>{CHAT_MODES[msg.mode].icon} {CHAT_MODES[msg.mode].label}</span></div>}
+                      <div style={{ background:C.dark,borderRadius:"14px 14px 4px 14px",padding:"9px 13px" }}>
+                        <p style={{ fontSize:13,color:"#fff",lineHeight:1.55 }}>{msg.text}</p>
+                      </div>
+                    </div>
+                  )}
+                  <div style={{ display:"flex",alignItems:"center",gap:4,marginTop:3,paddingLeft:isMe?0:33 }}>
+                    <span style={{ fontSize:10,color:C.textLight }}>{msg.time}</span>
+                    {isMe&&<span style={{ color:C.textLight,display:"flex" }}>{Ic.dblcheck}</span>}
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Typing dots */}
+            {typing&&(
+              <div style={{ display:"flex",alignItems:"flex-end",gap:7 }}>
+                <div style={{ width:26,height:26,borderRadius:8,background:C.dark,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:800,color:"#fff",flexShrink:0 }}>{trip.ini}</div>
+                <div style={{ background:C.bg,border:`1px solid ${C.border}`,borderRadius:"14px 14px 14px 4px",padding:"10px 14px",display:"flex",gap:4,alignItems:"center" }}>
+                  {[0,1,2].map(i=><div key={i} style={{ width:6,height:6,borderRadius:"50%",background:C.textLight,animation:`blink 1.2s ease ${i*.2}s infinite` }}/>)}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* ── Contextual suggestions ── */}
+          <div style={{ padding:"8px 14px 0",borderTop:`1px solid ${C.border}` }}>
+            <p style={{ fontSize:10,fontWeight:700,color:C.textLight,textTransform:"uppercase",letterSpacing:.6,marginBottom:7 }}>Suggestions rapides</p>
+            <div style={{ display:"flex",gap:7,overflowX:"auto",paddingBottom:8 }}>
+              {currentMode.suggestions.map(s=>(
+                <button key={s.label} onClick={()=>sendText(s.text, s.label)}
+                  style={{ display:"flex",alignItems:"center",gap:5,flexShrink:0,padding:"6px 12px",borderRadius:20,border:`1px solid ${mode==="lost"?"#FDE68A":C.border}`,background:mode==="lost"?"#FFFBEB":C.bg,cursor:"pointer",fontFamily:"'Plus Jakarta Sans',sans-serif",transition:"all .15s" }}
+                  onMouseEnter={e=>{e.currentTarget.style.borderColor=mode==="lost"?"#F59E0B":C.green;e.currentTarget.style.background=mode==="lost"?"#FEF3C7":C.greenBg}}
+                  onMouseLeave={e=>{e.currentTarget.style.borderColor=mode==="lost"?"#FDE68A":C.border;e.currentTarget.style.background=mode==="lost"?"#FFFBEB":C.bg}}>
+                  <span style={{ fontSize:14 }}>{s.icon}</span>
+                  <span style={{ fontSize:12,fontWeight:600,color:mode==="lost"?"#92400E":C.textSec,whiteSpace:"nowrap" }}>{s.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Input */}
+          <div style={{ padding:"6px 14px 14px",display:"flex",gap:9,alignItems:"center" }}>
+            <div style={{ flex:1,background:C.bg,borderRadius:22,border:`1.5px solid ${C.border}`,padding:"10px 14px",display:"flex",alignItems:"center",transition:"border-color .2s" }}>
+              <input value={input} onChange={e=>setInput(e.target.value)}
+                onKeyDown={e=>{ if(e.key==="Enter"&&!e.shiftKey){ e.preventDefault(); sendText(input); }}}
+                placeholder="Écrire un message..."
+                style={{ border:"none",background:"transparent",outline:"none",fontSize:14,color:C.text,width:"100%" }}
+              />
+            </div>
+            <button onClick={()=>sendText(input)} disabled={!input.trim()}
+              style={{ width:42,height:42,borderRadius:"50%",border:"none",background:input.trim()?C.green:"#E5E7EB",cursor:input.trim()?"pointer":"default",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",flexShrink:0,transition:"background .2s,transform .15s" }}
+              onMouseEnter={e=>{if(input.trim())e.currentTarget.style.transform="scale(1.08)"}}
+              onMouseLeave={e=>e.currentTarget.style.transform="scale(1)"}>
+              {Ic.send}
+            </button>
+          </div>
+
+          <div style={{ padding:"0 14px 10px",textAlign:"center" }}>
+            <p style={{ fontSize:10,color:C.textLight,lineHeight:1.5 }}>Conversation supprimée automatiquement 24 h après la réservation.</p>
+          </div>
+        </div>
+      )}
+
+      {/* Backdrop */}
+      {open&&<div onClick={()=>setOpen(false)} style={{ position:"fixed",inset:0,background:"rgba(0,0,0,0.35)",zIndex:290,animation:"fadeIn .2s ease" }}/>}
+    </>
+  );
+}
+
+// ─── HOME ─────────────────────────────────────────────────────────────────────
+function HomeScreen({ setScreen }) {
+  return (
+    <div style={{ animation:"fadeUp .35s ease" }}>
+      <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:26 }}>
+        <div>
+          <p style={{ fontSize:13,color:C.textSec,fontWeight:500 }}>Bonjour 👋</p>
+          <h1 style={{ fontWeight:800,fontSize:25,color:C.text,marginTop:2 }}>Où allons-nous ?</h1>
+        </div>
+        <button style={{ width:40,height:40,borderRadius:12,border:`1.5px solid ${C.border}`,background:C.card,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:C.dark }}>
+          {Ic.bell}
+        </button>
+      </div>
+
+      <div style={{ display:"flex",gap:9,marginBottom:26 }}>
+        {[{ v:"1 240+",l:"Trajets" },{ v:"4.8 ★",l:"Note moy." },{ v:"98 %",l:"Sécurité" }].map(s=>(
+          <div key={s.l} style={{ flex:1,background:C.card,border:`1px solid ${C.border}`,borderRadius:13,padding:"12px 10px",textAlign:"center" }}>
+            <p style={{ fontWeight:800,fontSize:16,color:C.text }}>{s.v}</p>
+            <p style={{ fontSize:11,color:C.textSec,marginTop:2,fontWeight:500 }}>{s.l}</p>
+          </div>
+        ))}
+      </div>
+
+      <Label>Je suis</Label>
+
+      <div onClick={()=>setScreen("driver")} style={{ background:C.dark,borderRadius:18,padding:"22px 20px",marginBottom:11,cursor:"pointer",position:"relative",overflow:"hidden",animation:"fadeUp .35s ease .07s both",transition:"opacity .2s" }}
+        onMouseEnter={e=>e.currentTarget.style.opacity=".9"} onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
+        <div style={{ position:"absolute",right:-14,top:-14,width:90,height:90,borderRadius:"50%",background:"rgba(255,255,255,0.04)" }}/>
+        <div style={{ position:"absolute",right:18,bottom:14,color:"rgba(255,255,255,0.08)",transform:"scale(2.8)",transformOrigin:"bottom right" }}>{Ic.car}</div>
+        <span style={{ display:"inline-block",fontSize:10,fontWeight:700,color:C.textSec,background:C.bg,padding:"2px 9px",borderRadius:20,marginBottom:12,letterSpacing:.5 }}>CHAUFFEUR</span>
+        <h3 style={{ fontWeight:800,fontSize:19,color:"#fff",marginBottom:5 }}>Je propose un trajet</h3>
+        <p style={{ fontSize:13,color:"rgba(255,255,255,0.45)",maxWidth:"68%",lineHeight:1.5 }}>Publiez votre itinéraire et définissez vos conditions</p>
+        <div style={{ marginTop:14,display:"flex",alignItems:"center",gap:6,color:C.green,fontWeight:700,fontSize:13 }}>Commencer {Ic.arrow}</div>
+      </div>
+
+      <div onClick={()=>setScreen("passenger")} style={{ background:C.card,border:`1.5px solid ${C.border}`,borderRadius:18,padding:"22px 20px",cursor:"pointer",position:"relative",overflow:"hidden",animation:"fadeUp .35s ease .13s both",transition:"border-color .2s" }}
+        onMouseEnter={e=>e.currentTarget.style.borderColor=C.green} onMouseLeave={e=>e.currentTarget.style.borderColor=C.border}>
+        <div style={{ position:"absolute",right:-14,top:-14,width:90,height:90,borderRadius:"50%",background:"rgba(37,211,102,0.04)" }}/>
+        <div style={{ position:"absolute",right:18,bottom:14,color:"rgba(0,0,0,0.04)",transform:"scale(2.8)",transformOrigin:"bottom right" }}>{Ic.compass}</div>
+        <span style={{ display:"inline-block",fontSize:10,fontWeight:700,color:C.greenDark,background:C.greenBg,padding:"2px 9px",borderRadius:20,marginBottom:12,letterSpacing:.5,border:`1px solid #A7F3D0` }}>VOYAGEUR</span>
+        <h3 style={{ fontWeight:800,fontSize:19,color:C.text,marginBottom:5 }}>Je cherche un trajet</h3>
+        <p style={{ fontSize:13,color:C.textSec,maxWidth:"68%",lineHeight:1.5 }}>Trouvez un chauffeur de confiance vers votre destination</p>
+        <div style={{ marginTop:14,display:"flex",alignItems:"center",gap:6,color:C.dark,fontWeight:700,fontSize:13 }}>Rechercher {Ic.arrow}</div>
+      </div>
+
+      <div style={{ marginTop:14,display:"flex",gap:10,alignItems:"flex-start",padding:"13px 15px",background:C.card,borderRadius:13,border:`1px solid ${C.border}`,animation:"fadeUp .35s ease .19s both" }}>
+        <span style={{ color:C.green,flexShrink:0,marginTop:1,display:"flex" }}>{Ic.shield}</span>
+        <p style={{ fontSize:12,color:C.textSec,lineHeight:1.6 }}>Les chauffeurs <strong style={{ color:C.text }}>Vérifiés ✓</strong> ont transmis leurs documents officiels à CarExpress.</p>
+      </div>
+    </div>
+  );
+}
+
+// ─── DRIVER FORM ──────────────────────────────────────────────────────────────
+function DriverScreen({ onBack, onSubmit }) {
+  const [step, setStep] = useState(1);
+  const [form, setForm] = useState({ from:"Yaoundé",to:"Douala",pickup:"",date:"",time:"06:00",seats:"3",wc:2,food:1,shop:0,luggage:{small:true,large:false,xlarge:false},price:"3500",pay:"all" });
+  const set = (k,v) => setForm(p=>({...p,[k]:v}));
+  const STEPS = ["Itinéraire","Conditions","Tarif"];
+
+  const S1 = () => (
+    <div style={{ display:"flex",flexDirection:"column",gap:13 }}>
+      <Sel label="Ville de départ" icon={Ic.map}   value={form.from}   onChange={v=>set("from",v)}   options={CITIES}/>
+      <Sel label="Destination"     icon={Ic.flag}  value={form.to}     onChange={v=>set("to",v)}     options={CITIES.filter(c=>c!==form.from)}/>
+      <div>
+        <Field label="Point de prise en charge" icon={Ic.pin} value={form.pickup} onChange={v=>set("pickup",v)} placeholder="Ex: Rond-point Nlongkak, station Total"/>
+        <p style={{ fontSize:11,color:C.textSec,marginTop:6,lineHeight:1.5,paddingLeft:2 }}>Indiquez un endroit connu : point de repère, agence ou carrefour précis.</p>
+      </div>
+      <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:11 }}>
+        <Field label="Date"  icon={Ic.cal}   type="date" value={form.date} onChange={v=>set("date",v)}/>
+        <Field label="Heure" icon={Ic.clock} type="time" value={form.time} onChange={v=>set("time",v)}/>
+      </div>
+      <Sel label="Places disponibles" icon={Ic.users} value={form.seats} onChange={v=>set("seats",v)}
+        options={["1","2","3","4","5","6","7","8"].map(v=>({ value:v,label:`${v} place${v>1?"s":""}` }))}/>
+    </div>
+  );
+
+  const S2 = () => (
+    <div style={{ display:"flex",flexDirection:"column",gap:11 }}>
+      <Label>Arrêts prévus</Label>
+      <Counter label="Besoins / Pipi"     sub="Arrêts sanitaires"   value={form.wc}   onChange={v=>set("wc",v)}/>
+      <Counter label="Repas / Restaurant" sub="Pauses alimentation" value={form.food} onChange={v=>set("food",v)}/>
+      <Counter label="Achats / Marché"    sub="Arrêts commerciaux"  value={form.shop} onChange={v=>set("shop",v)}/>
+      <div style={{ marginTop:4 }}><Label>Bagages acceptés</Label></div>
+      {[["small","Petit bagage","Sac à dos, bagage cabine"],["large","Gros bagage","Valise standard"],["xlarge","Très gros bagage","Gros colis, carton"]].map(([k,name,desc])=>(
+        <label key={k} style={{ display:"flex",alignItems:"center",gap:11,padding:"12px 14px",background:C.card,borderRadius:12,cursor:"pointer",border:`1.5px solid ${form.luggage[k]?C.green:C.border}`,transition:"border-color .2s" }}>
+          <input type="checkbox" checked={form.luggage[k]} onChange={e=>set("luggage",{...form.luggage,[k]:e.target.checked})} style={{ display:"none" }}/>
+          <span style={{ color:C.textSec,display:"flex" }}>{Ic.bag}</span>
+          <div style={{ flex:1 }}>
+            <p style={{ fontWeight:700,fontSize:13,color:C.text }}>{name}</p>
+            <p style={{ fontSize:11,color:C.textSec }}>{desc}</p>
+          </div>
+          <div style={{ width:19,height:19,borderRadius:5,border:`2px solid ${form.luggage[k]?C.green:C.border}`,background:form.luggage[k]?C.green:"transparent",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",transition:"all .2s",flexShrink:0 }}>
+            {form.luggage[k]&&Ic.check}
+          </div>
+        </label>
+      ))}
+    </div>
+  );
+
+  const S3 = () => (
+    <div style={{ display:"flex",flexDirection:"column",gap:13 }}>
+      <Field label="Prix par personne (FCFA)" icon={Ic.money} type="number" value={form.price} onChange={v=>set("price",v)} placeholder="ex: 3500"/>
+      <div>
+        <Label>Mode de paiement accepté</Label>
+        <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
+          {PAYMENT_OPTS.map(opt=>(
+            <label key={opt.value} style={{ display:"flex",alignItems:"center",gap:11,padding:"13px 14px",background:C.card,borderRadius:12,cursor:"pointer",border:`1.5px solid ${form.pay===opt.value?C.green:C.border}`,transition:"border-color .2s" }}>
+              <input type="radio" name="pay" checked={form.pay===opt.value} onChange={()=>set("pay",opt.value)} style={{ display:"none" }}/>
+              <span style={{ color:C.textSec,display:"flex" }}>{Ic.card}</span>
+              <div style={{ flex:1 }}>
+                <p style={{ fontWeight:700,fontSize:13,color:C.text }}>{opt.label}</p>
+                <p style={{ fontSize:11,color:C.textSec }}>{opt.sub}</p>
+              </div>
+              <div style={{ width:18,height:18,borderRadius:"50%",border:`2px solid ${form.pay===opt.value?C.green:C.border}`,background:form.pay===opt.value?C.green:"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .2s" }}>
+                {form.pay===opt.value&&<div style={{ width:6,height:6,borderRadius:"50%",background:"#fff" }}/>}
+              </div>
+            </label>
+          ))}
+        </div>
+      </div>
+      <Card style={{ padding:16,background:C.bg,border:"none" }}>
+        <Label>Récapitulatif</Label>
+        <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:12 }}>
+          <span style={{ fontWeight:800,fontSize:16,color:C.text }}>{form.from}</span>
+          <span style={{ color:C.textLight }}>→</span>
+          <span style={{ fontWeight:800,fontSize:16,color:C.text }}>{form.to}</span>
+        </div>
+        {form.pickup&&(
+          <div style={{ display:"flex",gap:8,padding:"9px 11px",background:C.card,borderRadius:10,marginBottom:10,border:`1px solid ${C.border}` }}>
+            <span style={{ color:C.green,display:"flex",flexShrink:0 }}>{Ic.pin}</span>
+            <p style={{ fontSize:12,color:C.text,lineHeight:1.4 }}>{form.pickup}</p>
+          </div>
+        )}
+        <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:8 }}>
+          {[["Départ",form.time],["Places",form.seats],["Prix",`${fmt(+form.price)} FCFA`],["Paiement",plab(form.pay)]].map(([l,v])=>(
+            <div key={l} style={{ padding:"9px 11px",background:C.card,borderRadius:10,border:`1px solid ${C.border}` }}>
+              <p style={{ fontSize:10,color:C.textSec,fontWeight:600 }}>{l}</p>
+              <p style={{ fontSize:13,fontWeight:700,color:C.text,marginTop:2 }}>{v}</p>
+            </div>
+          ))}
+        </div>
+      </Card>
+    </div>
+  );
+
+  return (
+    <div style={{ animation:"fadeUp .3s ease" }}>
+      <PageHdr title="Proposer un trajet" sub="Chauffeur" onBack={onBack}/>
+      <div style={{ display:"flex",alignItems:"center",marginBottom:26 }}>
+        {STEPS.map((s,i)=>(
+          <div key={s} style={{ display:"flex",alignItems:"center",flex:i<STEPS.length-1?1:0 }}>
+            <div style={{ display:"flex",flexDirection:"column",alignItems:"center" }}>
+              <div style={{ width:28,height:28,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:800,transition:"all .3s",background:step>i+1?C.green:step===i+1?C.dark:C.border,color:step>=i+1?"#fff":C.textSec }}>
+                {step>i+1?Ic.check:i+1}
+              </div>
+              <span style={{ fontSize:10,fontWeight:600,color:step===i+1?C.text:C.textLight,marginTop:4 }}>{s}</span>
+            </div>
+            {i<STEPS.length-1&&<div style={{ flex:1,height:2,background:step>i+1?C.green:C.border,margin:"0 6px 13px",transition:"all .3s" }}/>}
+          </div>
+        ))}
+      </div>
+      <div style={{ marginBottom:22 }}>{step===1?<S1/>:step===2?<S2/>:<S3/>}</div>
+      <div style={{ display:"flex",gap:9 }}>
+        {step>1&&<Btn variant="outline" onClick={()=>setStep(s=>s-1)} style={{ flex:1 }}>← Retour</Btn>}
+        <Btn variant={step===3?"green":"dark"} onClick={()=>step<3?setStep(s=>s+1):onSubmit(form)} style={{ flex:2 }}>
+          {step<3?<>Continuer {Ic.arrow}</>:"Publier le trajet"}
+        </Btn>
+      </div>
+    </div>
+  );
+}
+
+// ─── PASSENGER SEARCH ─────────────────────────────────────────────────────────
+function PassengerScreen({ onBack, setScreen, setResults }) {
+  const [from,setFrom]=useState("Yaoundé"),[to,setTo]=useState("Douala"),[date,setDate]=useState(""),[loading,setLoading]=useState(false);
+  const search=()=>{ setLoading(true); setTimeout(()=>{ setResults(DRIVERS.filter(d=>d.from===from&&d.to===to)); setLoading(false); setScreen("results"); },1200); };
+  return (
+    <div style={{ animation:"fadeUp .3s ease" }}>
+      <PageHdr title="Trouver un trajet" sub="Voyageur" onBack={onBack}/>
+      <Card style={{ padding:18,marginBottom:14 }}>
+        <div style={{ display:"flex",flexDirection:"column",gap:13 }}>
+          <Sel label="Départ"      icon={Ic.map}  value={from} onChange={setFrom} options={CITIES}/>
+          <div style={{ display:"flex",alignItems:"center",gap:10 }}>
+            <div style={{ flex:1,height:1,background:C.border }}/>
+            <button onClick={()=>{const t=from;setFrom(to);setTo(t);}} style={{ width:34,height:34,borderRadius:10,border:`1.5px solid ${C.border}`,background:C.card,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:C.dark,transition:"border-color .2s" }}
+              onMouseEnter={e=>e.currentTarget.style.borderColor=C.green} onMouseLeave={e=>e.currentTarget.style.borderColor=C.border}>
+              {Ic.swap}
+            </button>
+            <div style={{ flex:1,height:1,background:C.border }}/>
+          </div>
+          <Sel label="Destination" icon={Ic.flag} value={to}   onChange={setTo}   options={CITIES.filter(c=>c!==from)}/>
+          <Field label="Date (optionnel)" icon={Ic.cal} type="date" value={date} onChange={setDate}/>
+        </div>
+      </Card>
+      <Btn variant="green" full onClick={search} disabled={loading} style={{ height:50,fontSize:14,borderRadius:14 }}>
+        {loading?<><span style={{ animation:"spin .8s linear infinite",display:"inline-block" }}>◌</span> Recherche...</>:<>{Ic.search} Rechercher un trajet</>}
+      </Btn>
+      <div style={{ marginTop:13,display:"flex",gap:10,alignItems:"flex-start",padding:"12px 14px",background:C.card,borderRadius:13,border:`1px solid ${C.border}` }}>
+        <span style={{ color:C.green,flexShrink:0,marginTop:1,display:"flex" }}>{Ic.shield}</span>
+        <p style={{ fontSize:12,color:C.textSec,lineHeight:1.6 }}>Privilégiez les chauffeurs <strong style={{ color:C.text }}>Vérifiés</strong> — CNI, permis et carte grise transmis à CarExpress.</p>
+      </div>
+    </div>
+  );
+}
+
+// ─── RESULTS ──────────────────────────────────────────────────────────────────
+function ResultsScreen({ onBack, results, onBook }) {
+  const [sel,setSel]=useState(null);
+  if(sel!==null) return <DriverDetail driver={results[sel]} onBack={()=>setSel(null)} onBook={()=>onBook(results[sel])}/>;
+  return (
+    <div style={{ animation:"fadeUp .3s ease" }}>
+      <PageHdr title="Trajets disponibles" sub={`${results[0]?.from||""} → ${results[0]?.to||""} · ${results.length} résultat${results.length>1?"s":""}`} onBack={onBack}/>
+      {results.length===0?(
+        <div style={{ textAlign:"center",padding:"60px 20px" }}>
+          <p style={{ fontSize:40,opacity:.3,marginBottom:14 }}>◌</p>
+          <p style={{ fontWeight:700,fontSize:15,color:C.text,marginBottom:6 }}>Aucun trajet trouvé</p>
+          <p style={{ fontSize:13,color:C.textSec }}>Aucun chauffeur ne propose ce trajet actuellement.</p>
+        </div>
+      ):(
+        <div style={{ display:"flex",flexDirection:"column",gap:11 }}>
+          {results.map((d,i)=>(
+            <Card key={d.id} onClick={()=>setSel(i)} style={{ padding:16,cursor:"pointer",borderColor:d.verified?"#A7F3D0":C.border,animation:`fadeUp .3s ease ${i*.07}s both`,transition:"box-shadow .15s,transform .15s" }}
+              onMouseEnter={e=>{e.currentTarget.style.boxShadow=C.shadowMd;e.currentTarget.style.transform="translateY(-1px)"}}
+              onMouseLeave={e=>{e.currentTarget.style.boxShadow=C.shadow;e.currentTarget.style.transform=""}}>
+              <div style={{ display:"flex",gap:11,alignItems:"center",marginBottom:13 }}>
+                <div style={{ width:44,height:44,borderRadius:13,background:d.verified?C.dark:C.bg,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:14,color:d.verified?"#fff":C.textSec,flexShrink:0,border:d.verified?"none":`1px solid ${C.border}` }}>{d.ini}</div>
+                <div style={{ flex:1,minWidth:0 }}>
+                  <div style={{ display:"flex",alignItems:"center",gap:7,marginBottom:4,flexWrap:"wrap" }}>
+                    <span style={{ fontWeight:800,fontSize:14,color:C.text }}>{d.name}</span>
+                    <VerBadge verified={d.verified}/>
+                  </div>
+                  <div style={{ display:"flex",alignItems:"center",gap:4,color:"#F59E0B",fontSize:12 }}>
+                    {Ic.star}<span style={{ color:C.textSec }}>{d.rating} · {d.trips} trajets · {d.vehicle}</span>
+                  </div>
+                </div>
+              </div>
+              <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:11,padding:"9px 12px",background:C.bg,borderRadius:10 }}>
+                <span style={{ fontWeight:700,fontSize:13,color:C.text }}>{d.from}</span>
+                <div style={{ flex:1,height:1,background:C.border }}/>
+                <span style={{ fontSize:11,color:C.textSec }}>{d.dur}</span>
+                <div style={{ flex:1,height:1,background:C.border }}/>
+                <span style={{ fontWeight:700,fontSize:13,color:C.text }}>{d.to}</span>
+              </div>
+              <div style={{ display:"flex",gap:6,flexWrap:"wrap",marginBottom:13 }}>
+                <Chip>{d.dep}</Chip>
+                <Chip>{d.seats} places</Chip>
+                {d.wc>0&&<Chip>WC ×{d.wc}</Chip>}
+                {d.food>0&&<Chip>Repas ×{d.food}</Chip>}
+                {d.luggage.includes("xlarge")&&<Chip>Gros colis</Chip>}
+              </div>
+              <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between" }}>
+                <div><span style={{ fontWeight:800,fontSize:19,color:C.text }}>{fmt(d.price)}</span><span style={{ fontSize:12,color:C.textSec }}> FCFA / pers.</span></div>
+                <span style={{ display:"flex",alignItems:"center",gap:5,fontSize:13,fontWeight:700,color:C.green }}>Voir {Ic.arrow}</span>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── DRIVER DETAIL ────────────────────────────────────────────────────────────
+function DriverDetail({ driver:d, onBack, onBook }) {
+  return (
+    <div style={{ animation:"fadeUp .3s ease" }}>
+      <PageHdr title="Détail du trajet" onBack={onBack}/>
+      <Card style={{ padding:18,marginBottom:12 }}>
+        <div style={{ display:"flex",gap:13,alignItems:"center",marginBottom:14 }}>
+          <div style={{ width:52,height:52,borderRadius:15,background:C.dark,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:17,color:"#fff",flexShrink:0 }}>{d.ini}</div>
+          <div>
+            <div style={{ display:"flex",gap:7,alignItems:"center",marginBottom:5,flexWrap:"wrap" }}>
+              <span style={{ fontWeight:800,fontSize:16,color:C.text }}>{d.name}</span>
+              <VerBadge verified={d.verified}/>
+            </div>
+            <div style={{ display:"flex",alignItems:"center",gap:4,fontSize:12,color:C.textSec }}>
+              <span style={{ color:"#F59E0B" }}>{Ic.star}</span>{d.rating} · {d.trips} trajets · {d.vehicle} · {d.plate}
+            </div>
+          </div>
+        </div>
+        <div style={{ display:"flex",alignItems:"center",gap:10,padding:"11px",background:C.bg,borderRadius:11 }}>
+          <span style={{ fontWeight:800,fontSize:15,color:C.text }}>{d.from}</span>
+          <div style={{ flex:1,height:1,background:C.border }}/>
+          <span style={{ fontSize:11,color:C.textSec,fontWeight:600 }}>{d.dur}</span>
+          <div style={{ flex:1,height:1,background:C.border }}/>
+          <span style={{ fontWeight:800,fontSize:15,color:C.text }}>{d.to}</span>
+        </div>
+      </Card>
+
+      <Card style={{ padding:15,marginBottom:12 }}>
+        <div style={{ display:"flex",gap:11,alignItems:"flex-start" }}>
+          <span style={{ color:C.green,display:"flex",flexShrink:0,marginTop:1 }}>{Ic.pin}</span>
+          <div>
+            <p style={{ fontSize:11,fontWeight:700,color:C.textLight,textTransform:"uppercase",letterSpacing:.5,marginBottom:4 }}>Point de prise en charge</p>
+            <p style={{ fontSize:14,fontWeight:600,color:C.text,lineHeight:1.5 }}>{d.pickup}</p>
+          </div>
+        </div>
+      </Card>
+
+      <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:9,marginBottom:12 }}>
+        {[["Départ",d.dep,Ic.clock],["Durée",d.dur,Ic.clock],["Places",`${d.seats} dispo.`,Ic.users],["Prix",`${fmt(d.price)} FCFA`,Ic.money]].map(([l,v,icon])=>(
+          <Card key={l} style={{ padding:"12px 13px" }}>
+            <div style={{ display:"flex",gap:7,alignItems:"center",marginBottom:5 }}>
+              <span style={{ color:C.textSec,display:"flex" }}>{icon}</span>
+              <p style={{ fontSize:11,color:C.textSec,fontWeight:600 }}>{l}</p>
+            </div>
+            <p style={{ fontWeight:800,fontSize:14,color:C.text }}>{v}</p>
+          </Card>
+        ))}
+      </div>
+
+      <Card style={{ padding:16,marginBottom:12 }}>
+        <p style={{ fontWeight:800,fontSize:13,color:C.text,marginBottom:12 }}>Arrêts prévus</p>
+        {[["Besoins / Pipi",d.wc],["Repas",d.food],["Achats",d.shop]].map(([l,n],i)=>(
+          <div key={l} style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 0",borderTop:i===0?"none":`1px solid ${C.border}` }}>
+            <span style={{ fontSize:13,color:C.textSec }}>{l}</span>
+            <span style={{ fontWeight:700,fontSize:13,color:n>0?C.text:C.textLight }}>{n>0?`${n} fois`:"Aucun"}</span>
+          </div>
+        ))}
+      </Card>
+
+      <Card style={{ padding:16,marginBottom:12 }}>
+        <p style={{ fontWeight:800,fontSize:13,color:C.text,marginBottom:11 }}>Bagages acceptés</p>
+        <div style={{ display:"flex",gap:8,flexWrap:"wrap" }}>
+          {[["small","Petit"],["large","Gros"],["xlarge","Très gros"]].map(([t,l])=>(
+            <div key={t} style={{ padding:"6px 12px",borderRadius:10,background:d.luggage.includes(t)?C.greenBg:C.bg,border:`1px solid ${d.luggage.includes(t)?"#A7F3D0":C.border}`,display:"flex",alignItems:"center",gap:6 }}>
+              <span style={{ color:d.luggage.includes(t)?C.green:C.textLight,display:"flex" }}>{Ic.bag}</span>
+              <span style={{ fontSize:12,fontWeight:700,color:d.luggage.includes(t)?C.greenDark:C.textLight }}>{l}</span>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      <Card style={{ padding:15,marginBottom:12 }}>
+        <div style={{ display:"flex",gap:11,alignItems:"center" }}>
+          <span style={{ color:C.textSec,display:"flex" }}>{Ic.card}</span>
+          <div>
+            <p style={{ fontSize:11,fontWeight:700,color:C.textLight,textTransform:"uppercase",letterSpacing:.5,marginBottom:2 }}>Mode de paiement</p>
+            <p style={{ fontSize:14,fontWeight:700,color:C.text }}>{plab(d.pay)}</p>
+            <p style={{ fontSize:12,color:C.textSec }}>{psub(d.pay)}</p>
+          </div>
+        </div>
+      </Card>
+
+      {!d.verified&&(
+        <div style={{ display:"flex",gap:10,alignItems:"flex-start",padding:13,background:C.dangerBg,borderRadius:13,border:`1px solid #FECACA`,marginBottom:13 }}>
+          <span style={{ color:C.danger,display:"flex",flexShrink:0 }}>{Ic.warn}</span>
+          <div>
+            <p style={{ fontWeight:700,fontSize:13,color:C.danger }}>Chauffeur non vérifié</p>
+            <p style={{ fontSize:12,color:"#B91C1C",marginTop:3,lineHeight:1.5 }}>Paiement uniquement par Mobile Money (MTN MoMo ou Orange Money).</p>
+          </div>
+        </div>
+      )}
+      <Btn variant="green" full onClick={onBook} style={{ height:50,fontSize:14,borderRadius:13 }}>
+        Réserver · {fmt(d.price)} FCFA
+      </Btn>
+    </div>
+  );
+}
+
+// ─── HISTORY ──────────────────────────────────────────────────────────────────
+function HistoryScreen() {
+  return (
+    <div style={{ animation:"fadeUp .3s ease" }}>
+      <PageHdr title="Historique" sub={`${HISTORY.length} trajets`}/>
+      <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
+        {HISTORY.map(h=>(
+          <Card key={h.id} style={{ padding:"14px 16px" }}>
+            <div style={{ display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10 }}>
+              <div>
+                <div style={{ display:"flex",gap:8,alignItems:"center" }}>
+                  <span style={{ fontWeight:800,fontSize:14,color:C.text }}>{h.from}</span>
+                  <span style={{ color:C.textLight }}>→</span>
+                  <span style={{ fontWeight:800,fontSize:14,color:C.text }}>{h.to}</span>
+                </div>
+                <p style={{ fontSize:12,color:C.textSec,marginTop:3 }}>{h.date}</p>
+              </div>
+              <span style={{ padding:"3px 10px",borderRadius:20,fontSize:11,fontWeight:700,background:h.ok?C.greenBg:C.dangerBg,color:h.ok?C.greenDark:C.danger,border:`1px solid ${h.ok?"#A7F3D0":"#FECACA"}` }}>{h.ok?"Terminé":"Annulé"}</span>
+            </div>
+            <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",paddingTop:10,borderTop:`1px solid ${C.border}` }}>
+              <span style={{ fontWeight:800,fontSize:14,color:C.text }}>{fmt(h.price)} FCFA</span>
+              {h.pts>0&&<span style={{ display:"flex",alignItems:"center",gap:5,background:"#FFFBEB",padding:"3px 10px",borderRadius:20,border:"1px solid #FDE68A" }}><span style={{ color:"#F59E0B",display:"flex" }}>{Ic.star}</span><span style={{ fontSize:12,fontWeight:700,color:"#D97706" }}>+{h.pts} pts</span></span>}
+            </div>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── FAVORITES ────────────────────────────────────────────────────────────────
+function FavoritesScreen({ setTab }) {
+  return (
+    <div style={{ animation:"fadeUp .3s ease" }}>
+      <PageHdr title="Favoris" sub="Vos itinéraires enregistrés"/>
+      <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
+        {FAVS.map(f=>(
+          <Card key={f.id} style={{ padding:"14px 16px",display:"flex",alignItems:"center",gap:13 }}>
+            <div style={{ width:40,height:40,borderRadius:11,background:C.bg,border:`1px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"center",color:C.textSec }}>{Ic.heart}</div>
+            <div style={{ flex:1 }}>
+              <div style={{ display:"flex",gap:8,alignItems:"center" }}>
+                <span style={{ fontWeight:800,fontSize:13,color:C.text }}>{f.from}</span>
+                <span style={{ color:C.textLight }}>→</span>
+                <span style={{ fontWeight:800,fontSize:13,color:C.text }}>{f.to}</span>
+              </div>
+              <p style={{ fontSize:12,color:C.textSec,marginTop:2 }}>{f.freq}</p>
+            </div>
+            <button onClick={()=>setTab("home")} style={{ background:C.dark,color:"#fff",border:"none",padding:"7px 13px",borderRadius:10,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"'Plus Jakarta Sans',sans-serif" }}>Chercher</button>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── PROFILE ──────────────────────────────────────────────────────────────────
+function ProfileScreen() {
+  const pts=270, next=300, disc=Math.floor((pts/next)*15);
+  return (
+    <div style={{ animation:"fadeUp .3s ease" }}>
+      <div style={{ display:"flex",gap:13,alignItems:"center",marginBottom:22 }}>
+        <div style={{ width:54,height:54,borderRadius:16,background:C.dark,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:19,color:"#fff" }}>KM</div>
+        <div>
+          <div style={{ display:"flex",gap:7,alignItems:"center",marginBottom:4 }}>
+            <span style={{ fontWeight:800,fontSize:19,color:C.text }}>Konan Martin</span>
+            <VerBadge verified={true}/>
+          </div>
+          <p style={{ fontSize:13,color:C.textSec }}>+237 677 123 456</p>
+        </div>
+      </div>
+
+      <Card style={{ padding:18,marginBottom:12,border:`1.5px solid #A7F3D0` }}>
+        <div style={{ display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:13 }}>
+          <div>
+            <p style={{ fontSize:11,color:C.textSec,fontWeight:600,textTransform:"uppercase",letterSpacing:.5,marginBottom:5 }}>Points CarExpress</p>
+            <p style={{ fontWeight:800,fontSize:30,color:C.text }}>{pts} <span style={{ fontSize:14,color:C.textSec }}>pts</span></p>
+          </div>
+          <div style={{ background:C.greenBg,border:`1px solid #A7F3D0`,borderRadius:13,padding:"9px 15px",textAlign:"center" }}>
+            <p style={{ fontSize:11,color:C.textSec,fontWeight:600,marginBottom:3 }}>Réduction</p>
+            <p style={{ fontWeight:800,fontSize:20,color:C.green }}>{disc}%</p>
+          </div>
+        </div>
+        <div style={{ height:5,background:C.bg,borderRadius:3,overflow:"hidden",marginBottom:7 }}>
+          <div style={{ height:"100%",background:C.green,borderRadius:3,width:`${(pts/next)*100}%`,transition:"width 1s ease" }}/>
+        </div>
+        <p style={{ fontSize:12,color:C.textSec }}>{next-pts} pts pour débloquer 15% de réduction sur votre prochain trajet</p>
+      </Card>
+
+      <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:9,marginBottom:12 }}>
+        {[{ v:"12",l:"Trajets" },{ v:"4.9",l:"Note" },{ v:"8 mois",l:"Membre" }].map(s=>(
+          <Card key={s.l} style={{ padding:"12px 10px",textAlign:"center" }}>
+            <p style={{ fontWeight:800,fontSize:17,color:C.text,marginBottom:2 }}>{s.v}</p>
+            <p style={{ fontSize:11,color:C.textSec,fontWeight:600 }}>{s.l}</p>
+          </Card>
+        ))}
+      </div>
+
+      <Card style={{ padding:16,marginBottom:12 }}>
+        <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:13 }}>
+          <span style={{ color:C.danger,display:"flex" }}>{Ic.sos}</span>
+          <p style={{ fontWeight:800,fontSize:13,color:C.text }}>Numéros d'urgence</p>
+        </div>
+        <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:14 }}>
+          {EMERGENCY.map(e=>(
+            <a key={e.label} href={`tel:${e.number}`} style={{ textDecoration:"none",padding:"11px",background:C.bg,borderRadius:11,border:`1px solid ${C.border}`,display:"block" }}>
+              <p style={{ fontSize:11,color:C.textSec,fontWeight:600,marginBottom:3 }}>{e.label}</p>
+              <p style={{ fontSize:15,fontWeight:800,color:e.color }}>{e.number}</p>
+            </a>
+          ))}
+        </div>
+        <p style={{ fontWeight:700,fontSize:12,color:C.text,marginBottom:9 }}>Établissements proches</p>
+        {HOSPITALS.map((h,i)=>(
+          <div key={h.name} style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 0",borderTop:i===0?"none":`1px solid ${C.border}` }}>
+            <div>
+              <p style={{ fontWeight:600,fontSize:13,color:C.text }}>{h.name}</p>
+              <p style={{ fontSize:11,color:C.textSec }}>{h.type}</p>
+            </div>
+            <span style={{ fontSize:12,fontWeight:700,color:C.green }}>{h.dist}</span>
+          </div>
+        ))}
+      </Card>
+
+      <Card style={{ marginBottom:20 }}>
+        {[["Vérifier mon profil",Ic.shield,C.green],["Notifications",Ic.bell,null],["Support CarExpress",Ic.phone,null],["Déconnexion",Ic.user,C.danger]].map(([label,icon,color],i,arr)=>(
+          <div key={label}>
+            <div style={{ display:"flex",alignItems:"center",gap:13,padding:"14px 16px",cursor:"pointer" }}>
+              <span style={{ color:color||C.textSec,display:"flex" }}>{icon}</span>
+              <span style={{ flex:1,fontSize:14,fontWeight:600,color:color||C.text }}>{label}</span>
+              <span style={{ color:C.textLight,fontSize:15 }}>›</span>
+            </div>
+            {i<arr.length-1&&<div style={{ height:1,background:C.border }}/>}
+          </div>
+        ))}
+      </Card>
+    </div>
+  );
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+function Toast({ message, onClose }) {
+  useEffect(()=>{ const t=setTimeout(onClose,3000); return()=>clearTimeout(t); },[]);
+  return (
+    <div style={{ position:"fixed",top:54,left:"50%",transform:"translateX(-50%)",background:C.dark,color:"#fff",padding:"11px 16px",borderRadius:14,fontSize:13,fontWeight:600,zIndex:400,boxShadow:C.shadowMd,display:"flex",alignItems:"center",gap:9,whiteSpace:"nowrap",animation:"fadeUp .25s ease",maxWidth:"88%" }}>
+      <span style={{ color:C.green,display:"flex" }}>{Ic.check}</span>{message}
+    </div>
+  );
+}
+
+// ─── MAP OVERLAY ──────────────────────────────────────────────────────────────
+// La map s'affiche en overlay au-dessus de n'importe quel écran.
+// Les deux boutons flottants (Map + Chat) restent accessibles depuis tous les onglets.
+function MapOverlay({ trip, onClose }) {
+  const [progress,setProgress]=useState(14),[elapsed,setElapsed]=useState(46);
+  useEffect(()=>{
+    const t=setInterval(()=>{ setProgress(p=>Math.min(93,p+.25)); setElapsed(e=>e+1); },2000);
+    return()=>clearInterval(t);
+  },[]);
+  const pct=Math.round(progress), remaining=Math.max(0,330-elapsed);
+  const h=Math.floor(remaining/60), m=remaining%60;
+  const wps=["Yaoundé","Nkolafamba","Ayos","Sakbayemé","Douala"];
+  const wi=Math.min(Math.floor((progress/100)*(wps.length-1)),wps.length-2);
+
+  return (
+    <div style={{ position:"fixed",inset:0,zIndex:500,display:"flex",flexDirection:"column",background:"#0F1C13",maxWidth:430,left:"50%",transform:"translateX(-50%)",animation:"slideUp .35s ease" }}>
+      {/* Map canvas */}
+      <div style={{ flex:1,position:"relative",overflow:"hidden" }}>
+        <svg width="100%" height="100%" style={{ position:"absolute",inset:0 }}>
+          <defs><pattern id="gr2" width="34" height="34" patternUnits="userSpaceOnUse"><path d="M 34 0 L 0 0 0 34" fill="none" stroke="rgba(255,255,255,0.025)" strokeWidth="1"/></pattern></defs>
+          <rect width="100%" height="100%" fill="url(#gr2)"/>
+          <path d="M 55 360 C 130 290 210 210 370 115" stroke="rgba(255,255,255,0.07)" strokeWidth="14" fill="none" strokeLinecap="round"/>
+          <path d="M 55 360 C 130 290 210 210 370 115" stroke={C.green} strokeWidth="2.5" fill="none" strokeLinecap="round"
+            strokeDasharray="500" strokeDashoffset={500-(progress/100)*430} style={{ transition:"stroke-dashoffset 2s ease" }}/>
+          <circle cx="55" cy="360" r="6" fill={C.green} opacity=".9"/>
+          <circle cx="55" cy="360" r="13" fill={C.green} opacity=".15"/>
+          <circle cx="370" cy="115" r="6" fill="rgba(255,255,255,0.6)"/>
+          <circle cx="370" cy="115" r="12" fill="rgba(255,255,255,0.08)"/>
+          {[{x:128,y:296,l:"Nkol."},{x:210,y:218,l:"Ayos"},{x:295,y:162,l:"Sakb."}].map((lm,i)=>(
+            <g key={i}>
+              <circle cx={lm.x} cy={lm.y} r="3.5" fill="rgba(255,255,255,0.18)"/>
+              <text x={lm.x+7} y={lm.y+4} fill="rgba(255,255,255,0.25)" fontSize="10" fontFamily="Plus Jakarta Sans">{lm.l}</text>
+            </g>
+          ))}
+        </svg>
+
+        {/* Moving car dot */}
+        <div style={{ position:"absolute",left:`${8+(progress/100)*69}%`,top:`${76-(progress/100)*47}%`,transform:"translate(-50%,-50%)",transition:"left 2s ease,top 2s ease",zIndex:10 }}>
+          <div style={{ position:"absolute",inset:-9,borderRadius:"50%",background:`${C.green}28`,animation:"ping 2s ease-out infinite" }}/>
+          <div style={{ width:26,height:26,borderRadius:"50%",background:"#0F1C13",border:`2.5px solid ${C.green}`,display:"flex",alignItems:"center",justifyContent:"center",color:C.green }}>{Ic.car}</div>
+        </div>
+
+        {/* City labels */}
+        <p style={{ position:"absolute",bottom:"31%",left:"7%",color:"rgba(255,255,255,0.5)",fontSize:12,fontWeight:700 }}>{trip.from}</p>
+        <p style={{ position:"absolute",top:"18%",right:"7%",color:"rgba(255,255,255,0.5)",fontSize:12,fontWeight:700 }}>{trip.to}</p>
+
+        {/* Top gradient bar */}
+        <div style={{ position:"absolute",top:0,left:0,right:0,padding:"44px 16px 14px",background:"linear-gradient(to bottom,rgba(15,28,19,0.95),transparent)" }}>
+          <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:9 }}>
+            <div style={{ width:7,height:7,borderRadius:"50%",background:C.green,animation:"pulse 1.5s ease-in-out infinite" }}/>
+            <span style={{ fontWeight:700,fontSize:13,color:"#fff" }}>Trajet en cours</span>
+            <span style={{ marginLeft:"auto",fontSize:12,color:"rgba(255,255,255,0.4)",fontWeight:600 }}>{pct}%</span>
+          </div>
+          <div style={{ height:3,background:"rgba(255,255,255,0.08)",borderRadius:3,overflow:"hidden" }}>
+            <div style={{ height:"100%",background:C.green,borderRadius:3,width:`${progress}%`,transition:"width 2s ease" }}/>
+          </div>
+        </div>
+
+        {/* Next stop pill */}
+        <div style={{ position:"absolute",top:"33%",left:"50%",transform:"translateX(-50%)",background:"rgba(15,28,19,0.82)",backdropFilter:"blur(8px)",borderRadius:18,padding:"7px 16px",border:`1px solid rgba(37,211,102,0.25)`,whiteSpace:"nowrap" }}>
+          <p style={{ fontSize:11,color:"rgba(255,255,255,0.4)",textAlign:"center",marginBottom:1 }}>Prochain arrêt</p>
+          <p style={{ fontSize:13,fontWeight:800,color:C.green,textAlign:"center" }}>{wps[wi+1]}</p>
+        </div>
+
+        {/* Close button */}
+        <button onClick={onClose} style={{ position:"absolute",top:50,right:14,background:"rgba(15,28,19,0.82)",backdropFilter:"blur(8px)",border:`1px solid rgba(255,255,255,0.1)`,color:"rgba(255,255,255,0.7)",padding:"8px 14px",borderRadius:20,cursor:"pointer",fontSize:12,fontWeight:700,fontFamily:"'Plus Jakarta Sans',sans-serif",display:"flex",alignItems:"center",gap:6 }}>
+          {Ic.back} Retour
+        </button>
+      </div>
+
+      {/* Bottom info panel */}
+      <div style={{ background:C.card,borderRadius:"24px 24px 0 0",padding:"16px 16px 32px",boxShadow:"0 -8px 30px rgba(0,0,0,0.3)" }}>
+        <div style={{ width:34,height:3,borderRadius:2,background:C.border,margin:"0 auto 14px" }}/>
+
+        {/* Driver / passenger row */}
+        <div style={{ display:"flex",alignItems:"center",gap:11,padding:"11px 13px",background:C.bg,borderRadius:13,marginBottom:13 }}>
+          <div style={{ width:40,height:40,borderRadius:11,background:C.dark,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:13,color:"#fff",flexShrink:0 }}>{trip.ini}</div>
+          <div style={{ flex:1,minWidth:0 }}>
+            <div style={{ display:"flex",gap:7,alignItems:"center",flexWrap:"wrap" }}>
+              <span style={{ fontWeight:800,fontSize:13,color:C.text }}>{trip.name}</span>
+              <VerBadge verified={trip.verified}/>
+            </div>
+            <p style={{ fontSize:11,color:C.textSec,marginTop:2 }}>{trip.vehicle} · {trip.plate}</p>
+          </div>
+          <a href={`tel:${trip.phone}`} style={{ width:36,height:36,borderRadius:10,background:C.dark,display:"flex",alignItems:"center",justifyContent:"center",textDecoration:"none",color:"#fff",flexShrink:0 }}>{Ic.phone}</a>
+        </div>
+
+        {/* Stats row */}
+        <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:9,marginBottom:13 }}>
+          {[
+            { l:"Restant",  v:`${h}h${m.toString().padStart(2,"0")}` },
+            { l:"Étape",    v:wps[wi] },
+            { l:"Prix",     v:`${fmt(trip.price)} F` },
+          ].map(s=>(
+            <div key={s.l} style={{ background:C.bg,borderRadius:11,padding:"10px 8px",textAlign:"center" }}>
+              <p style={{ fontWeight:800,fontSize:13,color:C.text }}>{s.v}</p>
+              <p style={{ fontSize:10,color:C.textSec,fontWeight:600,marginTop:3 }}>{s.l}</p>
+            </div>
+          ))}
+        </div>
+
+        <Btn variant="danger" full style={{ borderRadius:13 }}>{Ic.sos} Urgence — SOS</Btn>
+      </div>
+    </div>
+  );
+}
+
+// ─── FLOATING BUTTONS STACK ───────────────────────────────────────────────────
+// Deux boutons empilés verticalement à droite : [Map] au-dessus, [Chat] en-dessous.
+// Visibles depuis TOUS les onglets dès qu'un trajet est actif.
+function FloatingStack({ trip, bookedAt, onMapOpen }) {
+  return (
+    <div style={{ position:"fixed",right:18,bottom:82,zIndex:200,display:"flex",flexDirection:"column",alignItems:"center",gap:10 }}>
+      {/* Bouton Map */}
+      <FloatingMapButton onOpen={onMapOpen} trip={trip}/>
+      {/* Bouton Chat */}
+      <FloatingChat trip={trip} bookedAt={bookedAt}/>
+    </div>
+  );
+}
+
+function FloatingMapButton({ onOpen, trip }) {
+  const [pulse, setPulse] = useState(true);
+  useEffect(()=>{ const t=setTimeout(()=>setPulse(false),4000); return()=>clearTimeout(t); },[]);
+
+  return (
+    <div style={{ position:"relative" }}>
+      {/* Pulse ring on first appearance */}
+      {pulse && <div style={{ position:"absolute",inset:-6,borderRadius:"50%",border:`2px solid ${C.green}`,animation:"ping 1.8s ease-out 3" }}/>}
+      <button onClick={onOpen}
+        style={{ width:56,height:56,borderRadius:"50%",background:C.green,border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",boxShadow:`0 4px 20px ${C.green}55`,transition:"transform .2s,box-shadow .2s",animation:"popIn .35s ease" }}
+        onMouseEnter={e=>{e.currentTarget.style.transform="scale(1.08)";e.currentTarget.style.boxShadow=`0 6px 28px ${C.green}77`}}
+        onMouseLeave={e=>{e.currentTarget.style.transform="scale(1)";e.currentTarget.style.boxShadow=`0 4px 20px ${C.green}55`}}>
+        {/* Map/navigation icon */}
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/>
+          <line x1="9" y1="3" x2="9" y2="18"/>
+          <line x1="15" y1="6" x2="15" y2="21"/>
+        </svg>
+      </button>
+      {/* Label tooltip */}
+      <div style={{ position:"absolute",right:64,top:"50%",transform:"translateY(-50%)",background:C.dark,color:"#fff",padding:"5px 10px",borderRadius:10,fontSize:11,fontWeight:700,whiteSpace:"nowrap",pointerEvents:"none",opacity:pulse?1:0,transition:"opacity .5s" }}>
+        Voir la carte
+        <div style={{ position:"absolute",right:-5,top:"50%",transform:"translateY(-50%)",width:0,height:0,borderLeft:"5px solid #1F2937",borderTop:"5px solid transparent",borderBottom:"5px solid transparent" }}/>
+      </div>
+    </div>
+  );
+}
+
+// ─── ROOT APP ─────────────────────────────────────────────────────────────────
+function App() {
+  const [tab,       setTab]      = useState("home");
+  const [screen,    setScreen]   = useState("home");
+  const [results,   setResults]  = useState([]);
+  const [activeTrip,setActiveTrip]= useState(null);
+  const [bookedAt,  setBookedAt] = useState(null);
+  const [mapOpen,   setMapOpen]  = useState(false);   // ← map overlay
+  const [toast,     setToast]    = useState(null);
+
+  // Passager réserve → active son trajet
+  const handleBook = d => {
+    setActiveTrip({ ...d, role:"passenger" });
+    setBookedAt(Date.now());
+    setScreen("home");
+    setTab("home");
+    setToast(`Réservé · ${d.from} → ${d.to}`);
+  };
+
+  // Chauffeur publie → active aussi ses boutons flottants
+  const handleDriverSubmit = form => {
+    const synthetic = {
+      ...DRIVERS[0],                          // gabarit pour les champs manquants
+      name: "Moi (Chauffeur)",
+      ini: "MOI",
+      verified: true,
+      role: "driver",
+      from: form.from, to: form.to,
+      dep: form.time, dur: "—",
+      price: +form.price || 0,
+      pickup: form.pickup,
+    };
+    setActiveTrip(synthetic);
+    setBookedAt(Date.now());
+    setScreen("home");
+    setToast("Trajet publié ! Vos boutons de suivi sont actifs.");
+  };
+
+  const render = () => {
+    if (tab !== "home") {
+      if (tab==="history")    return <HistoryScreen/>;
+      if (tab==="favorites")  return <FavoritesScreen setTab={setTab}/>;
+      if (tab==="profile")    return <ProfileScreen/>;
+    }
+    if (screen==="driver")    return <DriverScreen onBack={()=>setScreen("home")} onSubmit={handleDriverSubmit}/>;
+    if (screen==="passenger") return <PassengerScreen onBack={()=>setScreen("home")} setScreen={setScreen} setResults={setResults}/>;
+    if (screen==="results")   return <ResultsScreen onBack={()=>setScreen("passenger")} results={results} onBook={handleBook}/>;
+    return <HomeScreen setScreen={s=>{ setTab("home"); setScreen(s); }}/>;
+  };
+
+  return (
+    <div style={{ display:"flex",justifyContent:"center",background:"#DCDFE4",minHeight:"100vh" }}>
+      <div style={{ width:"100%",maxWidth:430,minHeight:"100vh",background:C.bg,position:"relative",fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
+
+        {/* ── Top bar ── */}
+        <div style={{ padding:"10px 16px 0",display:"flex",justifyContent:"space-between",alignItems:"center",background:C.bg,position:"sticky",top:0,zIndex:50 }}>
+          <span style={{ fontWeight:800,fontSize:16,color:C.text,letterSpacing:-.3 }}>CarExpress</span>
+          <div style={{ display:"flex",alignItems:"center",gap:10 }}>
+            <span style={{ fontSize:11,fontWeight:600,color:C.textSec }}>🇨🇲</span>
+          </div>
+        </div>
+
+        {/* ── Main content (toujours visible, jamais remplacé par la map) ── */}
+        <div style={{ padding:"16px 16px 96px",overflowY:"auto",maxHeight:"100vh" }}>
+          {render()}
+        </div>
+
+        {/* ── Bottom nav (toujours visible) ── */}
+        <BottomNav tab={tab} setTab={t=>{ setTab(t); if(t==="home") setScreen("home"); }}/>
+
+        {/* ── Boutons flottants : Map + Chat ──────────────────────────────────
+            Conditions : 
+              1. Page d'accueil uniquement (tab="home" ET screen="home")
+              2. Après qu'un passager ait effectué une réservation (bookedAt défini)
+              3. Visible pour les deux parties (chauffeur ET passager)
+        ─────────────────────────────────────────────────────────────────────── */}
+        {activeTrip && bookedAt && tab === "home" && screen === "home" && (
+          <FloatingStack
+            trip={activeTrip}
+            bookedAt={bookedAt}
+            onMapOpen={()=>setMapOpen(true)}
+          />
+        )}
+
+        {/* ── Map overlay (slide-up par-dessus tout) ── */}
+        {mapOpen && activeTrip && (
+          <MapOverlay trip={activeTrip} onClose={()=>setMapOpen(false)}/>
+        )}
+
+        {toast && <Toast message={toast} onClose={()=>setToast(null)}/>}
+      </div>
+    </div>
+  );
+}
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>

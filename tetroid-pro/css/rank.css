@@ -1,0 +1,106 @@
+/* === TETROID — Rank & XP === */
+
+#rank-bar {
+  display:flex; align-items:center; gap:6px;
+  padding:3px 8px 4px;
+  background:linear-gradient(180deg,#2a1800,#1a0e00);
+  border-bottom:2px solid #5a3200;
+  flex-shrink:0; position:relative; overflow:hidden;
+}
+#rank-bar::after {
+  content:''; position:absolute; top:0; left:0; right:0; height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+}
+.rank-badge {
+  font-size:1rem; flex-shrink:0;
+  filter:drop-shadow(0 1px 4px rgba(255,200,0,0.7));
+}
+.rank-info { flex:1; min-width:0; }
+.rank-title {
+  font-family:'Lilita One',sans-serif;
+  font-size:clamp(0.5rem,2vw,0.7rem);
+  color:var(--gold-l);
+  text-shadow:0 1px 0 var(--gold-d);
+  white-space:nowrap; display:block; line-height:1;
+}
+.xp-bar-bg {
+  height:5px; background:rgba(0,0,0,0.4);
+  border-radius:3px; overflow:hidden; margin-top:2px;
+  border:1px solid rgba(0,0,0,0.5); position:relative;
+}
+.xp-bar-fill {
+  height:100%; border-radius:3px;
+  background:linear-gradient(90deg,#ff9500,#ffcc00,#ffe566);
+  box-shadow:0 0 6px rgba(255,180,0,0.8);
+  transition:width .6s ease;
+  position:relative;
+}
+/* Reflet animé sur la barre XP */
+.xp-bar-fill::after {
+  content:''; position:absolute; top:0; left:-60%; width:40%; height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.5),transparent);
+  animation:xpShine 2s infinite;
+}
+@keyframes xpShine { 0%{left:-60%} 100%{left:120%} }
+.xp-label {
+  font-family:'Lilita One',sans-serif;
+  font-size:0.42rem; color:rgba(255,200,80,0.7);
+  white-space:nowrap; flex-shrink:0;
+  text-shadow:0 1px 2px rgba(0,0,0,0.8);
+}
+
+/* Overlay rang débloqué */
+#rank-up-overlay {
+  position:fixed; inset:0; z-index:400;
+  display:none; flex-direction:column;
+  align-items:center; justify-content:center;
+  background:rgba(0,0,0,0.75);
+  backdrop-filter:blur(6px);
+  animation:rankIn .4s ease;
+}
+@keyframes rankIn { from{opacity:0;transform:scale(.85)} to{opacity:1;transform:scale(1)} }
+.rank-up-card {
+  background:linear-gradient(180deg,#3a2800,#1a1000);
+  border:3px solid var(--gold);
+  border-bottom:5px solid #0a0800;
+  border-radius:20px; padding:24px 32px;
+  text-align:center;
+  box-shadow:0 0 0 6px rgba(245,197,24,0.15), 0 10px 40px rgba(0,0,0,0.8);
+  position:relative; overflow:hidden;
+}
+.rank-up-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  background:linear-gradient(90deg,transparent,var(--gold-l),transparent);
+}
+.rank-up-title {
+  font-family:'Lilita One',sans-serif;
+  font-size:clamp(1rem,4vw,1.3rem);
+  color:rgba(255,220,100,.7); letter-spacing:3px;
+  text-transform:uppercase; display:block; margin-bottom:4px;
+}
+.rank-up-badge { font-size:3.5rem; display:block; margin:8px 0;
+  filter:drop-shadow(0 0 16px rgba(255,200,0,0.9)); }
+.rank-up-name {
+  font-family:'Lilita One',sans-serif;
+  font-size:clamp(1.4rem,6vw,2rem);
+  color:var(--gold-l);
+  text-shadow:0 3px 0 var(--gold-d),0 0 30px rgba(255,200,0,0.6);
+  -webkit-text-stroke:1px var(--gold-d);
+  display:block; margin-bottom:6px;
+}
+.rank-up-unlock {
+  font-family:'Nunito',sans-serif; font-weight:800;
+  font-size:0.72rem; color:rgba(255,255,255,0.7);
+  margin:4px 0; display:block;
+}
+.rank-up-btn {
+  margin-top:14px; padding:11px 32px;
+  background:linear-gradient(180deg,#ffcc00,#ff9500);
+  border:none; border-radius:12px; color:#3a1800;
+  font-family:'Lilita One',sans-serif; font-size:0.85rem;
+  cursor:pointer;
+  box-shadow:0 4px 0 #7a4000,0 6px 16px rgba(200,100,0,.5);
+  border-top:1px solid rgba(255,255,255,0.3);
+  transition:transform .08s;
+}
+.rank-up-btn:active { transform:translateY(3px); }

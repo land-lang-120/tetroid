@@ -3,9 +3,63 @@
   "configurations": [
     {
       "name": "static-server",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": ["serve", "-l", "3000", "."],
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["server.js"],
       "port": 3000
+    },
+    {
+      "name": "byer",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["C:/Users/Pino/Desktop/UNIVERSAL-TECH/apps/byer/server.js"],
+      "port": 3001
+    },
+    {
+      "name": "carexpress",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["C:/Users/Pino/Desktop/CloneX Studio/apps/carexpress/server.js"],
+      "port": 3002
+    },
+    {
+      "name": "dailynote",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["C:/Users/Pino/Desktop/CloneX Studio/apps/dailynote/server.js"],
+      "port": 3003
+    },
+    {
+      "name": "secretnote",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["C:/Users/Pino/Desktop/CloneX Studio/apps/secretnote/server.js"],
+      "port": 3004
+    },
+    {
+      "name": "snake-lab",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["C:/Users/Pino/Desktop/CloneX Studio/apps/snake-labyrinth/server.js"],
+      "port": 3005
+    },
+    {
+      "name": "pharmadroid",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["C:/Users/Pino/Desktop/CloneX Studio/apps/pharmadroid/server.js"],
+      "port": 3006
+    },
+    {
+      "name": "chrome-messenger",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["C:/Users/Pino/Desktop/CloneX Studio/apps/chrome-messenger/server.js"],
+      "port": 3007
+    },
+    {
+      "name": "cameo-preview",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8766", "--directory", "C:/Users/Pino/Desktop/CAMEO"],
+      "port": 8766
+    },
+    {
+      "name": "chrome-messenger-ts",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["C:/Users/Pino/Desktop/UNIVERSAL-TECH/apps/chrome-messenger/server-ts.js"],
+      "port": 3020
     }
   ]
 }

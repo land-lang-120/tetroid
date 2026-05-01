@@ -1,0 +1,1685 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ARENA — Sports on Chain</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #070711;
+  --surface: #0D0D1F;
+  --card: #13132A;
+  --card2: #1A1A35;
+  --gold: #F5C842;
+  --gold2: #E8A020;
+  --cyan: #00D4FF;
+  --green: #00E87A;
+  --red: #FF4757;
+  --text: #FFFFFF;
+  --text2: #9090B0;
+  --text3: #5A5A7A;
+  --border: rgba(255,255,255,0.06);
+  --radius: 16px;
+  --nav-h: 72px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow-x: hidden;
+}
+
+.phone {
+  width: 100%;
+  max-width: 420px;
+  min-height: 100vh;
+  background: var(--bg);
+  position: relative;
+  overflow: hidden;
+}
+
+/* ─── SCREENS ─── */
+.screen {
+  display: none;
+  flex-direction: column;
+  min-height: calc(100vh - var(--nav-h));
+  padding-bottom: calc(var(--nav-h) + 8px);
+  animation: fadeUp .25s ease;
+}
+.screen.active { display: flex; }
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(12px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ─── SCROLLABLE CONTENT ─── */
+.scroll-area {
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+  scrollbar-width: none;
+}
+.scroll-area::-webkit-scrollbar { display: none; }
+
+/* ─── TOP BAR ─── */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 12px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: linear-gradient(to bottom, var(--bg) 80%, transparent);
+}
+.logo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900;
+  font-size: 28px;
+  letter-spacing: 3px;
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold2) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.topbar-right { display:flex; gap:12px; align-items:center; }
+.icon-btn {
+  width: 40px; height: 40px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+  position: relative;
+}
+.badge {
+  position: absolute;
+  top: 6px; right: 6px;
+  width: 8px; height: 8px;
+  background: var(--gold);
+  border-radius: 50%;
+  border: 2px solid var(--bg);
+}
+.page-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800;
+  font-size: 26px;
+  letter-spacing: 1px;
+  color: var(--text);
+}
+
+/* ─── SECTION LABELS ─── */
+.sec-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--text3);
+  padding: 0 20px;
+  margin-bottom: 12px;
+}
+.sec-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  margin-bottom: 12px;
+}
+.sec-row .sec-label { padding: 0; margin: 0; }
+.see-all { font-size: 12px; color: var(--gold); font-weight: 500; cursor:pointer; }
+
+/* ─── STORIES ─── */
+.stories {
+  display: flex;
+  gap: 14px;
+  padding: 0 20px 20px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.stories::-webkit-scrollbar { display:none; }
+.story {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.story-ring {
+  width: 60px; height: 60px;
+  border-radius: 50%;
+  padding: 2px;
+  background: linear-gradient(135deg, var(--gold), var(--cyan));
+}
+.story-ring.seen {
+  background: var(--card2);
+}
+.story-avatar {
+  width: 100%; height: 100%;
+  border-radius: 50%;
+  background: var(--card2);
+  border: 2px solid var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  overflow: hidden;
+}
+.story-name {
+  font-size: 10px;
+  color: var(--text2);
+  font-weight: 500;
+  text-align: center;
+  max-width: 64px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ─── FEATURED CARD ─── */
+.featured-card {
+  margin: 0 20px 20px;
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+  height: 220px;
+  cursor: pointer;
+}
+.featured-bg {
+  width:100%; height:100%;
+  background: linear-gradient(135deg, #1A0A3E 0%, #0D1A4A 50%, #001A2E 100%);
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  padding: 20px;
+}
+.featured-bg::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: url("data:image/svg+xml,%3Csvg width='400' height='220' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='300' cy='80' r='120' fill='rgba(245,200,66,0.08)'/%3E%3Ccircle cx='80' cy='160' r='80' fill='rgba(0,212,255,0.06)'/%3E%3C/svg%3E") center/cover;
+}
+.featured-emoji {
+  position: absolute;
+  top: 20px; right: 20px;
+  font-size: 64px;
+  opacity: 0.4;
+  filter: blur(1px);
+}
+.featured-tag {
+  position: absolute;
+  top: 16px; left: 16px;
+  background: var(--gold);
+  color: #000;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+.featured-info { position: relative; z-index:1; }
+.featured-creator {
+  font-size: 11px;
+  color: var(--gold);
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.featured-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: #fff;
+  margin-bottom: 10px;
+}
+.featured-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.btn-gold {
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: #000;
+  font-weight: 700;
+  font-size: 12px;
+  padding: 8px 18px;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-ghost {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  font-weight: 500;
+  font-size: 12px;
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.15);
+  cursor: pointer;
+}
+.lock-badge {
+  background: rgba(0,0,0,0.5);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 7px 12px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  backdrop-filter: blur(10px);
+}
+
+/* ─── POST CARDS ─── */
+.post-card {
+  margin: 0 20px 16px;
+  background: var(--card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  cursor: pointer;
+}
+.post-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 10px;
+}
+.post-creator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.creator-av {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--card2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  border: 2px solid var(--gold);
+  flex-shrink: 0;
+}
+.creator-av.blue { border-color: var(--cyan); }
+.creator-name { font-weight: 600; font-size: 14px; }
+.creator-sport { font-size: 11px; color: var(--text2); }
+.post-time { font-size: 11px; color: var(--text3); }
+.post-thumb {
+  width: 100%;
+  height: 180px;
+  background: linear-gradient(135deg, #1E1040 0%, #0A2040 100%);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 60px;
+  overflow: hidden;
+}
+.post-thumb::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 60%);
+}
+.locked-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(7,7,17,0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.locked-icon { font-size: 28px; }
+.locked-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 1px;
+  color: var(--gold);
+}
+.locked-price { font-size: 12px; color: var(--text2); }
+.post-footer {
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.post-desc { font-size: 13px; color: var(--text2); line-height: 1.4; }
+.post-actions { display:flex; gap:16px; }
+.post-action {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--text2);
+  cursor: pointer;
+}
+.post-action.liked { color: var(--red); }
+.post-action.tipped { color: var(--gold); }
+.post-stats {
+  display: flex;
+  gap: 16px;
+  padding: 0 16px 12px;
+}
+.post-stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text3);
+}
+
+/* ─── CHIP FILTERS ─── */
+.chips {
+  display: flex;
+  gap: 8px;
+  padding: 0 20px 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.chips::-webkit-scrollbar { display:none; }
+.chip {
+  flex-shrink: 0;
+  padding: 7px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  color: var(--text2);
+  background: var(--card);
+  transition: all .2s;
+  white-space: nowrap;
+}
+.chip.active {
+  background: var(--gold);
+  color: #000;
+  border-color: var(--gold);
+  font-weight: 700;
+}
+
+/* ─── EXPLORE GRID ─── */
+.creator-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 0 20px 20px;
+}
+.creator-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform .2s;
+}
+.creator-card:active { transform: scale(0.97); }
+.creator-card-bg {
+  height: 90px;
+  background: linear-gradient(135deg, #1A1040 0%, #102040 100%);
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 0;
+}
+.creator-card-avatar {
+  width: 54px; height: 54px;
+  border-radius: 50%;
+  background: var(--card2);
+  border: 3px solid var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin-bottom: -27px;
+  position: relative;
+  z-index: 1;
+}
+.verified-dot {
+  position: absolute;
+  bottom: 2px; right: 2px;
+  width: 14px; height: 14px;
+  background: var(--gold);
+  border-radius: 50%;
+  border: 2px solid var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 7px;
+  color: #000;
+  font-weight: 900;
+}
+.creator-card-info {
+  padding: 34px 12px 14px;
+  text-align: center;
+}
+.creator-card-name { font-weight: 700; font-size: 14px; margin-bottom: 2px; }
+.creator-card-sport { font-size: 11px; color: var(--text2); margin-bottom: 8px; }
+.creator-card-stats {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 10px;
+}
+.mini-stat { text-align: center; }
+.mini-stat-val { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 14px; }
+.mini-stat-lab { font-size: 9px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; }
+.btn-sub {
+  width: 100%;
+  padding: 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: #000;
+}
+
+/* ─── SEARCH ─── */
+.search-bar {
+  margin: 0 20px 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  gap: 10px;
+}
+.search-bar input {
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  flex: 1;
+}
+.search-bar input::placeholder { color: var(--text3); }
+
+/* ─── WALLET ─── */
+.wallet-hero {
+  margin: 0 20px 20px;
+  background: linear-gradient(135deg, #1A1040 0%, #081830 60%, #0A2010 100%);
+  border-radius: 24px;
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(245,200,66,0.2);
+}
+.wallet-hero::before {
+  content: '';
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 160px; height: 160px;
+  background: radial-gradient(circle, rgba(245,200,66,0.15) 0%, transparent 70%);
+}
+.wallet-chain {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.chain-dot {
+  width: 8px; height: 8px;
+  background: var(--green);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.chain-name { font-size: 12px; color: var(--text2); font-weight: 500; }
+.wallet-label { font-size: 12px; color: var(--text2); margin-bottom: 6px; }
+.wallet-balance {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 44px;
+  font-weight: 900;
+  color: var(--gold);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.wallet-usd { font-size: 13px; color: var(--text2); margin-bottom: 20px; }
+.wallet-addr {
+  font-size: 11px;
+  color: var(--text3);
+  background: rgba(0,0,0,0.3);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-family: monospace;
+  display: inline-block;
+  margin-bottom: 20px;
+}
+.wallet-actions {
+  display: flex;
+  gap: 10px;
+}
+.wallet-action-btn {
+  flex: 1;
+  padding: 11px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.btn-primary { background: var(--gold); color: #000; }
+.btn-outline { background: rgba(255,255,255,0.07); color: #fff; border: 1px solid var(--border); }
+
+.stats-row {
+  display: flex;
+  gap: 10px;
+  padding: 0 20px 20px;
+}
+.stat-card {
+  flex: 1;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 12px;
+  text-align: center;
+}
+.stat-val {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--gold);
+  margin-bottom: 2px;
+}
+.stat-lab { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; }
+
+.tx-list { padding: 0 20px 20px; }
+.tx-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.tx-left { display: flex; align-items: center; gap: 12px; }
+.tx-icon {
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+.tx-icon.in { background: rgba(0,232,122,0.12); }
+.tx-icon.out { background: rgba(255,71,87,0.12); }
+.tx-icon.fee { background: rgba(245,200,66,0.12); }
+.tx-name { font-size: 14px; font-weight: 500; margin-bottom: 2px; }
+.tx-time { font-size: 11px; color: var(--text3); }
+.tx-amount { font-weight: 700; font-size: 14px; }
+.tx-amount.in { color: var(--green); }
+.tx-amount.out { color: var(--red); }
+.tx-amount.fee { color: var(--gold); }
+
+/* ─── PROFILE (Creator) ─── */
+.profile-cover {
+  height: 160px;
+  background: linear-gradient(135deg, #1A0A3E 0%, #0D1A4A 50%, #001A2E 100%);
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 0;
+  overflow: hidden;
+}
+.profile-cover::before {
+  content: '⚽';
+  position: absolute;
+  top: 20px; right: 20px;
+  font-size: 80px;
+  opacity: 0.12;
+}
+.profile-cover::after {
+  content: '🏆';
+  position: absolute;
+  top: 10px; left: 20px;
+  font-size: 60px;
+  opacity: 0.1;
+}
+.profile-avatar-wrap {
+  position: absolute;
+  bottom: -36px;
+  left: 24px;
+}
+.profile-avatar {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  background: var(--card2);
+  border: 4px solid var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36px;
+  position: relative;
+}
+.profile-verified {
+  position: absolute;
+  bottom: 2px; right: 2px;
+  width: 22px; height: 22px;
+  background: var(--gold);
+  border-radius: 50%;
+  border: 2px solid var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px;
+  color: #000;
+  font-weight: 900;
+}
+.profile-header {
+  padding: 48px 20px 16px;
+}
+.profile-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900;
+  font-size: 26px;
+  margin-bottom: 2px;
+}
+.profile-role { font-size: 13px; color: var(--gold); font-weight: 500; margin-bottom: 4px; }
+.profile-bio { font-size: 13px; color: var(--text2); line-height: 1.5; margin-bottom: 16px; }
+.profile-meta { display:flex; gap:20px; margin-bottom: 16px; }
+.profile-meta-item { text-align: center; }
+.meta-val { font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:20px; }
+.meta-lab { font-size:10px; color:var(--text3); text-transform:uppercase; letter-spacing:.5px; }
+.subscribe-section {
+  margin: 0 20px 20px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+}
+.sub-title {
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:700;
+  font-size:16px;
+  letter-spacing:.5px;
+  margin-bottom: 12px;
+}
+.sub-tiers { display:flex; gap:10px; margin-bottom: 14px; }
+.sub-tier {
+  flex:1;
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .2s;
+}
+.sub-tier.selected {
+  border-color: var(--gold);
+  background: rgba(245,200,66,0.08);
+}
+.tier-name { font-size:10px; color:var(--text2); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; }
+.tier-price { font-family:'Barlow Condensed',sans-serif; font-size:18px; font-weight:800; color:var(--gold); }
+.tier-period { font-size:9px; color:var(--text3); }
+.tier-perks { font-size:9px; color:var(--text2); margin-top:4px; }
+.btn-subscribe {
+  width:100%;
+  padding: 14px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: #000;
+  font-weight: 800;
+  font-size: 15px;
+  border: none;
+  cursor: pointer;
+  font-family: 'Barlow Condensed', sans-serif;
+  letter-spacing: 1px;
+}
+
+/* ─── CONTENT GRID ─── */
+.content-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 2px;
+  margin-bottom: 20px;
+}
+.content-thumb {
+  aspect-ratio: 1;
+  background: var(--card2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+}
+.content-thumb.locked::after {
+  content: '🔒';
+  position: absolute;
+  top:4px; right:4px;
+  font-size: 12px;
+  background: rgba(0,0,0,0.6);
+  padding: 2px 5px;
+  border-radius: 6px;
+}
+.content-thumb:nth-child(3n+1) { background: linear-gradient(135deg,#1A1040,#102040); }
+.content-thumb:nth-child(3n+2) { background: linear-gradient(135deg,#102030,#1A0A30); }
+.content-thumb:nth-child(3n+3) { background: linear-gradient(135deg,#0A2010,#102010); }
+
+/* ─── REVIEW PANEL ─── */
+.review-card {
+  margin: 0 20px 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+}
+.review-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.review-av {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--card2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+}
+.review-name { font-weight: 600; font-size: 13px; }
+.review-date { font-size: 10px; color: var(--text3); }
+.stars { font-size: 11px; color: var(--gold); margin-left: auto; }
+.review-text { font-size: 13px; color: var(--text2); line-height: 1.5; }
+.review-tags { display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+.review-tag {
+  background: rgba(245,200,66,0.08);
+  border: 1px solid rgba(245,200,66,0.2);
+  color: var(--gold);
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-weight: 500;
+}
+.write-review {
+  margin: 0 20px 20px;
+  background: var(--card);
+  border: 1px solid rgba(245,200,66,0.2);
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+.write-review-text { color: var(--text3); font-size: 13px; }
+
+/* ─── TIP MODAL ─── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(6px);
+  z-index: 100;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  width: 100%;
+  max-width: 420px;
+  background: var(--surface);
+  border-radius: 24px 24px 0 0;
+  padding: 24px 24px 40px;
+  animation: slideUp .3s ease;
+}
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.modal-handle {
+  width: 40px; height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin: 0 auto 20px;
+}
+.modal-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800;
+  font-size: 22px;
+  margin-bottom: 6px;
+}
+.modal-sub { font-size: 13px; color: var(--text2); margin-bottom: 20px; }
+.tip-amounts { display:flex; gap:8px; margin-bottom:16px; }
+.tip-amt {
+  flex:1;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 6px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .2s;
+}
+.tip-amt.selected {
+  border-color: var(--gold);
+  background: rgba(245,200,66,0.1);
+}
+.tip-amt-val { font-family:'Barlow Condensed',sans-serif; font-size:16px; font-weight:800; color:var(--gold); }
+.tip-amt-usd { font-size:9px; color:var(--text3); }
+.tip-input {
+  width:100%;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 16px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  outline: none;
+  margin-bottom: 16px;
+}
+.tip-input:focus { border-color: var(--gold); }
+.btn-tip {
+  width:100%;
+  padding: 15px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: #000;
+  font-weight: 800;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  font-family: 'Barlow Condensed', sans-serif;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.fee-note { text-align:center; font-size:11px; color:var(--text3); margin-top:10px; }
+
+/* ─── BOTTOM NAV ─── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 420px;
+  height: var(--nav-h);
+  background: rgba(13,13,31,0.95);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 8px;
+  z-index: 50;
+}
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 4px;
+  cursor: pointer;
+  transition: all .2s;
+  border-radius: 12px;
+}
+.nav-icon { font-size: 22px; transition: transform .2s; }
+.nav-label {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text3);
+  letter-spacing: 0.3px;
+  transition: color .2s;
+}
+.nav-item.active .nav-label { color: var(--gold); }
+.nav-item.active .nav-icon { transform: scale(1.1); }
+.nav-center-btn {
+  width: 52px; height: 52px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(245,200,66,0.3);
+  flex-shrink: 0;
+}
+
+/* ─── NOTIFICATION DOT ─── */
+.nav-dot {
+  width: 6px; height: 6px;
+  background: var(--gold);
+  border-radius: 50%;
+  position: absolute;
+  top: 6px;
+  right: 6px;
+}
+
+/* ─── EMPTY SPACE ─── */
+.spacer { height: 20px; }
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <!-- ══════════════════════════════════ -->
+  <!-- SCREEN 1: HOME FEED               -->
+  <!-- ══════════════════════════════════ -->
+  <div class="screen active" id="screen-home">
+    <div class="topbar">
+      <div class="logo">ARENA</div>
+      <div class="topbar-right">
+        <div class="icon-btn" onclick="openTip()">💸</div>
+        <div class="icon-btn">
+          🔔
+          <span class="badge"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="scroll-area">
+      <!-- Stories -->
+      <div class="sec-label">EN VIE</div>
+      <div class="stories">
+        <div class="story" onclick="goTo('profile')">
+          <div class="story-ring"><div class="story-avatar">⚽</div></div>
+          <div class="story-name">K. Mbappé</div>
+        </div>
+        <div class="story" onclick="goTo('profile')">
+          <div class="story-ring"><div class="story-avatar">🏀</div></div>
+          <div class="story-name">V. Wembanyama</div>
+        </div>
+        <div class="story" onclick="goTo('profile')">
+          <div class="story-ring"><div class="story-avatar">🎾</div></div>
+          <div class="story-name">C. Alcaraz</div>
+        </div>
+        <div class="story" onclick="goTo('profile')">
+          <div class="story-ring seen"><div class="story-avatar">🏈</div></div>
+          <div class="story-name">PSG Club</div>
+        </div>
+        <div class="story" onclick="goTo('profile')">
+          <div class="story-ring seen"><div class="story-avatar">🥊</div></div>
+          <div class="story-name">T. Joshua</div>
+        </div>
+        <div class="story" onclick="goTo('profile')">
+          <div class="story-ring"><div class="story-avatar">🏊</div></div>
+          <div class="story-name">L. Marchand</div>
+        </div>
+      </div>
+
+      <!-- Featured -->
+      <div class="featured-card" onclick="goTo('profile')">
+        <div class="featured-bg">
+          <span class="featured-emoji">⚽</span>
+          <span class="featured-tag">🔥 Tendance</span>
+          <div class="featured-info">
+            <div class="featured-creator">Kylian Mbappé · Attaquant</div>
+            <div class="featured-title">Mes 3 buts décisifs analysés<br>par moi-même 🎯</div>
+            <div class="featured-actions">
+              <button class="btn-gold" onclick="goTo('profile'); event.stopPropagation()">▶ Voir (5 MATIC)</button>
+              <div class="lock-badge">🔒 Exclusif</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chips -->
+      <div class="chips">
+        <div class="chip active">Tous</div>
+        <div class="chip" onclick="selectChip(this)">Football ⚽</div>
+        <div class="chip" onclick="selectChip(this)">Basket 🏀</div>
+        <div class="chip" onclick="selectChip(this)">Tennis 🎾</div>
+        <div class="chip" onclick="selectChip(this)">Clubs 🏟️</div>
+        <div class="chip" onclick="selectChip(this)">Coaches 🎓</div>
+      </div>
+
+      <!-- Post 1 : Libre -->
+      <div class="post-card" onclick="goTo('profile')">
+        <div class="post-header">
+          <div class="post-creator">
+            <div class="creator-av">🏀</div>
+            <div>
+              <div class="creator-name">Victor Wembanyama</div>
+              <div class="creator-sport">NBA · San Antonio Spurs</div>
+            </div>
+          </div>
+          <div class="post-time">2h</div>
+        </div>
+        <div class="post-thumb">🏀</div>
+        <div class="post-footer">
+          <div class="post-desc">Mon échauffement matinal avant le match décisif 🔥</div>
+        </div>
+        <div class="post-stats">
+          <div class="post-action liked">❤️ 2.4k</div>
+          <div class="post-action tipped">⚡ Tip: 842 MATIC</div>
+          <div class="post-action">💬 128</div>
+          <div class="post-action" onclick="openTip(); event.stopPropagation()">🎁 Tipper</div>
+        </div>
+      </div>
+
+      <!-- Post 2 : Verrouillé -->
+      <div class="post-card" onclick="goTo('profile')">
+        <div class="post-header">
+          <div class="post-creator">
+            <div class="creator-av blue">🎓</div>
+            <div>
+              <div class="creator-name">Didier Deschamps</div>
+              <div class="creator-sport">Sélectionneur · Équipe de France</div>
+            </div>
+          </div>
+          <div class="post-time">5h</div>
+        </div>
+        <div class="post-thumb">
+          🗂️
+          <div class="locked-overlay">
+            <div class="locked-icon">🔐</div>
+            <div class="locked-label">CONTENU EXCLUSIF</div>
+            <div class="locked-price">Abonnement Pro · 12 MATIC/mois</div>
+            <button class="btn-gold" style="margin-top:6px; font-size:11px; padding:6px 16px;" onclick="goTo('profile'); event.stopPropagation()">S'abonner</button>
+          </div>
+        </div>
+        <div class="post-footer">
+          <div class="post-desc">Ma tactique secrète pour la Coupe du Monde 2026 🔒</div>
+        </div>
+        <div class="post-stats">
+          <div class="post-action">❤️ 1.1k</div>
+          <div class="post-action tipped">⚡ Tip: 330 MATIC</div>
+          <div class="post-action">💬 87</div>
+        </div>
+      </div>
+
+      <!-- Post 3 : Club -->
+      <div class="post-card">
+        <div class="post-header">
+          <div class="post-creator">
+            <div class="creator-av">🏟️</div>
+            <div>
+              <div class="creator-name">Real Madrid CF</div>
+              <div class="creator-sport">Club officiel · La Liga</div>
+            </div>
+          </div>
+          <div class="post-time">8h</div>
+        </div>
+        <div class="post-thumb">🏆</div>
+        <div class="post-footer">
+          <div class="post-desc">Coulisses de notre victoire en Ligue des Champions 🥳</div>
+        </div>
+        <div class="post-stats">
+          <div class="post-action liked">❤️ 18k</div>
+          <div class="post-action tipped">⚡ Tip: 4.2k MATIC</div>
+          <div class="post-action">💬 942</div>
+          <div class="post-action" onclick="openTip(); event.stopPropagation()">🎁 Tipper</div>
+        </div>
+      </div>
+
+      <div class="spacer"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════ -->
+  <!-- SCREEN 2: EXPLORE                 -->
+  <!-- ══════════════════════════════════ -->
+  <div class="screen" id="screen-explore">
+    <div class="topbar">
+      <div class="page-title">EXPLORER</div>
+    </div>
+
+    <div class="scroll-area">
+      <div class="search-bar">
+        <span>🔍</span>
+        <input type="text" placeholder="Joueur, club, coach, discipline...">
+      </div>
+
+      <div class="chips">
+        <div class="chip active">⭐ Top</div>
+        <div class="chip" onclick="selectChip(this)">⚽ Football</div>
+        <div class="chip" onclick="selectChip(this)">🏀 Basket</div>
+        <div class="chip" onclick="selectChip(this)">🎾 Tennis</div>
+        <div class="chip" onclick="selectChip(this)">🥊 Combat</div>
+        <div class="chip" onclick="selectChip(this)">🏊 Natation</div>
+      </div>
+
+      <div class="sec-row">
+        <div class="sec-label">CRÉATEURS POPULAIRES</div>
+        <div class="see-all">Tout voir</div>
+      </div>
+
+      <div class="creator-grid">
+        <div class="creator-card" onclick="goTo('profile')">
+          <div class="creator-card-bg" style="background:linear-gradient(135deg,#1A1040,#0A2040)">
+            <div class="creator-card-avatar">
+              ⚽
+              <div class="verified-dot">✓</div>
+            </div>
+          </div>
+          <div class="creator-card-info">
+            <div class="creator-card-name">K. Mbappé</div>
+            <div class="creator-card-sport">Football · Attaquant</div>
+            <div class="creator-card-stats">
+              <div class="mini-stat">
+                <div class="mini-stat-val">48k</div>
+                <div class="mini-stat-lab">Fans</div>
+              </div>
+              <div class="mini-stat">
+                <div class="mini-stat-val">92</div>
+                <div class="mini-stat-lab">Posts</div>
+              </div>
+            </div>
+            <button class="btn-sub">S'abonner</button>
+          </div>
+        </div>
+
+        <div class="creator-card" onclick="goTo('profile')">
+          <div class="creator-card-bg" style="background:linear-gradient(135deg,#102040,#1A0A30)">
+            <div class="creator-card-avatar">
+              🏀
+              <div class="verified-dot">✓</div>
+            </div>
+          </div>
+          <div class="creator-card-info">
+            <div class="creator-card-name">V. Wembanyama</div>
+            <div class="creator-card-sport">Basket · NBA</div>
+            <div class="creator-card-stats">
+              <div class="mini-stat">
+                <div class="mini-stat-val">31k</div>
+                <div class="mini-stat-lab">Fans</div>
+              </div>
+              <div class="mini-stat">
+                <div class="mini-stat-val">67</div>
+                <div class="mini-stat-lab">Posts</div>
+              </div>
+            </div>
+            <button class="btn-sub">S'abonner</button>
+          </div>
+        </div>
+
+        <div class="creator-card" onclick="goTo('profile')">
+          <div class="creator-card-bg" style="background:linear-gradient(135deg,#102010,#0A2010)">
+            <div class="creator-card-avatar">
+              🎾
+              <div class="verified-dot">✓</div>
+            </div>
+          </div>
+          <div class="creator-card-info">
+            <div class="creator-card-name">C. Alcaraz</div>
+            <div class="creator-card-sport">Tennis · ATP #2</div>
+            <div class="creator-card-stats">
+              <div class="mini-stat">
+                <div class="mini-stat-val">22k</div>
+                <div class="mini-stat-lab">Fans</div>
+              </div>
+              <div class="mini-stat">
+                <div class="mini-stat-val">44</div>
+                <div class="mini-stat-lab">Posts</div>
+              </div>
+            </div>
+            <button class="btn-sub">S'abonner</button>
+          </div>
+        </div>
+
+        <div class="creator-card" onclick="goTo('profile')">
+          <div class="creator-card-bg" style="background:linear-gradient(135deg,#2A0A10,#1A0A20)">
+            <div class="creator-card-avatar">
+              🏟️
+              <div class="verified-dot">✓</div>
+            </div>
+          </div>
+          <div class="creator-card-info">
+            <div class="creator-card-name">Real Madrid</div>
+            <div class="creator-card-sport">Club · La Liga</div>
+            <div class="creator-card-stats">
+              <div class="mini-stat">
+                <div class="mini-stat-val">120k</div>
+                <div class="mini-stat-lab">Fans</div>
+              </div>
+              <div class="mini-stat">
+                <div class="mini-stat-val">214</div>
+                <div class="mini-stat-lab">Posts</div>
+              </div>
+            </div>
+            <button class="btn-sub">S'abonner</button>
+          </div>
+        </div>
+
+        <div class="creator-card" onclick="goTo('profile')">
+          <div class="creator-card-bg" style="background:linear-gradient(135deg,#1A1010,#0A1020)">
+            <div class="creator-card-avatar">🎓</div>
+          </div>
+          <div class="creator-card-info">
+            <div class="creator-card-name">D. Deschamps</div>
+            <div class="creator-card-sport">Coach · France</div>
+            <div class="creator-card-stats">
+              <div class="mini-stat">
+                <div class="mini-stat-val">18k</div>
+                <div class="mini-stat-lab">Fans</div>
+              </div>
+              <div class="mini-stat">
+                <div class="mini-stat-val">58</div>
+                <div class="mini-stat-lab">Posts</div>
+              </div>
+            </div>
+            <button class="btn-sub">S'abonner</button>
+          </div>
+        </div>
+
+        <div class="creator-card" onclick="goTo('profile')">
+          <div class="creator-card-bg" style="background:linear-gradient(135deg,#102030,#1A1040)">
+            <div class="creator-card-avatar">🥊</div>
+          </div>
+          <div class="creator-card-info">
+            <div class="creator-card-name">A. Joshua</div>
+            <div class="creator-card-sport">Boxe · Poids lourds</div>
+            <div class="creator-card-stats">
+              <div class="mini-stat">
+                <div class="mini-stat-val">14k</div>
+                <div class="mini-stat-lab">Fans</div>
+              </div>
+              <div class="mini-stat">
+                <div class="mini-stat-val">33</div>
+                <div class="mini-stat-lab">Posts</div>
+              </div>
+            </div>
+            <button class="btn-sub">S'abonner</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="spacer"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════ -->
+  <!-- SCREEN 3: WALLET                  -->
+  <!-- ══════════════════════════════════ -->
+  <div class="screen" id="screen-wallet">
+    <div class="topbar">
+      <div class="page-title">MON WALLET</div>
+      <div class="topbar-right">
+        <div class="icon-btn">⚙️</div>
+      </div>
+    </div>
+
+    <div class="scroll-area">
+      <div class="wallet-hero">
+        <div class="wallet-chain">
+          <div class="chain-dot"></div>
+          <div class="chain-name">Polygon Mainnet · MATIC</div>
+        </div>
+        <div class="wallet-label">Solde disponible</div>
+        <div class="wallet-balance">842.50</div>
+        <div class="wallet-usd">≈ $485.30 USD</div>
+        <div class="wallet-addr">0x4F2...C8a1</div>
+        <div class="wallet-actions">
+          <button class="wallet-action-btn btn-primary">⬆ Retirer</button>
+          <button class="wallet-action-btn btn-outline">⬇ Déposer</button>
+          <button class="wallet-action-btn btn-outline" onclick="openTip()">💸 Envoyer</button>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-val">2,841</div>
+          <div class="stat-lab">MATIC gagnés</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val">47</div>
+          <div class="stat-lab">Abonnés</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val">85%</div>
+          <div class="stat-lab">Taux nets</div>
+        </div>
+      </div>
+
+      <div class="sec-row">
+        <div class="sec-label">TRANSACTIONS RÉCENTES</div>
+        <div class="see-all">Toutes</div>
+      </div>
+
+      <div class="tx-list">
+        <div class="tx-item">
+          <div class="tx-left">
+            <div class="tx-icon in">⬇</div>
+            <div>
+              <div class="tx-name">Abonnement — K. Mbappé</div>
+              <div class="tx-time">Aujourd'hui · 14:32 · Polygon</div>
+            </div>
+          </div>
+          <div class="tx-amount in">+12 MATIC</div>
+        </div>
+        <div class="tx-item">
+          <div class="tx-left">
+            <div class="tx-icon fee">⚡</div>
+            <div>
+              <div class="tx-name">Commission ARENA (15%)</div>
+              <div class="tx-time">Aujourd'hui · 14:32</div>
+            </div>
+          </div>
+          <div class="tx-amount fee">-1.8 MATIC</div>
+        </div>
+        <div class="tx-item">
+          <div class="tx-left">
+            <div class="tx-icon in">🎁</div>
+            <div>
+              <div class="tx-name">Tip reçu — @fanboss99</div>
+              <div class="tx-time">Hier · 20:18</div>
+            </div>
+          </div>
+          <div class="tx-amount in">+5 MATIC</div>
+        </div>
+        <div class="tx-item">
+          <div class="tx-left">
+            <div class="tx-icon in">⬇</div>
+            <div>
+              <div class="tx-name">Abonnement — Real Madrid</div>
+              <div class="tx-time">Hier · 11:04</div>
+            </div>
+          </div>
+          <div class="tx-amount in">+20 MATIC</div>
+        </div>
+        <div class="tx-item">
+          <div class="tx-left">
+            <div class="tx-icon fee">⚡</div>
+            <div>
+              <div class="tx-name">Commission ARENA (15%)</div>
+              <div class="tx-time">Hier · 11:04</div>
+            </div>
+          </div>
+          <div class="tx-amount fee">-3 MATIC</div>
+        </div>
+        <div class="tx-item">
+          <div class="tx-left">
+            <div class="tx-icon out">⬆</div>
+            <div>
+              <div class="tx-name">Retrait vers MetaMask</div>
+              <div class="tx-time">07/04 · 09:15</div>
+            </div>
+          </div>
+          <div class="tx-amount out">-200 MATIC</div>
+        </div>
+      </div>
+
+      <div class="spacer"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════ -->
+  <!-- SCREEN 4: CREATOR PROFILE         -->
+  <!-- ══════════════════════════════════ -->
+  <div class="screen" id="screen-profile">
+    <div class="topbar" style="padding-top:12px">
+      <div style="font-size:22px; cursor:pointer;" onclick="goTo('home')">←</div>
+      <div class="page-title">PROFIL</div>
+      <div class="icon-btn">⋯</div>
+    </div>
+
+    <div class="scroll-area">
+      <div class="profile-cover">
+        <div class="profile-avatar-wrap">
+          <div class="profile-avatar">
+            ⚽
+            <div class="profile-verified">✓</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-header">
+        <div class="profile-name">KYLIAN MBAPPÉ</div>
+        <div class="profile-role">⚽ Attaquant · Real Madrid · Équipe de France</div>
+        <div class="profile-bio">Mes performances, mes analyses, ma vision du jeu. Contenu exclusif 100% authentique. Rémunéré directement par vous sur la blockchain. 🔗</div>
+        <div class="profile-meta">
+          <div class="profile-meta-item">
+            <div class="meta-val">48.2k</div>
+            <div class="meta-lab">Fans</div>
+          </div>
+          <div class="profile-meta-item">
+            <div class="meta-val">92</div>
+            <div class="meta-lab">Posts</div>
+          </div>
+          <div class="profile-meta-item">
+            <div class="meta-val">4.9 ⭐</div>
+            <div class="meta-lab">Note</div>
+          </div>
+          <div class="profile-meta-item">
+            <div class="meta-val">12.4k</div>
+            <div class="meta-lab">MATIC gagnés</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Subscribe section -->
+      <div class="subscribe-section">
+        <div class="sub-title">CHOISIR UN ABONNEMENT</div>
+        <div class="sub-tiers">
+          <div class="sub-tier selected" onclick="selectTier(this)">
+            <div class="tier-name">Fan</div>
+            <div class="tier-price">5</div>
+            <div class="tier-period">MATIC/mois</div>
+            <div class="tier-perks">Posts publics</div>
+          </div>
+          <div class="sub-tier" onclick="selectTier(this)">
+            <div class="tier-name">Pro</div>
+            <div class="tier-price">12</div>
+            <div class="tier-period">MATIC/mois</div>
+            <div class="tier-perks">+Analyses</div>
+          </div>
+          <div class="sub-tier" onclick="selectTier(this)">
+            <div class="tier-name">VIP</div>
+            <div class="tier-price">30</div>
+            <div class="tier-period">MATIC/mois</div>
+            <div class="tier-perks">Tout +DM</div>
+          </div>
+        </div>
+        <button class="btn-subscribe" onclick="openTip()">
+          🔗 S'ABONNER SUR POLYGON
+        </button>
+      </div>
+
+      <!-- Content grid -->
+      <div class="sec-row">
+        <div class="sec-label">CONTENU (92 posts)</div>
+        <div class="see-all">Filtrer</div>
+      </div>
+
+      <div class="content-grid">
+        <div class="content-thumb">🎯</div>
+        <div class="content-thumb locked">⚽</div>
+        <div class="content-thumb locked">🏟️</div>
+        <div class="content-thumb locked">🥅</div>
+        <div class="content-thumb">🎥</div>
+        <div class="content-thumb locked">📊</div>
+        <div class="content-thumb">🏆</div>
+        <div class="content-thumb locked">🎓</div>
+        <div class="content-thumb">💪</div>
+      </div>
+
+      <!-- Reviews -->
+      <div class="sec-row" style="margin-top:8px">
+        <div class="sec-label">AVIS DES FANS</div>
+        <div class="see-all">4.9 ⭐ (2.1k)</div>
+      </div>
+
+      <div class="review-card">
+        <div class="review-top">
+          <div class="review-av">👤</div>
+          <div>
+            <div class="review-name">@sportanalyst_fr</div>
+            <div class="review-date">Il y a 3 jours</div>
+          </div>
+          <div class="stars">⭐⭐⭐⭐⭐</div>
+        </div>
+        <div class="review-text">Analyses tactiques de très haute qualité. On voit vraiment le niveau de réflexion derrière chaque mouvement. Contenu professionnel et respectueux. Je recommande le tier Pro.</div>
+        <div class="review-tags">
+          <div class="review-tag">Tactique</div>
+          <div class="review-tag">Authentique</div>
+          <div class="review-tag">Exclusif</div>
+        </div>
+      </div>
+
+      <div class="review-card">
+        <div class="review-top">
+          <div class="review-av">👤</div>
+          <div>
+            <div class="review-name">@footaddict_ng</div>
+            <div class="review-date">Il y a 1 semaine</div>
+          </div>
+          <div class="stars">⭐⭐⭐⭐⭐</div>
+        </div>
+        <div class="review-text">Premier créateur sportif que je suis sur ARENA. La valeur du contenu justifie largement l'abonnement. Et savoir que je le rémunère directement via blockchain, c'est énorme.</div>
+        <div class="review-tags">
+          <div class="review-tag">Valeur</div>
+          <div class="review-tag">Direct</div>
+        </div>
+      </div>
+
+      <div class="write-review">
+        <div class="review-av">✍️</div>
+        <div class="write-review-text">Laisser un avis professionnel...</div>
+      </div>
+
+      <div class="spacer"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════ -->
+  <!-- BOTTOM NAV                        -->
+  <!-- ══════════════════════════════════ -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" id="nav-home" onclick="goTo('home')">
+      <div class="nav-icon">🏠</div>
+      <div class="nav-label">Accueil</div>
+    </div>
+    <div class="nav-item" id="nav-explore" onclick="goTo('explore')">
+      <div class="nav-icon">🔍</div>
+      <div class="nav-label">Explorer</div>
+    </div>
+    <div class="nav-center-btn" onclick="openTip()">⚡</div>
+    <div class="nav-item" id="nav-wallet" onclick="goTo('wallet')">
+      <div class="nav-icon">💎</div>
+      <div class="nav-label">Wallet</div>
+    </div>
+    <div class="nav-item" id="nav-profile" onclick="goTo('profile')">
+      <div class="nav-icon">👤</div>
+      <div class="nav-label">Profil</div>
+    </div>
+  </nav>
+
+  <!-- ══════════════════════════════════ -->
+  <!-- TIP / SUBSCRIBE MODAL             -->
+  <!-- ══════════════════════════════════ -->
+  <div class="modal-overlay" id="tip-modal" onclick="closeTip(event)">
+    <div class="modal">
+      <div class="modal-handle"></div>
+      <div class="modal-title">⚡ ENVOYER UN TIP</div>
+      <div class="modal-sub">Rémunérez directement via Polygon · 85% au créateur</div>
+      <div class="tip-amounts">
+        <div class="tip-amt selected" onclick="selectTip(this, '1')">
+          <div class="tip-amt-val">1 MATIC</div>
+          <div class="tip-amt-usd">≈ $0.58</div>
+        </div>
+        <div class="tip-amt" onclick="selectTip(this, '5')">
+          <div class="tip-amt-val">5 MATIC</div>
+          <div class="tip-amt-usd">≈ $2.90</div>
+        </div>
+        <div class="tip-amt" onclick="selectTip(this, '10')">
+          <div class="tip-amt-val">10 MATIC</div>
+          <div class="tip-amt-usd">≈ $5.80</div>
+        </div>
+        <div class="tip-amt" onclick="selectTip(this, '50')">
+          <div class="tip-amt-val">50 MATIC</div>
+          <div class="tip-amt-usd">≈ $29</div>
+        </div>
+      </div>
+      <input class="tip-input" type="number" placeholder="Montant personnalisé (MATIC)" id="custom-tip">
+      <button class="btn-tip" onclick="sendTip()">
+        🔗 CONFIRMER SUR POLYGON
+      </button>
+      <div class="fee-note">Frais réseau : ~$0.001 · Commission ARENA : 15% · Reste au créateur : 85%</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── Navigation ──
+function goTo(screen) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  
+  const s = document.getElementById('screen-' + screen);
+  const n = document.getElementById('nav-' + screen);
+  if (s) s.classList.add('active');
+  if (n) n.classList.add('active');
+  
+  document.querySelector('.scroll-area')?.scrollTo(0,0);
+}
+
+// ── Chips ──
+function selectChip(el) {
+  const parent = el.closest('.chips');
+  parent.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ── Tiers ──
+function selectTier(el) {
+  el.closest('.sub-tiers').querySelectorAll('.sub-tier').forEach(t => t.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+// ── Tip Modal ──
+function openTip() {
+  document.getElementById('tip-modal').classList.add('active');
+}
+function closeTip(e) {
+  if (e.target.id === 'tip-modal') {
+    document.getElementById('tip-modal').classList.remove('active');
+  }
+}
+function selectTip(el, val) {
+  document.querySelectorAll('.tip-amt').forEach(t => t.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('custom-tip').value = '';
+}
+function sendTip() {
+  const modal = document.getElementById('tip-modal');
+  modal.classList.remove('active');
+  // Toast
+  const toast = document.createElement('div');
+  toast.style.cssText = `
+    position:fixed; bottom:90px; left:50%; transform:translateX(-50%);
+    background:var(--green); color:#000; font-weight:700; font-size:13px;
+    padding:12px 24px; border-radius:20px; z-index:200;
+    animation: fadeUp .3s ease;
+    font-family:'DM Sans',sans-serif;
+  `;
+  toast.textContent = '✅ Transaction confirmée sur Polygon !';
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+</script>
+</body>
+</html>

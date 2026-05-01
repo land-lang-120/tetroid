@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Sequoia — Carnet Médical</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --red:#C0192B;--red-soft:#F9EAEC;--red-mid:#F0C5CB;--red-text:#9B1221;
+  --black:#111318;--gray-700:#4A4E5A;--gray-500:#7C8091;--gray-400:#9DA0AD;
+  --gray-300:#C8CAD4;--gray-200:#DFE1E8;--gray-100:#F2F3F6;--gray-50:#F7F8FA;
+  --white:#FFF;--border:#E4E6ED;
+  --green:#1A9E6B;--green-soft:#E8F7F2;
+  --orange:#D4690A;--orange-soft:#FEF3E6;
+  --blue:#1A5FA8;--blue-soft:#E8F0FA;
+  --r:18px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;background:#EDEEF2;font-family:'Outfit',sans-serif;color:var(--black);overflow:hidden;}
+#app{width:100vw;height:100dvh;max-width:430px;margin:0 auto;background:var(--white);position:relative;overflow:hidden;display:flex;flex-direction:column;}
+.screen{display:none;flex-direction:column;flex:1;overflow:hidden;background:var(--white);animation:fadeIn .26s ease;}
+.screen.active{display:flex;}
+.scroll-body{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.scroll-body::-webkit-scrollbar{display:none;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+/* buttons */
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:var(--r);cursor:pointer;font-family:'Outfit',sans-serif;font-weight:600;transition:all .18s;width:100%;}
+.btn-red{background:var(--red);color:white;padding:15px 24px;font-size:15px;box-shadow:0 6px 20px rgba(192,25,43,.2);}
+.btn-red:active{transform:scale(.98);}
+.btn-outline{background:transparent;color:var(--gray-700);border:1.5px solid var(--border);padding:15px 24px;font-size:15px;}
+.btn-outline:hover{border-color:var(--gray-300);background:var(--gray-50);}
+.btn-ghost{background:transparent;color:var(--gray-500);padding:10px;font-size:13px;width:auto;display:inline-flex;align-items:center;gap:6px;border:none;cursor:pointer;}
+.btn-ghost:hover{color:var(--black);}
+/* badges */
+.badge{display:inline-flex;align-items:center;gap:4px;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:600;}
+.badge-red{background:var(--red-soft);color:var(--red-text);}
+.badge-green{background:var(--green-soft);color:var(--green);}
+.badge-orange{background:var(--orange-soft);color:var(--orange);}
+.badge-blue{background:var(--blue-soft);color:var(--blue);}
+.badge-gray{background:var(--gray-100);color:var(--gray-700);}
+.divider{height:1px;background:var(--border);}
+/* top bar */
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;border-bottom:1px solid var(--border);background:var(--white);flex-shrink:0;}
+.top-bar-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:var(--black);}
+.icon-btn{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:11px;border:1px solid var(--border);background:var(--white);cursor:pointer;transition:all .15s;}
+.icon-btn:hover{background:var(--gray-50);}
+/* bottom nav — 4 items */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;display:none;border-top:1px solid var(--border);background:var(--white);padding:10px 0 max(16px,env(safe-area-inset-bottom));z-index:100;}.bottom-nav.visible{display:flex;}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;transition:all .15s;padding:4px 0;}
+.nav-item svg{width:22px;height:22px;stroke:var(--gray-300);transition:stroke .15s;}
+.nav-item span{font-size:9px;font-weight:500;color:var(--gray-400);transition:color .15s;letter-spacing:.2px;}
+.nav-item.active svg{stroke:var(--red);}
+.nav-item.active span{color:var(--red);font-weight:600;}
+/* misc */
+.label-xs{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray-500);}
+.sec-hd{display:flex;justify-content:space-between;align-items:center;padding:14px 20px 8px;}
+.see-all{font-size:12px;font-weight:600;color:var(--red);cursor:pointer;}
+.ig-hd{padding:14px 20px 6px;font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray-400);}
+.i-card{margin:0 20px;border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+.info-row{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;gap:12px;}
+.info-row:last-child{border-bottom:none;}
+.info-row:hover{background:var(--gray-50);}
+.i-key{font-size:13px;color:var(--gray-500);flex-shrink:0;}
+.i-val{font-size:14px;font-weight:500;color:var(--black);text-align:right;}
+.tags-w{display:flex;flex-wrap:wrap;gap:5px;justify-content:flex-end;}
+.tag{background:var(--gray-100);border-radius:7px;padding:3px 9px;font-size:11px;font-weight:500;color:var(--gray-700);}
+.tag.r{background:var(--red-soft);color:var(--red-text);}
+.tag.o{background:var(--orange-soft);color:var(--orange);}
+/* sheets */
+.sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.38);z-index:200;display:none;align-items:flex-end;justify-content:center;}
+.sheet-overlay.open{display:flex;}
+.sheet{background:var(--white);border-radius:24px 24px 0 0;width:100%;max-width:430px;max-height:92vh;overflow-y:auto;scrollbar-width:none;animation:slideUp .26s ease;}
+.sheet::-webkit-scrollbar{display:none;}
+.sheet-handle{width:38px;height:4px;background:var(--gray-200);border-radius:4px;margin:12px auto 16px;}
+.sa-btn{flex:1;padding:13px;border-radius:14px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .18s;}
+.sa-primary{background:var(--black);color:white;}
+.sa-secondary{background:var(--gray-100);color:var(--gray-700);}
+
+/* ═══ SPLASH ═══ */
+#splash{justify-content:space-between;padding:0 28px max(36px,env(safe-area-inset-bottom));}
+.splash-top{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;}
+.logo-mark{width:68px;height:68px;border-radius:21px;background:var(--black);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.logo-mark::after{content:'';position:absolute;width:34px;height:2px;background:var(--red);bottom:13px;left:50%;transform:translateX(-50%);border-radius:2px;}
+.logo-mark svg{width:32px;height:32px;stroke:white;}
+.splash-name{font-family:'Cormorant Garamond',serif;font-size:44px;font-weight:700;letter-spacing:-1px;color:var(--black);}
+.splash-tagline{font-size:11px;color:var(--gray-400);letter-spacing:2.5px;text-transform:uppercase;margin-top:8px;}
+.splash-grid{width:100%;max-width:320px;display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.splash-feat{background:var(--gray-50);border:1px solid var(--border);border-radius:16px;padding:14px 12px;display:flex;flex-direction:column;gap:7px;}
+.feat-ico{width:32px;height:32px;border-radius:10px;background:var(--white);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;}
+.feat-ico svg{width:15px;height:15px;stroke:var(--gray-700);}
+.feat-ico.a{background:var(--red-soft);border-color:var(--red-mid);}
+.feat-ico.a svg{stroke:var(--red);}
+.feat-lbl{font-size:12px;font-weight:600;color:var(--black);}
+.feat-sub{font-size:10px;color:var(--gray-500);line-height:1.4;}
+
+/* ═══ ROLE SELECT ═══ */
+.role-row{display:flex;align-items:center;gap:14px;padding:15px 16px;border-radius:var(--r);border:1.5px solid var(--border);cursor:pointer;transition:all .18s;background:var(--white);}
+.role-row:hover{border-color:var(--gray-300);background:var(--gray-50);}
+.role-row:active{transform:scale(.99);}
+.role-row.emg{border-color:var(--red-mid);background:var(--red-soft);}
+.role-emoji{font-size:24px;width:46px;height:46px;display:flex;align-items:center;justify-content:center;border-radius:14px;background:var(--gray-100);flex-shrink:0;}
+.role-tx .nm{font-size:15px;font-weight:600;color:var(--black);}
+.role-tx .ds{font-size:12px;color:var(--gray-500);margin-top:2px;}
+.role-row.emg .role-tx .nm{color:var(--red);}
+
+/* ═══ DASHBOARD ═══ */
+.emg-strip{margin:0 20px 4px;background:var(--red-soft);border:1px solid var(--red-mid);border-radius:14px;padding:11px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .18s;}
+.emg-strip:hover{background:#F3CDD2;}
+.emg-pulse{width:7px;height:7px;border-radius:50%;background:var(--red);animation:pulse 1.4s infinite;flex-shrink:0;}
+.quick-row{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:4px 20px 12px;}
+.quick-item{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:14px;border:1px solid var(--border);cursor:pointer;transition:all .18s;}
+.quick-item:hover{background:var(--gray-50);border-color:var(--gray-300);}
+.quick-item:active{transform:scale(.98);}
+.q-ico{width:36px;height:36px;border-radius:11px;background:var(--gray-100);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.q-ico svg{width:17px;height:17px;stroke:var(--gray-700);}
+.q-ico.a{background:var(--red-soft);}
+.q-ico.a svg{stroke:var(--red);}
+.q-nm{font-size:14px;font-weight:600;color:var(--black);}
+.q-sub{font-size:11px;color:var(--gray-500);margin-top:1px;}
+.vitals-scroll{display:flex;gap:10px;padding:0 20px 4px;overflow-x:auto;scrollbar-width:none;}
+.vitals-scroll::-webkit-scrollbar{display:none;}
+.vital-card{flex-shrink:0;width:126px;border:1px solid var(--border);border-radius:16px;padding:13px;}
+.vital-lbl{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);margin-bottom:7px;}
+.vital-val{font-size:23px;font-weight:600;color:var(--black);line-height:1;}
+.vital-unit{font-size:12px;color:var(--gray-400);font-weight:400;}
+.med-item{display:flex;align-items:center;gap:12px;padding:13px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;}
+.med-item:last-child{border-bottom:none;}
+.med-item:hover{background:var(--gray-50);}
+.med-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+
+/* ═══ MON MÉDECIN ═══ */
+.doc-card{margin:0 20px 10px;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:all .18s;}
+.doc-card:hover{border-color:var(--gray-300);box-shadow:0 2px 12px rgba(0,0,0,.06);}
+.doc-top{display:flex;align-items:center;gap:12px;padding:14px 16px;}
+.doc-ava{width:50px;height:50px;border-radius:16px;background:var(--gray-100);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:22px;}
+.doc-nm{font-size:15px;font-weight:600;color:var(--black);}
+.doc-spec{font-size:12px;color:var(--gray-500);margin-top:2px;}
+.doc-hospital{font-size:11px;color:var(--gray-400);margin-top:2px;}
+.doc-bot{padding:10px 16px 13px;border-top:1px solid var(--border);background:var(--gray-50);display:flex;align-items:center;gap:8px;}
+.doc-stat{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--gray-600);flex:1;}
+.doc-stat svg{width:13px;height:13px;stroke:var(--gray-400);}
+.chat-btn{display:flex;align-items:center;gap:6px;padding:7px 13px;border-radius:10px;background:var(--black);color:white;font-size:12px;font-weight:600;border:none;cursor:pointer;transition:all .15s;}
+.chat-btn:hover{background:var(--gray-700);}
+.chat-btn svg{width:13px;height:13px;stroke:white;}
+/* Chat screen */
+.chat-header{padding:14px 20px;border-bottom:1px solid var(--border);background:var(--white);display:flex;align-items:center;gap:12px;}
+.chat-doc-ava{width:40px;height:40px;border-radius:13px;background:var(--gray-100);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;}
+.chat-online{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--green);font-weight:600;}
+.chat-online-dot{width:6px;height:6px;border-radius:50%;background:var(--green);}
+.chat-messages{display:flex;flex-direction:column;gap:12px;padding:16px 20px;}
+.msg{max-width:80%;}
+.msg-bubble{padding:10px 14px;border-radius:16px;font-size:14px;line-height:1.5;}
+.msg.doc .msg-bubble{background:var(--gray-100);color:var(--black);border-bottom-left-radius:4px;}
+.msg.me{align-self:flex-end;}
+.msg.me .msg-bubble{background:var(--black);color:white;border-bottom-right-radius:4px;}
+.msg-time{font-size:10px;color:var(--gray-400);margin-top:4px;font-weight:500;}
+.msg.me .msg-time{text-align:right;}
+.chat-input-bar{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:10px;align-items:center;background:var(--white);}
+.chat-input{flex:1;padding:10px 14px;border:1.5px solid var(--border);border-radius:22px;font-size:14px;font-family:'Outfit',sans-serif;color:var(--black);outline:none;transition:border-color .15s;}
+.chat-input:focus{border-color:var(--black);}
+.chat-send{width:38px;height:38px;border-radius:50%;background:var(--black);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all .15s;}
+.chat-send:hover{background:var(--gray-700);}
+.chat-send svg{width:16px;height:16px;stroke:white;}
+
+/* ═══ VACCINATION ═══ */
+.vacc-hero{margin:14px 20px;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.vacc-hero-top{padding:16px;background:var(--gray-50);display:flex;align-items:center;gap:14px;}
+.ring-wrap{position:relative;width:56px;height:56px;flex-shrink:0;}
+.ring-wrap svg{width:56px;height:56px;transform:rotate(-90deg);}
+.ring-bg{stroke:var(--gray-200);stroke-width:5;fill:none;}
+.ring-fill{stroke:var(--green);stroke-width:5;fill:none;stroke-linecap:round;stroke-dasharray:151;stroke-dashoffset:32;}
+.ring-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:13px;font-weight:700;color:var(--black);}
+.vacc-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
+.vc{display:flex;align-items:center;gap:4px;padding:3px 9px;border-radius:8px;font-size:11px;font-weight:600;}
+.vc.g{background:var(--green-soft);color:var(--green);}
+.vc.b{background:var(--blue-soft);color:var(--blue);}
+.vc.r{background:var(--red-soft);color:var(--red-text);}
+.vc.o{background:var(--orange-soft);color:var(--orange);}
+.vc svg{width:9px;height:9px;}
+.vacc-hero-bot{padding:11px 16px;display:flex;align-items:center;justify-content:space-between;}
+.exp-btn{display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:10px;border:1px solid var(--border);background:var(--white);font-size:12px;font-weight:600;color:var(--gray-700);cursor:pointer;}
+.exp-btn svg{width:13px;height:13px;stroke:var(--gray-700);}
+.filter-bar{display:flex;gap:7px;padding:8px 20px 10px;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--border);}
+.filter-bar::-webkit-scrollbar{display:none;}
+.fpill{flex-shrink:0;padding:6px 13px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;background:var(--gray-100);color:var(--gray-600);}
+.fpill.active{background:var(--black);color:white;}
+.vg-title{padding:12px 20px 6px;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray-400);}
+.vacc-item{display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;}
+.vacc-item:hover{background:var(--gray-50);}
+.vacc-item:last-child{border-bottom:none;}
+.vi-ico{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.vi-ico svg{width:18px;height:18px;}
+.vi-ico.done{background:var(--green-soft);}
+.vi-ico.done svg{stroke:var(--green);}
+.vi-ico.late{background:var(--red-soft);}
+.vi-ico.late svg{stroke:var(--red);}
+.vi-ico.pending{background:var(--blue-soft);}
+.vi-ico.pending svg{stroke:var(--blue);}
+.vi-ico.partial{background:var(--orange-soft);}
+.vi-ico.partial svg{stroke:var(--orange);}
+.vi-nm{font-size:14px;font-weight:600;color:var(--black);}
+.vi-ds{font-size:11px;color:var(--gray-500);margin-top:1px;}
+.vi-rt{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
+.vi-date{font-size:11px;font-weight:600;color:var(--gray-600);}
+.vi-dose{font-size:10px;color:var(--gray-400);}
+
+/* ═══ PROFILE + ACCESS ═══ */
+.prof-hero{display:flex;align-items:center;gap:14px;padding:18px 20px 14px;border-bottom:1px solid var(--border);}
+.avatar{width:62px;height:62px;border-radius:19px;background:var(--gray-100);display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;}
+.avatar svg{width:26px;height:26px;stroke:var(--gray-400);}
+.av-edit{position:absolute;bottom:-4px;right:-4px;width:22px;height:22px;border-radius:7px;background:var(--white);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.av-edit svg{width:11px;height:11px;stroke:var(--gray-600);}
+.blood-pill{background:var(--red);color:white;border-radius:10px;padding:5px 12px;font-size:13px;font-weight:700;flex-shrink:0;}
+/* Access inside profile */
+.prof-blk{border-bottom:1px solid var(--border);}
+.prof-hd{display:flex;align-items:center;gap:12px;padding:13px 20px;cursor:pointer;transition:background .15s;user-select:none;}
+.prof-hd:hover{background:var(--gray-50);}
+.prof-ico{width:38px;height:38px;border-radius:12px;background:var(--gray-100);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.prof-ico svg{width:17px;height:17px;stroke:var(--gray-700);}
+.plvl{font-size:11px;font-weight:600;padding:3px 10px;border-radius:7px;}
+.plvl.l1{background:var(--blue-soft);color:var(--blue);}
+.plvl.l2{background:var(--orange-soft);color:var(--orange);}
+.plvl.l3{background:var(--green-soft);color:var(--green);}
+.chev{width:16px;height:16px;stroke:var(--gray-300);transition:transform .2s;}
+.chev.open{transform:rotate(180deg);}
+.lvl-sel{display:none;background:var(--gray-50);padding:10px 20px 14px;}
+.lvl-sel.open{display:block;}
+.lvl-opts{display:flex;flex-direction:column;gap:8px;margin-top:8px;}
+.lvl-opt{display:flex;align-items:flex-start;gap:12px;padding:11px 13px;border-radius:13px;border:1.5px solid var(--border);background:var(--white);cursor:pointer;transition:all .18s;}
+.lvl-opt:hover{border-color:var(--gray-300);}
+.lvl-opt.sel.l1{background:var(--blue-soft);border-color:rgba(26,95,168,.25);}
+.lvl-opt.sel.l2{background:var(--orange-soft);border-color:rgba(212,105,10,.25);}
+.lvl-opt.sel.l3{background:var(--green-soft);border-color:rgba(26,158,107,.25);}
+.lbullet{width:20px;height:20px;border-radius:50%;border:2px solid var(--gray-300);flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;}
+.lbullet.l1{border-color:var(--blue);}
+.lbullet.l2{border-color:var(--orange);}
+.lbullet.l3{border-color:var(--green);}
+.lbullet svg{width:10px;height:10px;stroke-width:2.5;stroke:transparent;}
+.sel .lbullet.l1 svg{stroke:var(--blue);}
+.sel .lbullet.l2 svg{stroke:var(--orange);}
+.sel .lbullet.l3 svg{stroke:var(--green);}
+.lo-nm{font-size:13px;font-weight:600;color:var(--black);margin-bottom:2px;}
+.lo-ds{font-size:12px;color:var(--gray-500);line-height:1.4;margin-bottom:5px;}
+.lo-tgs{display:flex;flex-wrap:wrap;gap:4px;}
+.lo-tg{background:rgba(0,0,0,.05);border-radius:5px;padding:2px 7px;font-size:10px;font-weight:500;color:var(--gray-700);}
+
+/* ═══ MEDICATIONS ═══ */
+.fmc{margin:0 20px 10px;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:all .18s;}
+.fmc:hover{border-color:var(--gray-300);box-shadow:0 2px 10px rgba(0,0,0,.05);}
+.fmc-top{display:flex;align-items:center;gap:12px;padding:13px 15px;}
+.fmc-ico{width:40px;height:40px;border-radius:12px;background:var(--gray-100);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.fmc-ico svg{width:18px;height:18px;stroke:var(--gray-700);}
+.fmc-nm{font-size:15px;font-weight:600;color:var(--black);}
+.fmc-cl{font-size:12px;color:var(--gray-400);margin-top:1px;}
+.fmc-bot{padding:9px 15px 12px;border-top:1px solid var(--border);background:var(--gray-50);}
+.prog-trk{height:3px;background:var(--gray-200);border-radius:4px;overflow:hidden;margin-bottom:5px;}
+.prog-fill{height:100%;background:var(--red);border-radius:4px;}
+.prog-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--gray-400);font-weight:500;}
+.int-warn{margin:4px 20px 10px;background:var(--orange-soft);border:1px solid #F0C090;border-radius:14px;padding:12px 13px;display:flex;gap:10px;align-items:flex-start;}
+.int-warn svg{width:16px;height:16px;stroke:var(--orange);flex-shrink:0;margin-top:1px;}
+.wn-t{font-size:10px;font-weight:700;color:var(--orange);letter-spacing:.5px;text-transform:uppercase;margin-bottom:2px;}
+.wn-tx{font-size:13px;color:var(--gray-700);}
+
+/* ═══ EMERGENCY ═══ */
+.emg-hero-blk{background:var(--black);padding:20px 20px 22px;position:relative;overflow:hidden;}
+.emg-hero-blk::before{content:'';position:absolute;top:-50px;right:-50px;width:180px;height:180px;border-radius:50%;background:rgba(192,25,43,.1);pointer-events:none;}
+.emg-bdg{display:inline-flex;align-items:center;gap:6px;background:rgba(192,25,43,.18);border-radius:20px;padding:5px 12px;margin-bottom:14px;font-size:10px;font-weight:700;color:#FF7083;letter-spacing:1.5px;text-transform:uppercase;}
+.emg-bd-dot{width:6px;height:6px;border-radius:50%;background:#FF7083;animation:pulse 1.2s infinite;}
+.crit-strip{display:flex;gap:10px;padding:14px 20px;border-bottom:1px solid var(--border);}
+.crit-chip{flex:1;border-radius:14px;border:1px solid var(--border);padding:11px;text-align:center;}
+.cc-lbl{font-size:9px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);margin-bottom:4px;}
+.cc-val{font-size:20px;font-weight:700;color:var(--black);}
+.cc-val.r{color:var(--red);}
+.alert-row{display:flex;align-items:flex-start;gap:10px;padding:12px 20px;border-bottom:1px solid var(--border);transition:background .15s;}
+.ar-ico{width:32px;height:32px;border-radius:10px;background:var(--gray-100);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ar-ico svg{width:14px;height:14px;stroke:var(--gray-600);}
+.ar-ico.w{background:var(--red-soft);}
+.ar-ico.w svg{stroke:var(--red);}
+.ar-lbl{font-size:10px;font-weight:600;color:var(--gray-400);letter-spacing:.5px;text-transform:uppercase;margin-bottom:2px;}
+.ar-val{font-size:14px;font-weight:500;color:var(--black);}
+.cnt-row{display:flex;align-items:center;gap:12px;padding:11px 20px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;}
+.cnt-row:hover{background:var(--gray-50);}
+.cnt-ava{width:38px;height:38px;border-radius:12px;background:var(--gray-100);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;}
+.call-sm{margin-left:auto;width:32px;height:32px;border-radius:10px;background:var(--green-soft);border:1px solid rgba(26,158,107,.2);display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.call-sm svg{width:14px;height:14px;stroke:var(--green);}
+.qr-sec{padding:14px 20px;display:flex;flex-direction:column;align-items:center;gap:9px;}
+.qr-box{background:white;border:1px solid var(--border);border-radius:16px;padding:14px;}
+.qr-cap{font-size:10px;font-weight:600;color:var(--gray-400);letter-spacing:.5px;}
+
+/* ═══ CONSULTATIONS ═══ */
+.consult-item{padding:15px 20px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;display:flex;gap:13px;}
+.consult-item:hover{background:var(--gray-50);}
+.c-line{width:3px;border-radius:4px;background:var(--gray-200);flex-shrink:0;margin:3px 0;}
+.c-line.r{background:var(--red);}
+.c-dr{font-size:15px;font-weight:600;color:var(--black);}
+.c-sp{font-size:12px;color:var(--gray-500);margin-top:1px;}
+.c-notes{font-size:13px;color:var(--gray-700);margin-top:7px;line-height:1.5;}
+.fab{position:absolute;bottom:16px;right:20px;width:48px;height:48px;border-radius:15px;background:var(--black);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.18);transition:all .18s;z-index:40;}
+.fab:hover{transform:scale(1.06);}
+.fab svg{width:22px;height:22px;stroke:white;}
+
+/* dose timeline */
+.dose-row{display:flex;gap:12px;margin-bottom:14px;}
+.dose-row:last-child{margin-bottom:0;}
+.dose-col{display:flex;flex-direction:column;align-items:center;}
+.d-ico{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.d-ico.done{background:var(--green);box-shadow:0 0 0 4px var(--green-soft);}
+.d-ico.done svg,.d-ico.next svg,.d-ico.miss svg,.d-ico.future svg{width:13px;height:13px;}
+.d-ico.done svg{stroke:white;}
+.d-ico.next{background:var(--blue);box-shadow:0 0 0 4px var(--blue-soft);}
+.d-ico.next svg{stroke:white;}
+.d-ico.miss{background:var(--red);box-shadow:0 0 0 4px var(--red-soft);}
+.d-ico.miss svg{stroke:white;}
+.d-ico.future{background:var(--gray-100);box-shadow:0 0 0 4px var(--white);}
+.d-ico.future svg{stroke:var(--gray-400);}
+.d-line{width:2px;flex:1;background:var(--border);min-height:18px;}
+.d-info{flex:1;padding-top:4px;}
+.d-lbl{font-size:13px;font-weight:600;color:var(--black);}
+.d-meta{font-size:12px;color:var(--gray-500);margin-top:1px;}
+
+/* add vacc form */
+.form-group{padding:0 20px;margin-bottom:13px;}
+.form-lbl{font-size:12px;font-weight:600;color:var(--gray-600);margin-bottom:6px;}
+.form-input{width:100%;padding:12px 13px;border:1.5px solid var(--border);border-radius:12px;font-size:14px;font-family:'Outfit',sans-serif;color:var(--black);outline:none;transition:border-color .15s;}
+.form-input:focus{border-color:var(--black);}
+.dose-ctr{display:flex;align-items:center;gap:10px;}
+.dc-btn{width:34px;height:34px;border-radius:9px;border:1.5px solid var(--border);background:var(--white);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.dc-val{font-size:17px;font-weight:700;color:var(--black);min-width:22px;text-align:center;}
+
+/* role switcher */
+.rs-item{display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;}
+.rs-item:hover{background:var(--gray-50);}
+.rs-emoji{font-size:22px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:var(--gray-100);flex-shrink:0;}
+.rs-nm{font-size:14px;font-weight:600;color:var(--black);flex:1;}
+.rs-status{font-size:11px;font-weight:600;}
+
+/* ── MES MÉDECINS SLIDER ── */
+.my-docs-slider{overflow-x:auto;display:flex;gap:12px;padding:14px 20px 6px;scrollbar-width:none;border-bottom:1px solid var(--border);}
+.my-docs-slider::-webkit-scrollbar{display:none;}
+.doc-slide{flex-shrink:0;width:120px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;padding:12px 8px;border-radius:16px;border:1px solid var(--border);background:var(--white);transition:all .18s;position:relative;}
+.doc-slide:hover{border-color:var(--gray-300);background:var(--gray-50);}
+.doc-slide-ava{width:52px;height:52px;border-radius:18px;background:var(--gray-100);display:flex;align-items:center;justify-content:center;font-size:26px;position:relative;}
+.doc-slide-online{width:11px;height:11px;border-radius:50%;border:2px solid white;position:absolute;bottom:1px;right:1px;}
+.doc-slide-online.on{background:var(--green);}
+.doc-slide-online.off{background:var(--gray-300);}
+.doc-slide-nm{font-size:12px;font-weight:600;color:var(--black);text-align:center;line-height:1.3;}
+.doc-slide-spec{font-size:10px;color:var(--gray-500);text-align:center;line-height:1.3;}
+.doc-slide-msg{position:absolute;top:8px;right:8px;width:16px;height:16px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.doc-slide-msg span{font-size:9px;font-weight:700;color:white;}
+.doc-slide-chat{width:100%;padding:6px 0;border-radius:10px;background:var(--black);border:none;font-size:11px;font-weight:600;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;transition:background .15s;}
+.doc-slide-chat:hover{background:var(--gray-700);}
+.doc-slide-chat svg{width:11px;height:11px;stroke:white;}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ═══ SPLASH ═══ -->
+<div id="splash" class="screen active">
+  <div class="scroll-body" style="display:flex;flex-direction:column;padding:0 28px 28px">
+    <div class="splash-top">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+        <div class="logo-mark"><svg viewBox="0 0 36 36"><path d="M18 5C18 5 11 12 11 18C11 26 18 31 18 31"/><path d="M18 5C18 5 25 12 25 18C25 26 18 31 18 31"/><line x1="11" y1="18" x2="25" y2="18"/></svg></div>
+        <div class="splash-name">Sequoia</div>
+        <div class="splash-tagline">Carnet médical intelligent</div>
+      </div>
+      <div class="splash-grid">
+        <div class="splash-feat"><div class="feat-ico a"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div class="feat-lbl">Profil médical</div><div class="feat-sub">Données centralisées</div></div>
+        <div class="splash-feat"><div class="feat-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="feat-lbl">Rappels</div><div class="feat-sub">Prises médicaments</div></div>
+        <div class="splash-feat"><div class="feat-ico"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg></div><div class="feat-lbl">Vaccination</div><div class="feat-sub">Carnet numérique</div></div>
+        <div class="splash-feat"><div class="feat-ico a"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div class="feat-lbl">Mon Médecin</div><div class="feat-sub">Chat & suivi médical</div></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button class="btn btn-red" onclick="goTo('role-select')">Commencer</button>
+      <button class="btn btn-outline" onclick="goTo('role-select')">J'ai déjà un compte</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ROLE SELECT ═══ -->
+<div id="role-select" class="screen">
+  <div class="scroll-body">
+    <div style="padding:20px 20px 14px">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:var(--black);margin-bottom:6px">Qui êtes-vous ?</div>
+      <div style="font-size:13px;color:var(--gray-500);line-height:1.6">Choisissez votre rôle pour accéder à l'espace qui vous correspond. Vous pourrez le modifier depuis votre profil.</div>
+    </div>
+    <div style="padding:0 20px;display:flex;flex-direction:column;gap:9px;padding-bottom:32px">
+      <div class="role-row" onclick="goTo('dashboard')"><div class="role-emoji">🧑‍⚕️</div><div class="role-tx" style="flex:1"><div class="nm">Patient</div><div class="ds">Gérez votre propre dossier médical</div></div><svg width="16" height="16" viewBox="0 0 24 24" style="stroke:var(--gray-300)"><polyline points="9 18 15 12 9 6"/></svg></div>
+      <div class="role-row" onclick="goTo('dashboard')"><div class="role-emoji">🩺</div><div class="role-tx" style="flex:1"><div class="nm">Médecin</div><div class="ds">Accédez aux dossiers de vos patients</div></div><svg width="16" height="16" viewBox="0 0 24 24" style="stroke:var(--gray-300)"><polyline points="9 18 15 12 9 6"/></svg></div>
+      <div class="role-row" onclick="goTo('dashboard')"><div class="role-emoji">💊</div><div class="role-tx" style="flex:1"><div class="nm">Pharmacien</div><div class="ds">Validez et dispensez les ordonnances</div></div><svg width="16" height="16" viewBox="0 0 24 24" style="stroke:var(--gray-300)"><polyline points="9 18 15 12 9 6"/></svg></div>
+      <div class="role-row" onclick="goTo('dashboard')"><div class="role-emoji">👨‍👩‍👧</div><div class="role-tx" style="flex:1"><div class="nm">Proche / Tuteur</div><div class="ds">Suivez un membre de votre famille</div></div><svg width="16" height="16" viewBox="0 0 24 24" style="stroke:var(--gray-300)"><polyline points="9 18 15 12 9 6"/></svg></div>
+      <div class="role-row emg" onclick="goTo('emergency')"><div class="role-emoji" style="background:rgba(192,25,43,.08)">🚨</div><div class="role-tx" style="flex:1"><div class="nm">Accès Urgence</div><div class="ds">Infos critiques · Sans connexion requise</div></div><svg width="16" height="16" viewBox="0 0 24 24" style="stroke:var(--red-mid)"><polyline points="9 18 15 12 9 6"/></svg></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DASHBOARD ═══ -->
+<div id="dashboard" class="screen">
+  <div class="top-bar">
+    <div><div style="font-size:11px;color:var(--gray-400);font-weight:500;margin-bottom:2px">Bonjour,</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:var(--black)">Jean-Baptiste N.</div></div>
+    <div style="position:relative">
+      <div class="icon-btn"><svg width="17" height="17" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
+      <div style="width:7px;height:7px;background:var(--red);border-radius:50%;position:absolute;top:6px;right:6px;border:2px solid var(--white)"></div>
+    </div>
+  </div>
+  <div class="scroll-body" style="padding-bottom:72px">
+    <!-- Urgence strip -->
+    <div style="padding:12px 20px 4px">
+      <div class="emg-strip" onclick="goTo('emergency')">
+        <div class="emg-pulse"></div>
+        <div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--red-text)">Mode Urgence actif</div><div style="font-size:11px;color:var(--gray-500)">A+ · Allergie Pénicilline · 28 ans</div></div>
+        <svg width="15" height="15" viewBox="0 0 24 24" style="stroke:var(--red-text)"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </div>
+    <!-- 2 quick access cards -->
+    <div class="quick-row">
+      <div class="quick-item" onclick="goTo('consultations')">
+        <div class="q-ico"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+        <div><div class="q-nm">Consultations</div><div class="q-sub">3 cette année</div></div>
+      </div>
+      <div class="quick-item" onclick="goTo('explore-doctors')">
+        <div class="q-ico a"><svg viewBox="0 0 24 24"><polyline points="2 12 6 12 8 4 10 20 12 12 14 16 16 12 22 12"/></svg></div>
+        <div><div class="q-nm">Mon Médecin</div><div class="q-sub">Trouver un médecin</div></div>
+      </div>
+    </div>
+    <!-- Vitals -->
+    <div class="sec-hd"><span class="label-xs">Constantes du jour</span><span class="see-all">Tout voir</span></div>
+    <div class="vitals-scroll">
+      <div class="vital-card"><div class="vital-lbl">Tension</div><div class="vital-val">120<span class="vital-unit">/80</span></div><div style="margin-top:7px"><span class="badge badge-green" style="font-size:10px">Normal</span></div></div>
+      <div class="vital-card"><div class="vital-lbl">Glycémie</div><div class="vital-val">5.4<span class="vital-unit"> mm</span></div><div style="margin-top:7px"><span class="badge badge-green" style="font-size:10px">Stable</span></div></div>
+      <div class="vital-card"><div class="vital-lbl">Fréq. Card.</div><div class="vital-val">72<span class="vital-unit"> bpm</span></div><div style="margin-top:7px"><span class="badge badge-gray" style="font-size:10px">Normal</span></div></div>
+      <div class="vital-card"><div class="vital-lbl">SpO₂</div><div class="vital-val">98<span class="vital-unit">%</span></div><div style="margin-top:7px"><span class="badge badge-blue" style="font-size:10px">Excellent</span></div></div>
+    </div>
+    <!-- Meds reminder -->
+    <div class="sec-hd" style="margin-top:8px"><span class="label-xs">Rappels médicaments</span><span class="see-all" onclick="navTo('medications',document.querySelector('#bnav .nav-item:nth-child(2)'))">Tout voir</span></div>
+    <div style="margin:0 20px;border:1px solid var(--border);border-radius:14px;overflow:hidden">
+      <div class="med-item"><div class="med-dot" style="background:var(--red)"></div><div style="flex:1"><div style="font-size:14px;font-weight:600;color:var(--black)">Amoxicilline 500mg</div><div style="font-size:12px;color:var(--gray-400)">1 gélule · après repas</div></div><div style="font-size:12px;font-weight:600;color:var(--gray-700)">08:00</div></div>
+      <div class="divider"></div>
+      <div class="med-item"><div class="med-dot" style="background:var(--gray-300)"></div><div style="flex:1"><div style="font-size:14px;font-weight:600;color:var(--black)">Metformine 850mg</div><div style="font-size:12px;color:var(--gray-400)">1 comprimé · avec eau</div></div><span class="badge badge-green" style="font-size:10px">Pris ✓</span></div>
+    </div>
+    <!-- Vacc widget -->
+    <div class="sec-hd" style="margin-top:10px"><span class="label-xs">Vaccination</span><span class="see-all" onclick="navTo('vaccination',document.querySelector('#bnav .nav-item:nth-child(3)'))">Carnet complet</span></div>
+    <div style="margin:0 20px;border:1px solid var(--border);border-radius:14px;overflow:hidden">
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s" onclick="openVaccSheet('dt')">
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;animation:pulse 1.4s infinite"></div>
+        <div style="flex:1"><div style="font-size:14px;font-weight:600;color:var(--black)">Rappel DT-Polio</div><div style="font-size:12px;color:var(--gray-500)">En retard de 2 mois</div></div>
+        <span class="badge badge-red" style="font-size:10px">En retard</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;transition:background .15s" onclick="openVaccSheet('hepb')">
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--blue);flex-shrink:0"></div>
+        <div style="flex:1"><div style="font-size:14px;font-weight:600;color:var(--black)">Hépatite B — Dose 3/3</div><div style="font-size:12px;color:var(--gray-500)">Prévu le 28 Avr 2025</div></div>
+        <span class="badge badge-blue" style="font-size:10px">À venir</span>
+      </div>
+    </div>
+    <div style="height:16px"></div>
+  </div>
+</div>
+
+<!-- ═══ MÉDICAMENTS ═══ -->
+<div id="medications" class="screen">
+  <div class="top-bar">
+    <div class="top-bar-title">Médicaments</div>
+    <button class="icon-btn"><svg width="15" height="15" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+  </div>
+  <div class="scroll-body" style="padding-bottom:72px">
+    <div style="padding:12px 20px 8px"><div style="background:var(--gray-50);border:1px solid var(--border);border-radius:14px;padding:13px 15px"><div class="label-xs" style="margin-bottom:8px">Programme — Samedi 21 Mars</div><div style="display:flex;gap:6px"><div style="background:var(--black);color:white;border-radius:8px;padding:7px 13px;font-size:13px;font-weight:600">08:00</div><div style="background:var(--white);color:var(--gray-400);border:1px solid var(--border);border-radius:8px;padding:7px 13px;font-size:13px;font-weight:500">13:00</div><div style="background:var(--white);color:var(--gray-400);border:1px solid var(--border);border-radius:8px;padding:7px 13px;font-size:13px;font-weight:500">20:00</div></div></div></div>
+    <div class="sec-hd"><span class="label-xs">Ordonnances actives</span></div>
+    <div class="fmc"><div class="fmc-top"><div class="fmc-ico"><svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></div><div style="flex:1"><div class="fmc-nm">Amoxicilline 500mg</div><div class="fmc-cl">Antibiotique · Dr. Atanga Paul</div></div><span class="badge badge-red">Actif</span></div><div class="fmc-bot"><div class="prog-trk"><div class="prog-fill" style="width:65%"></div></div><div class="prog-meta"><span>Jour 7 / 10</span><span>3 jours restants</span></div></div></div>
+    <div class="fmc"><div class="fmc-top"><div class="fmc-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></div><div style="flex:1"><div class="fmc-nm">Metformine 850mg</div><div class="fmc-cl">Antidiabétique · Traitement continu</div></div><span class="badge badge-blue">Continu</span></div><div class="fmc-bot"><div class="prog-trk"><div class="prog-fill" style="width:90%;background:var(--blue)"></div></div><div class="prog-meta"><span>Adhérence 90%</span><span>Renouveler dans 5j</span></div></div></div>
+    <div class="fmc"><div class="fmc-top"><div class="fmc-ico"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><div style="flex:1"><div class="fmc-nm">Vitamine D3 1000 UI</div><div class="fmc-cl">Complément · Saisonnier</div></div><span class="badge badge-green">Actif</span></div><div class="fmc-bot"><div class="prog-trk"><div class="prog-fill" style="width:40%;background:var(--green)"></div></div><div class="prog-meta"><span>Jour 12 / 30</span><span>18 jours restants</span></div></div></div>
+    <div class="int-warn"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><div><div class="wn-t">Alerte interaction</div><div class="wn-tx">Metformine + Alcool : éviter toute consommation pendant ce traitement.</div></div></div>
+    <div style="height:20px"></div>
+  </div>
+</div>
+
+<!-- ═══ VACCINATION ═══ -->
+<div id="vaccination" class="screen">
+  <div class="top-bar">
+    <div class="top-bar-title">Carnet vaccinal</div>
+    <button class="icon-btn" onclick="openAddSheet()"><svg width="15" height="15" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+  </div>
+  <div class="scroll-body" style="padding-bottom:72px">
+    <div class="vacc-hero">
+      <div class="vacc-hero-top">
+        <div class="ring-wrap"><svg viewBox="0 0 56 56"><circle class="ring-bg" cx="28" cy="28" r="24"/><circle class="ring-fill" cx="28" cy="28" r="24"/></svg><div class="ring-center">79%</div></div>
+        <div style="flex:1"><div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--black);margin-bottom:2px">Couverture vaccinale</div><div class="vacc-chips"><div class="vc g"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>11 à jour</div><div class="vc b"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>2 à venir</div><div class="vc r"><svg viewBox="0 0 24 24"><line x1="12" y1="8" x2="12" y2="12"/></svg>1 retard</div></div></div>
+      </div>
+      <div class="vacc-hero-bot">
+        <div><div style="font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--gray-400);margin-bottom:2px">Prochain rappel</div><div style="font-size:13px;font-weight:600;color:var(--black)">Hépatite B — 28 Avr 2025</div></div>
+        <button class="exp-btn"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>PDF</button>
+      </div>
+    </div>
+    <div class="filter-bar">
+      <div class="fpill active" onclick="fv('all',this)">Tous</div>
+      <div class="fpill" onclick="fv('done',this)">✓ À jour</div>
+      <div class="fpill" onclick="fv('late',this)">⚠ En retard</div>
+      <div class="fpill" onclick="fv('pending',this)">◷ À venir</div>
+      <div class="fpill" onclick="fv('partial',this)">◐ Incomplet</div>
+    </div>
+    <div id="g-late"><div class="vg-title">⚠ EN RETARD</div><div style="margin:0 20px;border:1px solid var(--red-mid);border-radius:14px;overflow:hidden;background:var(--red-soft)"><div class="vacc-item" style="background:transparent" onclick="openVaccSheet('dt')"><div class="vi-ico late"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg></div><div style="flex:1"><div class="vi-nm">Rappel DT-Polio</div><div class="vi-ds">Diphtérie, Tétanos, Poliomyélite</div></div><div class="vi-rt"><span class="badge badge-red" style="font-size:10px">2 mois</span><div class="vi-dose">Dernier : Jan 2015</div></div></div></div></div>
+    <div id="g-pending"><div class="vg-title">À VENIR</div><div style="margin:0 20px;border:1px solid var(--border);border-radius:14px;overflow:hidden"><div class="vacc-item" onclick="openVaccSheet('hepb')"><div class="vi-ico pending"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div style="flex:1"><div class="vi-nm">Hépatite B</div><div class="vi-ds">Virus de l'hépatite B</div></div><div class="vi-rt"><span class="badge badge-blue" style="font-size:10px">Dose 3/3</span><div class="vi-dose">28 Avr 2025</div></div></div><div class="divider"></div><div class="vacc-item"><div class="vi-ico pending"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div><div style="flex:1"><div class="vi-nm">Pneumocoque</div><div class="vi-ds">Streptococcus pneumoniae</div></div><div class="vi-rt"><span class="badge badge-blue" style="font-size:10px">Rappel</span><div class="vi-dose">Juin 2025</div></div></div></div></div>
+    <div id="g-partial"><div class="vg-title">SÉRIE INCOMPLÈTE</div><div style="margin:0 20px;border:1px solid var(--border);border-radius:14px;overflow:hidden"><div class="vacc-item" onclick="openVaccSheet('hpv')"><div class="vi-ico partial"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg></div><div style="flex:1"><div class="vi-nm">HPV (Papillomavirus)</div><div class="vi-ds">Prévention cancers HPV</div></div><div class="vi-rt"><span class="badge badge-orange" style="font-size:10px">2/3 doses</span><div class="vi-dose">Dose 3 à planifier</div></div></div></div></div>
+    <div id="g-done"><div class="vg-title">À JOUR</div><div style="margin:0 20px;border:1px solid var(--border);border-radius:14px;overflow:hidden"><div class="vacc-item" onclick="openVaccSheet('covid')"><div class="vi-ico done"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div style="flex:1"><div class="vi-nm">COVID-19</div><div class="vi-ds">Coronavirus SARS-CoV-2</div></div><div class="vi-rt"><div class="vi-date">Oct 2023</div><div class="vi-dose">3 doses</div></div></div><div class="divider"></div><div class="vacc-item" onclick="openVaccSheet('fievre')"><div class="vi-ico done"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div style="flex:1"><div class="vi-nm">Fièvre Jaune</div><div class="vi-ds">Obligatoire Cameroun</div></div><div class="vi-rt"><div class="vi-date">Mar 2022</div><div class="vi-dose">Unique</div></div></div><div class="divider"></div><div class="vacc-item"><div class="vi-ico done"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div style="flex:1"><div class="vi-nm">Hépatite A</div><div class="vi-ds">Virus hépatite A</div></div><div class="vi-rt"><div class="vi-date">Juin 2021</div><div class="vi-dose">2 doses</div></div></div><div class="divider"></div><div class="vacc-item"><div class="vi-ico done"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div style="flex:1"><div class="vi-nm">Méningocoque ACYW</div><div class="vi-ds">Neisseria meningitidis</div></div><div class="vi-rt"><div class="vi-date">Jan 2023</div><div class="vi-dose">1 dose</div></div></div><div class="divider"></div><div class="vacc-item"><div class="vi-ico done"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div style="flex:1"><div class="vi-nm">ROR</div><div class="vi-ds">Rougeole, Oreillons, Rubéole</div></div><div class="vi-rt"><div class="vi-date">2001</div><div class="vi-dose">2 doses</div></div></div><div class="divider"></div><div class="vacc-item"><div class="vi-ico done"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div style="flex:1"><div class="vi-nm">BCG</div><div class="vi-ds">Tuberculose</div></div><div class="vi-rt"><div class="vi-date">1997</div><div class="vi-dose">Naissance</div></div></div><div class="divider"></div><div class="vacc-item"><div class="vi-ico done"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div style="flex:1"><div class="vi-nm">Grippe saisonnière</div><div class="vi-ds">Influenza — Annuel</div></div><div class="vi-rt"><div class="vi-date">Nov 2024</div><div class="vi-dose">Annuel</div></div></div></div></div>
+    <div style="height:24px"></div>
+  </div>
+  <button class="fab" onclick="openAddSheet()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+</div>
+
+<!-- ═══ MON MÉDECIN ═══ -->
+<div id="explore-doctors" class="screen">
+  <div class="top-bar">
+    <button class="btn-ghost" onclick="goTo('dashboard')"><svg width="16" height="16" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>Retour</button>
+    <div class="top-bar-title">Trouver un médecin</div>
+    <div style="width:64px"></div>
+  </div>
+  <div class="scroll-body">
+    <!-- Search bar -->
+    <div style="padding:12px 20px">
+      <div style="display:flex;align-items:center;gap:10px;background:var(--gray-50);border:1.5px solid var(--border);border-radius:14px;padding:10px 14px">
+        <svg width="16" height="16" viewBox="0 0 24 24" style="stroke:var(--gray-400);flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input style="flex:1;border:none;background:transparent;font-size:14px;font-family:Outfit,sans-serif;color:var(--black);outline:none" placeholder="Nom, spécialité, ville…"/>
+      </div>
+    </div>
+    <!-- Filters -->
+    <div class="filter-bar" style="padding:0 20px 10px;margin-bottom:4px">
+      <div class="fpill active">Tous</div>
+      <div class="fpill">Généraliste</div>
+      <div class="fpill">Cardiologue</div>
+      <div class="fpill">Pédiatre</div>
+      <div class="fpill">Dermatologue</div>
+      <div class="fpill">Gynécologue</div>
+    </div>
+
+
+    <!-- Mes médecins — slider -->
+    <div style="padding:14px 20px 8px"><span class="label-xs">Mes médecins</span></div>
+    <div class="my-docs-slider">
+      <!-- Dr. Atanga -->
+      <div class="doc-slide" onclick="goTo('chat-atanga')">
+        <div class="doc-slide-msg"><span>2</span></div>
+        <div class="doc-slide-ava">🩺<div class="doc-slide-online on"></div></div>
+        <div class="doc-slide-nm">Dr. Atanga<br>Paul</div>
+        <div class="doc-slide-spec">Généraliste</div>
+        <button class="doc-slide-chat" onclick="event.stopPropagation();goTo('chat-atanga')">
+          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Chat
+        </button>
+      </div>
+      <!-- Dr. Mboua -->
+      <div class="doc-slide" onclick="goTo('chat-mboua')">
+        <div class="doc-slide-ava">❤️<div class="doc-slide-online off"></div></div>
+        <div class="doc-slide-nm">Dr. Mboua<br>Sylvain</div>
+        <div class="doc-slide-spec">Cardiologue</div>
+        <button class="doc-slide-chat" style="background:var(--gray-200);color:var(--gray-500)" onclick="event.stopPropagation();goTo('chat-mboua')">
+          <svg viewBox="0 0 24 24" style="stroke:var(--gray-500)"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Chat
+        </button>
+      </div>
+      <!-- Add slot -->
+      <div class="doc-slide" style="border-style:dashed;justify-content:center;gap:6px" onclick="alert('Trouver un médecin')">
+        <div style="width:44px;height:44px;border-radius:14px;background:var(--gray-100);display:flex;align-items:center;justify-content:center">
+          <svg width="20" height="20" viewBox="0 0 24 24" style="stroke:var(--gray-400)"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </div>
+        <div style="font-size:11px;font-weight:600;color:var(--gray-500);text-align:center">Ajouter un médecin</div>
+      </div>
+    </div>
+    <div style="padding:14px 20px 4px;margin-top:4px"><span class="label-xs">Médecins disponibles · Yaoundé</span></div>
+
+
+    <!-- Dr. Atanga -->
+    <div class="doc-card" style="margin-bottom:10px">
+      <div class="doc-top">
+        <div class="doc-ava">🩺</div>
+        <div style="flex:1">
+          <div class="doc-nm">Dr. Atanga Paul</div>
+          <div class="doc-spec">Médecin généraliste · 18 ans</div>
+          <div class="doc-hospital">Cabinet Bastos · Yaoundé</div>
+        </div>
+        <span class="badge badge-green" style="font-size:10px;align-self:flex-start">En ligne</span>
+      </div>
+      <div style="padding:0 16px 10px;display:flex;gap:6px;flex-wrap:wrap">
+        <span class="badge badge-gray" style="font-size:10px">🎓 Univ. Yaoundé I</span>
+        <span class="badge badge-blue" style="font-size:10px">⭐ 4.9 · 312 avis</span>
+        <span class="badge badge-gray" style="font-size:10px">Téléconsultation ✓</span>
+      </div>
+      <div style="padding:0 16px 13px;font-size:13px;color:var(--gray-700);line-height:1.5">
+        Spécialisé en médecine interne et maladies chroniques. Disponible pour téléconsultation et suivi à distance.
+      </div>
+      <div class="doc-bot">
+        <div class="doc-stat" style="font-size:12px;color:var(--gray-500)">Répond en moins de 2h</div>
+        <button class="chat-btn" style="background:var(--red)" onclick="openFollowSheet('atanga')">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Demander un suivi
+        </button>
+      </div>
+    </div>
+
+    <!-- Dr. Mboua -->
+    <div class="doc-card" style="margin-bottom:10px">
+      <div class="doc-top">
+        <div class="doc-ava">❤️</div>
+        <div style="flex:1">
+          <div class="doc-nm">Dr. Mboua Sylvain</div>
+          <div class="doc-spec">Cardiologue · 12 ans</div>
+          <div class="doc-hospital">CHU Yaoundé · Cardiologie</div>
+        </div>
+        <span class="badge badge-gray" style="font-size:10px;align-self:flex-start">Hors ligne</span>
+      </div>
+      <div style="padding:0 16px 10px;display:flex;gap:6px;flex-wrap:wrap">
+        <span class="badge badge-gray" style="font-size:10px">🎓 CHU Paris-Necker</span>
+        <span class="badge badge-blue" style="font-size:10px">⭐ 4.8 · 198 avis</span>
+        <span class="badge badge-gray" style="font-size:10px">Téléconsultation ✓</span>
+      </div>
+      <div style="padding:0 16px 13px;font-size:13px;color:var(--gray-700);line-height:1.5">
+        Expert en cardiologie interventionnelle et insuffisance cardiaque. Suivi des patients hypertendus.
+      </div>
+      <div class="doc-bot">
+        <div class="doc-stat" style="font-size:12px;color:var(--gray-500)">Répond en moins de 6h</div>
+        <button class="chat-btn" style="background:var(--gray-300);cursor:default">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Déjà suivi
+        </button>
+      </div>
+    </div>
+
+    <!-- Dr. Fouda -->
+    <div class="doc-card" style="margin-bottom:10px">
+      <div class="doc-top">
+        <div class="doc-ava">👩‍⚕️</div>
+        <div style="flex:1">
+          <div class="doc-nm">Dr. Fouda Christine</div>
+          <div class="doc-spec">Diabétologue · 9 ans</div>
+          <div class="doc-hospital">Clinique de la Cité Verte · Yaoundé</div>
+        </div>
+        <span class="badge badge-green" style="font-size:10px;align-self:flex-start">En ligne</span>
+      </div>
+      <div style="padding:0 16px 10px;display:flex;gap:6px;flex-wrap:wrap">
+        <span class="badge badge-gray" style="font-size:10px">🎓 Faculté Médecine Yaoundé</span>
+        <span class="badge badge-blue" style="font-size:10px">⭐ 4.7 · 89 avis</span>
+        <span class="badge badge-gray" style="font-size:10px">Téléconsultation ✓</span>
+      </div>
+      <div style="padding:0 16px 13px;font-size:13px;color:var(--gray-700);line-height:1.5">
+        Prise en charge du diabète de type 1 et 2, obésité et troubles métaboliques. Suivi nutritionnel inclus.
+      </div>
+      <div class="doc-bot">
+        <div class="doc-stat" style="font-size:12px;color:var(--gray-500)">Répond en moins de 4h</div>
+        <button class="chat-btn" style="background:var(--red)" onclick="openFollowSheet('fouda')">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Demander un suivi
+        </button>
+      </div>
+    </div>
+
+    <!-- Dr. Ngono -->
+    <div class="doc-card" style="margin-bottom:10px">
+      <div class="doc-top">
+        <div class="doc-ava">🫀</div>
+        <div style="flex:1">
+          <div class="doc-nm">Dr. Ngono Emmanuel</div>
+          <div class="doc-spec">Pneumologue · 14 ans</div>
+          <div class="doc-hospital">Hôpital Central · Yaoundé</div>
+        </div>
+        <span class="badge badge-green" style="font-size:10px;align-self:flex-start">En ligne</span>
+      </div>
+      <div style="padding:0 16px 10px;display:flex;gap:6px;flex-wrap:wrap">
+        <span class="badge badge-gray" style="font-size:10px">🎓 Univ. Bordeaux</span>
+        <span class="badge badge-blue" style="font-size:10px">⭐ 4.6 · 143 avis</span>
+        <span class="badge badge-gray" style="font-size:10px">Téléconsultation ✓</span>
+      </div>
+      <div style="padding:0 16px 13px;font-size:13px;color:var(--gray-700);line-height:1.5">
+        Spécialiste des pathologies respiratoires dont l'asthme, la BPCO et les infections pulmonaires.
+      </div>
+      <div class="doc-bot">
+        <div class="doc-stat" style="font-size:12px;color:var(--gray-500)">Répond en moins de 3h</div>
+        <button class="chat-btn" style="background:var(--red)" onclick="openFollowSheet('ngono')">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Demander un suivi
+        </button>
+      </div>
+    </div>
+
+    <div style="height:20px"></div>
+  </div>
+</div>
+
+
+<!-- ═══ CHAT — Dr. Atanga ═══ -->
+<div id="chat-atanga" class="screen">
+  <div class="top-bar">
+    <button class="btn-ghost" onclick="navTo('chat-list',document.querySelectorAll('#bnav .nav-item')[3])"><svg width="16" height="16" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <div class="chat-header" style="padding:0;border:none;flex:1;margin-left:4px">
+      <div class="chat-doc-ava">🩺</div>
+      <div><div style="font-size:15px;font-weight:600;color:var(--black)">Dr. Atanga Paul</div><div class="chat-online"><span class="chat-online-dot"></span>En ligne</div></div>
+    </div>
+    <button class="icon-btn"><svg width="15" height="15" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>
+  </div>
+  <div class="scroll-body">
+    <div style="padding:10px 20px;text-align:center"><span style="font-size:11px;color:var(--gray-400);font-weight:500;background:var(--gray-50);border-radius:10px;padding:4px 12px">Aujourd'hui</span></div>
+    <div class="chat-messages">
+      <div class="msg doc"><div class="msg-bubble">Bonjour Jean-Baptiste, comment vous sentez-vous depuis la dernière ordonnance ?</div><div class="msg-time">09:14</div></div>
+      <div class="msg me"><div class="msg-bubble">Bonjour Docteur, je me sens mieux. La toux a presque disparu.</div><div class="msg-time">09:22</div></div>
+      <div class="msg doc"><div class="msg-bubble">Très bien ! Continuez l'Amoxicilline jusqu'à la fin du traitement. Ne l'arrêtez pas même si vous vous sentez mieux.</div><div class="msg-time">09:25</div></div>
+      <div class="msg me"><div class="msg-bubble">Compris. Et pour la Metformine, je peux continuer normalement ?</div><div class="msg-time">09:31</div></div>
+      <div class="msg doc"><div class="msg-bubble">Oui absolument, ne changez rien à votre traitement pour le diabète. On fait le point lors de votre RDV du 24 Mars. 🗓️</div><div class="msg-time">09:33</div></div>
+      <div class="msg me"><div class="msg-bubble">Parfait, merci Docteur !</div><div class="msg-time">09:34</div></div>
+    </div>
+    <div style="height:8px"></div>
+  </div>
+  <div class="chat-input-bar">
+    <input class="chat-input" placeholder="Écrire un message…" onkeydown="sendMsg(event,this)"/>
+    <button class="chat-send" onclick="sendMsgBtn(this)"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+  </div>
+</div>
+
+<!-- ═══ CHAT — Dr. Mboua ═══ -->
+<div id="chat-mboua" class="screen">
+  <div class="top-bar">
+    <button class="btn-ghost" onclick="navTo('chat-list',document.querySelectorAll('#bnav .nav-item')[3])"><svg width="16" height="16" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <div class="chat-header" style="padding:0;border:none;flex:1;margin-left:4px">
+      <div class="chat-doc-ava">❤️</div>
+      <div><div style="font-size:15px;font-weight:600;color:var(--black)">Dr. Mboua Sylvain</div><div style="font-size:11px;color:var(--gray-400);font-weight:500">Hors ligne · vu hier</div></div>
+    </div>
+    <button class="icon-btn"><svg width="15" height="15" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>
+  </div>
+  <div class="scroll-body">
+    <div style="padding:10px 20px;text-align:center"><span style="font-size:11px;color:var(--gray-400);font-weight:500;background:var(--gray-50);border-radius:10px;padding:4px 12px">18 Mars 2025</span></div>
+    <div class="chat-messages">
+      <div class="msg doc"><div class="msg-bubble">Votre ECG est normal. Continuez à surveiller votre tension deux fois par semaine et notez les valeurs.</div><div class="msg-time">11:02</div></div>
+      <div class="msg me"><div class="msg-bubble">Merci Docteur. J'ai eu une tension à 138/88 hier matin, est-ce inquiétant ?</div><div class="msg-time">11:15</div></div>
+      <div class="msg doc"><div class="msg-bubble">C'est légèrement élevé mais pas alarmant. Réduisez le sel et évitez le café le matin. On reparle à votre prochain RDV.</div><div class="msg-time">11:20</div></div>
+    </div>
+    <div style="height:8px"></div>
+  </div>
+  <div class="chat-input-bar">
+    <input class="chat-input" placeholder="Écrire un message…" onkeydown="sendMsg(event,this)"/>
+    <button class="chat-send" onclick="sendMsgBtn(this)"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+  </div>
+</div>
+
+<!-- ═══ PROFIL + ACCÈS ═══ -->
+<div id="profile" class="screen">
+  <div class="top-bar">
+    <div class="top-bar-title">Profil</div>
+    <button class="icon-btn"><svg width="15" height="15" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+  </div>
+  <div class="scroll-body" style="padding-bottom:72px">
+    <!-- Hero -->
+    <div class="prof-hero">
+      <div class="avatar"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><div class="av-edit"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/></svg></div></div>
+      <div style="flex:1"><div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--black)">Jean-Baptiste Nkono</div><div style="font-size:13px;color:var(--gray-500);margin-top:2px">28 ans · Yaoundé, Cameroun</div></div>
+      <div class="blood-pill">A+</div>
+    </div>
+    <!-- Role -->
+    <div class="ig-hd">Rôle actuel</div>
+    <div style="margin:0 20px 4px;border:1px solid var(--border);border-radius:14px;overflow:hidden">
+      <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;background:var(--gray-50)">
+        <div style="font-size:22px">🧑‍⚕️</div>
+        <div style="flex:1"><div style="font-size:15px;font-weight:600;color:var(--black)">Patient</div><div style="font-size:12px;color:var(--gray-500)">Accès dossier personnel</div></div>
+        <button style="padding:7px 13px;border-radius:10px;border:1px solid var(--border);background:var(--white);font-size:12px;font-weight:600;color:var(--gray-700);cursor:pointer" onclick="openRoleSheet()">Changer</button>
+      </div>
+    </div>
+    <!-- Identity -->
+    <div class="ig-hd" style="margin-top:4px">Identité &amp; Mesures</div>
+    <div class="i-card" style="margin-bottom:4px">
+      <div class="info-row"><span class="i-key">Date de naissance</span><span class="i-val">12 Fév 1997</span></div>
+      <div class="divider"></div>
+      <div class="info-row"><span class="i-key">Taille</span><span class="i-val">175 cm</span></div>
+      <div class="divider"></div>
+      <div class="info-row"><span class="i-key">Poids</span><span class="i-val">72 kg</span></div>
+      <div class="divider"></div>
+      <div class="info-row"><span class="i-key">IMC</span><span class="i-val" style="color:var(--green)">23.5 · Normal</span></div>
+      <div class="divider"></div>
+      <div class="info-row"><span class="i-key">Groupe sanguin</span><span class="i-val" style="color:var(--red)">A Positif</span></div>
+    </div>
+    <div class="ig-hd" style="margin-top:4px">⚠ Allergies</div>
+    <div class="i-card" style="margin-bottom:4px">
+      <div class="info-row"><span class="i-key">Médicaments</span><div class="tags-w"><span class="tag r">Pénicilline</span><span class="tag r">Aspirine</span></div></div>
+      <div class="divider"></div>
+      <div class="info-row"><span class="i-key">Alimentaires</span><div class="tags-w"><span class="tag r">Arachides</span></div></div>
+    </div>
+    <div class="ig-hd" style="margin-top:4px">Antécédents médicaux</div>
+    <div class="i-card" style="margin-bottom:4px">
+      <div class="info-row"><span class="i-key">Personnels</span><div class="tags-w"><span class="tag">Asthme léger</span><span class="tag">HTA</span></div></div>
+      <div class="divider"></div>
+      <div class="info-row"><span class="i-key">Hérédité</span><div class="tags-w"><span class="tag o">Diabète T2</span><span class="tag o">Cardiopathie</span></div></div>
+    </div>
+
+    <!-- ACCESS — intégré dans profil -->
+    <div class="ig-hd" style="margin-top:8px">🔒 Gestion des accès</div>
+    <div style="margin:0 20px 4px;background:var(--gray-50);border:1px solid var(--border);border-radius:14px;padding:13px 16px">
+      <div style="font-size:13px;color:var(--gray-700);line-height:1.6;margin-bottom:10px">Définissez ce que chaque corps de métier peut voir de votre dossier.</div>
+      <div style="display:flex;flex-direction:column;gap:7px">
+        <div style="display:flex;align-items:flex-start;gap:8px"><span class="badge badge-blue" style="flex-shrink:0;font-size:10px">N1</span><span style="font-size:12px;color:var(--gray-700)"><strong>Identification</strong> — Nom, âge, groupe sanguin</span></div>
+        <div style="display:flex;align-items:flex-start;gap:8px"><span class="badge badge-orange" style="flex-shrink:0;font-size:10px">N2</span><span style="font-size:12px;color:var(--gray-700)"><strong>Urgence</strong> — + Allergies, traitements, antécédents</span></div>
+        <div style="display:flex;align-items:flex-start;gap:8px"><span class="badge badge-green" style="flex-shrink:0;font-size:10px">N3</span><span style="font-size:12px;color:var(--gray-700)"><strong>Complet</strong> — + Consultations, résultats, ordonnances</span></div>
+      </div>
+    </div>
+    <div style="border-top:1px solid var(--border);margin:4px 0">
+      <div class="prof-blk"><div class="prof-hd" onclick="toggleAcc(this)"><div class="prof-ico"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div style="font-size:14px;font-weight:600;color:var(--black);flex:1">Médecin généraliste</div><span class="plvl l3" id="b-mg">N3</span><svg class="chev" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div><div class="lvl-sel"><div class="label-xs" style="margin-bottom:10px">Niveau d'accès</div><div class="lvl-opts"><div class="lvl-opt l1" onclick="selLvl(this,'mg',1)"><div class="lbullet l1"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3"/></svg></div><div><div class="lo-nm">N1 — Identification</div><div class="lo-tgs"><span class="lo-tg">Nom</span><span class="lo-tg">Âge</span><span class="lo-tg">Groupe sanguin</span></div></div></div><div class="lvl-opt l2" onclick="selLvl(this,'mg',2)"><div class="lbullet l2"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3"/></svg></div><div><div class="lo-nm">N2 — Urgence</div><div class="lo-tgs"><span class="lo-tg">+ Allergies</span><span class="lo-tg">+ Traitements</span></div></div></div><div class="lvl-opt l3 sel" onclick="selLvl(this,'mg',3)"><div class="lbullet l3"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3"/></svg></div><div><div class="lo-nm">N3 — Dossier complet</div><div class="lo-tgs"><span class="lo-tg">+ Consultations</span><span class="lo-tg">+ Résultats</span></div></div></div></div></div></div>
+      <div class="prof-blk"><div class="prof-hd" onclick="toggleAcc(this)"><div class="prof-ico" style="background:var(--red-soft)"><svg viewBox="0 0 24 24" style="stroke:var(--red)"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><line x1="12" y1="8" x2="12" y2="12"/></svg></div><div style="font-size:14px;font-weight:600;color:var(--black);flex:1">Urgentiste / SAMU</div><span class="plvl l2" id="b-urg">N2</span><svg class="chev" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div><div class="lvl-sel"><div class="label-xs" style="margin-bottom:10px">Niveau d'accès</div><div class="lvl-opts"><div class="lvl-opt l1" onclick="selLvl(this,'urg',1)"><div class="lbullet l1"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3"/></svg></div><div><div class="lo-nm">N1 — Identification</div></div></div><div class="lvl-opt l2 sel" onclick="selLvl(this,'urg',2)"><div class="lbullet l2"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3"/></svg></div><div><div class="lo-nm">N2 — Urgence</div><div class="lo-ds">Accès QR · patient inconscient</div></div></div><div class="lvl-opt l3" onclick="selLvl(this,'urg',3)"><div class="lbullet l3"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3"/></svg></div><div><div class="lo-nm">N3 — Dossier complet</div></div></div></div></div></div>
+      <div class="prof-blk"><div class="prof-hd" onclick="toggleAcc(this)"><div class="prof-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div><div style="font-size:14px;font-weight:600;color:var(--black);flex:1">Pharmacien</div><span class="plvl l1" id="b-ph">N1</span><svg class="chev" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div><div class="lvl-sel"><div class="label-xs" style="margin-bottom:10px">Niveau d'accès</div><div class="lvl-opts"><div class="lvl-opt l1 sel" onclick="selLvl(this,'ph',1)"><div class="lbullet l1"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3"/></svg></div><div><div class="lo-nm">N1 — Identification</div><div class="lo-tgs"><span class="lo-tg">Nom</span><span class="lo-tg">Ordonnance active</span></div></div></div><div class="lvl-opt l2" onclick="selLvl(this,'ph',2)"><div class="lbullet l2"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3"/></svg></div><div><div class="lo-nm">N2 — Urgence</div></div></div><div class="lvl-opt l3" onclick="selLvl(this,'ph',3)"><div class="lbullet l3"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3"/></svg></div><div><div class="lo-nm">N3 — Dossier complet</div></div></div></div></div></div>
+      <div class="prof-blk"><div class="prof-hd" onclick="toggleAcc(this)"><div class="prof-ico"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div style="font-size:14px;font-weight:600;color:var(--black);flex:1">Infirmier</div><span class="plvl l2" id="b-inf">N2</span><svg class="chev" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div><div class="lvl-sel"><div class="label-xs" style="margin-bottom:10px">Niveau d'accès</div><div class="lvl-opts"><div class="lvl-opt l1" onclick="selLvl(this,'inf',1)"><div class="lbullet l1"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3"/></svg></div><div><div class="lo-nm">N1 — Identification</div></div></div><div class="lvl-opt l2 sel" onclick="selLvl(this,'inf',2)"><div class="lbullet l2"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3"/></svg></div><div><div class="lo-nm">N2 — Urgence</div><div class="lo-tgs"><span class="lo-tg">+ Allergies</span><span class="lo-tg">+ Traitements</span></div></div></div><div class="lvl-opt l3" onclick="selLvl(this,'inf',3)"><div class="lbullet l3"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3"/></svg></div><div><div class="lo-nm">N3 — Dossier complet</div></div></div></div></div></div>
+      <div class="prof-blk" style="border-bottom:none"><div class="prof-hd" onclick="toggleAcc(this)"><div class="prof-ico"><svg viewBox="0 0 24 24"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v11l-4 7h14l-4-7V3"/></svg></div><div style="font-size:14px;font-weight:600;color:var(--black);flex:1">Laboratoire</div><span class="plvl l1" id="b-lab">N1</span><svg class="chev" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div><div class="lvl-sel"><div class="label-xs" style="margin-bottom:10px">Niveau d'accès</div><div class="lvl-opts"><div class="lvl-opt l1 sel" onclick="selLvl(this,'lab',1)"><div class="lbullet l1"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3"/></svg></div><div><div class="lo-nm">N1 — Identification</div><div class="lo-tgs"><span class="lo-tg">Nom</span><span class="lo-tg">Ordonnance labo</span></div></div></div><div class="lvl-opt l2" onclick="selLvl(this,'lab',2)"><div class="lbullet l2"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3"/></svg></div><div><div class="lo-nm">N2 — Urgence</div></div></div><div class="lvl-opt l3" onclick="selLvl(this,'lab',3)"><div class="lbullet l3"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3"/></svg></div><div><div class="lo-nm">N3 — Dossier complet</div></div></div></div></div></div>
+    </div>
+    <div style="height:28px"></div>
+  </div>
+</div>
+
+<!-- ═══ URGENCE ═══ -->
+<div id="emergency" class="screen">
+  <div class="top-bar" style="background:var(--black);border-color:rgba(255,255,255,.08)">
+    <button class="btn-ghost" style="color:rgba(255,255,255,.4)" onclick="goTo('dashboard')"><svg width="16" height="16" viewBox="0 0 24 24" style="stroke:rgba(255,255,255,.4)"><polyline points="15 18 9 12 15 6"/></svg>Retour</button>
+    <div class="top-bar-title" style="color:white">Urgence</div>
+    <div style="width:64px"></div>
+  </div>
+  <div class="scroll-body">
+    <div class="emg-hero-blk"><div class="emg-bdg"><span class="emg-bd-dot"></span>Fiche d'urgence</div><div style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;color:white">Jean-Baptiste Nkono</div><div style="font-size:13px;color:rgba(255,255,255,.45);margin-top:4px">Né le 12 Fév 1997 · 28 ans · Yaoundé</div></div>
+    <div class="crit-strip"><div class="crit-chip"><div class="cc-lbl">Groupe</div><div class="cc-val r">A+</div></div><div class="crit-chip"><div class="cc-lbl">Taille</div><div class="cc-val">175</div></div><div class="crit-chip"><div class="cc-lbl">Poids</div><div class="cc-val">72 kg</div></div></div>
+    <div class="sec-hd" style="margin-top:4px"><span class="label-xs">Alertes critiques</span></div>
+    <div class="alert-row"><div class="ar-ico w"><svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/></svg></div><div><div class="ar-lbl">Allergie médicament</div><div class="ar-val">Pénicilline · Aspirine</div></div></div>
+    <div class="alert-row"><div class="ar-ico w"><svg viewBox="0 0 24 24"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><line x1="12" y1="8" x2="12" y2="12"/></svg></div><div><div class="ar-lbl">Allergie alimentaire</div><div class="ar-val">Arachides (réaction sévère)</div></div></div>
+    <div class="alert-row"><div class="ar-ico"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div><div><div class="ar-lbl">Antécédents</div><div class="ar-val">Asthme léger · Hypertension artérielle</div></div></div>
+    <div class="sec-hd" style="margin-top:4px"><span class="label-xs">Contacts d'urgence</span></div>
+    <div class="cnt-row"><div class="cnt-ava">👩</div><div><div style="font-size:14px;font-weight:600;color:var(--black)">Marie Nkono</div><div style="font-size:12px;color:var(--gray-500)">Sœur · Contact principal</div></div><div class="call-sm"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.62 3.39 2 2 0 0 1 3.59 1.21h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.91a16 16 0 0 0 6.06 6.06l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div></div>
+    <div class="qr-sec">
+      <div class="label-xs">Scan pour accès dossier</div>
+      <div class="qr-box">
+        <svg width="138" height="138" viewBox="0 0 138 138" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="8" width="36" height="36" fill="none" stroke="#111" stroke-width="5" rx="2"/><rect x="14" y="14" width="24" height="24" fill="#111" rx="1"/>
+          <rect x="94" y="8" width="36" height="36" fill="none" stroke="#111" stroke-width="5" rx="2"/><rect x="100" y="14" width="24" height="24" fill="#111" rx="1"/>
+          <rect x="8" y="94" width="36" height="36" fill="none" stroke="#111" stroke-width="5" rx="2"/><rect x="14" y="100" width="24" height="24" fill="#111" rx="1"/>
+          <rect x="52" y="8" width="8" height="8" fill="#111"/><rect x="64" y="8" width="8" height="8" fill="#111"/><rect x="76" y="8" width="8" height="8" fill="#111"/>
+          <rect x="52" y="20" width="14" height="8" fill="#111"/><rect x="70" y="20" width="6" height="8" fill="#111"/>
+          <rect x="52" y="32" width="8" height="8" fill="#111"/><rect x="64" y="32" width="10" height="8" fill="#111"/>
+          <rect x="8" y="52" width="8" height="8" fill="#111"/><rect x="20" y="52" width="14" height="8" fill="#111"/><rect x="38" y="52" width="8" height="8" fill="#111"/>
+          <rect x="52" y="52" width="6" height="6" fill="#111"/><rect x="62" y="52" width="10" height="6" fill="#111"/>
+          <rect x="92" y="52" width="10" height="8" fill="#111"/><rect x="106" y="52" width="8" height="8" fill="#111"/><rect x="118" y="52" width="12" height="8" fill="#111"/>
+          <rect x="8" y="64" width="14" height="8" fill="#111"/><rect x="26" y="64" width="8" height="8" fill="#111"/>
+          <rect x="52" y="64" width="16" height="8" fill="#111"/><rect x="72" y="64" width="8" height="8" fill="#111"/>
+          <rect x="92" y="64" width="6" height="8" fill="#111"/><rect x="106" y="64" width="14" height="8" fill="#111"/>
+          <rect x="8" y="76" width="8" height="8" fill="#111"/><rect x="20" y="76" width="16" height="8" fill="#111"/>
+          <rect x="52" y="76" width="10" height="8" fill="#111"/>
+          <rect x="52" y="94" width="10" height="8" fill="#111"/><rect x="66" y="94" width="14" height="8" fill="#111"/><rect x="92" y="94" width="10" height="8" fill="#111"/>
+          <rect x="52" y="106" width="6" height="8" fill="#111"/><rect x="66" y="106" width="10" height="8" fill="#111"/><rect x="92" y="106" width="8" height="8" fill="#111"/><rect x="104" y="106" width="8" height="8" fill="#111"/><rect x="118" y="106" width="12" height="8" fill="#111"/>
+          <rect x="52" y="118" width="14" height="8" fill="#111"/><rect x="70" y="118" width="8" height="8" fill="#111"/><rect x="84" y="118" width="14" height="8" fill="#111"/><rect x="114" y="118" width="16" height="8" fill="#111"/>
+          <rect x="56" y="56" width="26" height="26" fill="white" rx="3"/>
+          <rect x="58" y="58" width="22" height="22" fill="#C0192B" rx="2"/>
+          <path d="M69 63C69 63 65 67 65 68C65 71 69 73 69 73" stroke="white" stroke-width="1.5" fill="none"/>
+          <path d="M69 63C69 63 73 67 73 68C73 71 69 73 69 73" stroke="white" stroke-width="1.5" fill="none"/>
+          <line x1="65" y1="68" x2="73" y2="68" stroke="white" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="qr-cap">ID · SQ-2025-JBN-0042</div>
+    </div>
+    <div style="height:16px"></div>
+  </div>
+</div>
+
+<!-- ═══ CONSULTATIONS ═══ -->
+<div id="consultations" class="screen">
+  <div class="top-bar">
+    <button class="btn-ghost" onclick="goTo('dashboard')"><svg width="16" height="16" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>Retour</button>
+    <div class="top-bar-title">Consultations</div>
+    <button class="icon-btn"><svg width="15" height="15" viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="12" y2="18"/></svg></button>
+  </div>
+  <div class="scroll-body" style="position:relative">
+    <div style="display:flex;gap:7px;padding:11px 20px;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none">
+      <span class="badge badge-gray" style="cursor:pointer;white-space:nowrap;padding:5px 13px">Toutes</span>
+      <span class="badge badge-red" style="cursor:pointer;white-space:nowrap;padding:5px 13px">2025</span>
+      <span class="badge badge-gray" style="cursor:pointer;white-space:nowrap;padding:5px 13px">2024</span>
+      <span class="badge badge-gray" style="cursor:pointer;white-space:nowrap;padding:5px 13px">Labo</span>
+    </div>
+    <div class="consult-item"><div class="c-line r"></div><div style="flex:1"><div style="display:flex;justify-content:space-between"><div class="c-dr">Dr. Mboua Sylvain</div><div style="font-size:11px;font-weight:600;color:var(--gray-400)">18 Mar 2025</div></div><div class="c-sp">Cardiologue · CHU Yaoundé</div><div class="c-notes">Contrôle de routine. Tension légèrement élevée. ECG normal. Recommande réduction du sel.</div><div style="display:flex;gap:5px;margin-top:9px"><span class="badge badge-red" style="font-size:10px">Cardio</span><span class="badge badge-gray" style="font-size:10px">Ordonnance</span></div></div></div>
+    <div class="consult-item"><div class="c-line r"></div><div style="flex:1"><div style="display:flex;justify-content:space-between"><div class="c-dr">Dr. Atanga Paul</div><div style="font-size:11px;font-weight:600;color:var(--gray-400)">02 Mar 2025</div></div><div class="c-sp">Médecin généraliste</div><div class="c-notes">Infection des voies respiratoires. Prescription Amoxicilline 500mg pendant 10 jours.</div><div style="display:flex;gap:5px;margin-top:9px"><span class="badge badge-orange" style="font-size:10px">ORL</span><span class="badge badge-gray" style="font-size:10px">Antibiotique</span></div></div></div>
+    <div class="consult-item"><div class="c-line"></div><div style="flex:1"><div style="display:flex;justify-content:space-between"><div class="c-dr">Labo Pasteur</div><div style="font-size:11px;font-weight:600;color:var(--gray-400)">14 Jan 2025</div></div><div class="c-sp">Analyses biologiques</div><div class="c-notes">Bilan sanguin complet. Glycémie 5.4 mmol/L. Cholestérol 4.8 mmol/L.</div><div style="display:flex;gap:5px;margin-top:9px"><span class="badge badge-blue" style="font-size:10px">Biologie</span><span class="badge badge-gray" style="font-size:10px">📎 PDF</span></div></div></div>
+    <button class="fab" onclick="alert('Nouvelle consultation')"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+    <div style="height:70px"></div>
+  </div>
+</div>
+
+  <!-- ═══ GLOBAL BOTTOM NAV ═══ -->
+  <div class="bottom-nav" id="bnav">
+    <div class="nav-item active" onclick="navTo('dashboard',this)"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Accueil</span></div>
+    <div class="nav-item" onclick="navTo('medications',this)"><svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg><span>Médicaments</span></div>
+    <div class="nav-item" onclick="navTo('vaccination',this)"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg><span>Vaccins</span></div>
+    <div class="nav-item" onclick="navTo('chat-list',this)"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Messages</span></div>
+    <div class="nav-item" onclick="navTo('profile',this)"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Profil</span></div>
+  </div>
+<!-- ═══ CHAT LIST ═══ -->
+<div id="chat-list" class="screen">
+  <div class="top-bar">
+    <div class="top-bar-title">Messages</div>
+    <button class="icon-btn"><svg width="15" height="15" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>
+  </div>
+  <div class="scroll-body" style="padding-bottom:72px">
+    <!-- Conversation Dr. Atanga -->
+    <div onclick="goTo('chat-atanga')" style="display:flex;align-items:center;gap:13px;padding:14px 20px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background=''">
+      <div style="position:relative">
+        <div style="width:48px;height:48px;border-radius:16px;background:var(--gray-100);display:flex;align-items:center;justify-content:center;font-size:22px">🩺</div>
+        <div style="width:10px;height:10px;background:var(--green);border-radius:50%;border:2px solid white;position:absolute;bottom:1px;right:1px"></div>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+          <div style="font-size:15px;font-weight:600;color:var(--black)">Dr. Atanga Paul</div>
+          <div style="font-size:11px;color:var(--gray-400);font-weight:500">09:34</div>
+        </div>
+        <div style="font-size:13px;color:var(--gray-500);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">On fait le point lors de votre RDV du 24 Mars 🗓️</div>
+      </div>
+      <div style="width:18px;height:18px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="font-size:10px;font-weight:700;color:white">2</span></div>
+    </div>
+
+    <!-- Conversation Dr. Mboua -->
+    <div onclick="goTo('chat-mboua')" style="display:flex;align-items:center;gap:13px;padding:14px 20px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background=''">
+      <div style="position:relative">
+        <div style="width:48px;height:48px;border-radius:16px;background:var(--gray-100);display:flex;align-items:center;justify-content:center;font-size:22px">❤️</div>
+        <div style="width:10px;height:10px;background:var(--gray-300);border-radius:50%;border:2px solid white;position:absolute;bottom:1px;right:1px"></div>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+          <div style="font-size:15px;font-weight:600;color:var(--black)">Dr. Mboua Sylvain</div>
+          <div style="font-size:11px;color:var(--gray-400);font-weight:500">Hier</div>
+        </div>
+        <div style="font-size:13px;color:var(--gray-500);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Réduisez le sel et évitez le café le matin.</div>
+      </div>
+    </div>
+
+    <!-- Empty state hint -->
+    <div style="padding:28px 20px;text-align:center">
+      <div style="font-size:28px;margin-bottom:10px">💬</div>
+      <div style="font-size:14px;font-weight:600;color:var(--black);margin-bottom:4px">Vos conversations médicales</div>
+      <div style="font-size:13px;color:var(--gray-500);line-height:1.6">Les médecins qui vous suivent apparaissent ici. Pour en ajouter un, rendez-vous dans <strong>Mon Médecin</strong> depuis l'accueil.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SHEETS ═══ -->
+<!-- Vaccine detail -->
+<div class="sheet-overlay" id="vsheet" onclick="closeVS(event)"><div class="sheet" id="vsheet-inner"><div class="sheet-handle"></div><div id="vsheet-hd" style="padding:0 20px 14px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:12px"></div><div id="vsheet-body"></div></div></div>
+<!-- Add vaccine -->
+<div class="sheet-overlay" id="asheet" onclick="closeAS(event)"><div class="sheet" id="asheet-inner"><div class="sheet-handle"></div><div style="padding:0 20px 14px;border-bottom:1px solid var(--border)"><div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--black);margin-bottom:3px">Ajouter un vaccin</div><div style="font-size:13px;color:var(--gray-500)">Enregistrement manuel</div></div><div style="padding-top:14px"><div class="form-group"><div class="form-lbl">Nom du vaccin</div><input class="form-input" placeholder="ex. Hépatite A…"/></div><div class="form-group"><div class="form-lbl">Maladie(s) ciblée(s)</div><input class="form-input" placeholder="ex. Virus de l'hépatite A"/></div><div class="form-group"><div class="form-lbl">Date d'administration</div><input class="form-input" type="date"/></div><div class="form-group"><div class="form-lbl">Établissement / Médecin</div><input class="form-input" placeholder="ex. CHU Yaoundé — Dr. Atanga"/></div><div class="form-group"><div class="form-lbl">Numéro de lot</div><input class="form-input" placeholder="ex. AB1234567"/></div><div class="form-group"><div class="form-lbl">Numéro de dose</div><div class="dose-ctr"><button class="dc-btn" onclick="chD(-1)">−</button><div class="dc-val" id="dv">1</div><button class="dc-btn" onclick="chD(1)">+</button><div style="font-size:13px;color:var(--gray-400);margin:0 4px">sur</div><button class="dc-btn" onclick="chDT(-1)">−</button><div class="dc-val" id="dtv">1</div><button class="dc-btn" onclick="chDT(1)">+</button></div></div><div class="form-group"><div class="form-lbl">Prochain rappel (optionnel)</div><input class="form-input" type="date"/></div></div><div style="padding:14px 20px 0;display:flex;gap:10px"><button class="sa-btn sa-secondary" onclick="closeAS()">Annuler</button><button class="sa-btn sa-primary" onclick="closeAS()">Enregistrer</button></div><div style="height:8px"></div></div></div>
+<!-- Role change -->
+<div class="sheet-overlay" id="rsheet" onclick="closeRS(event)"><div class="sheet" id="rsheet-inner"><div class="sheet-handle"></div><div style="padding:0 20px 14px;border-bottom:1px solid var(--border)"><div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--black);margin-bottom:3px">Changer de rôle</div><div style="font-size:13px;color:var(--gray-500);line-height:1.5">Les rôles professionnels nécessitent une vérification de dossier (24–48h).</div></div><div style="padding:14px 0 0"><div class="rs-item" onclick="closeRS()"><div class="rs-emoji">🧑‍⚕️</div><div class="rs-nm">Patient</div><div class="rs-status" style="color:var(--green)">✓ Actuel</div></div><div class="rs-item" onclick="showVerif('medecin')"><div class="rs-emoji">🩺</div><div class="rs-nm">Médecin</div><div class="rs-status" style="color:var(--orange)">Vérification requise →</div></div><div class="rs-item" onclick="showVerif('pharmacien')"><div class="rs-emoji">💊</div><div class="rs-nm">Pharmacien</div><div class="rs-status" style="color:var(--orange)">Vérification requise →</div></div><div class="rs-item" onclick="closeRS()"><div class="rs-emoji">👨‍👩‍👧</div><div class="rs-nm">Proche / Tuteur</div><div class="rs-status" style="color:var(--blue)">Accès direct →</div></div><div class="rs-item" style="opacity:.45;cursor:not-allowed"><div class="rs-emoji">🚑</div><div class="rs-nm">Infirmier</div><div class="rs-status" style="color:var(--gray-400)">🔒 Vérification requise</div></div></div><div style="padding:14px 20px"><div style="background:var(--gray-50);border:1px solid var(--border);border-radius:14px;padding:13px;font-size:13px;color:var(--gray-700);line-height:1.6"><strong style="color:var(--black)">Comment ça marche ?</strong><br>Sequoia vérifie votre numéro d'ordre et diplôme. La révision prend 24–48h.</div></div><div style="height:16px"></div></div></div>
+<!-- Verif -->
+<div class="sheet-overlay" id="verifsheet" onclick="closeVerif(event)"><div class="sheet" id="verifsheet-inner"><div class="sheet-handle"></div><div style="padding:0 20px 14px;border-bottom:1px solid var(--border)"><div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--black);margin-bottom:3px" id="verif-title">Demande de vérification</div><div style="font-size:13px;color:var(--gray-500)">Soumettez vos justificatifs</div></div><div style="padding-top:14px"><div class="form-group"><div class="form-lbl">Numéro d'ordre professionnel</div><input class="form-input" placeholder="ex. CMR-MED-2019-04521"/></div><div class="form-group"><div class="form-lbl">Établissement d'exercice</div><input class="form-input" placeholder="ex. CHU Yaoundé"/></div><div class="form-group"><div class="form-lbl">Spécialité</div><input class="form-input" placeholder="ex. Médecine générale"/></div><div style="padding:0 20px;margin-bottom:14px"><div class="form-lbl">Pièce justificative</div><div style="border:1.5px dashed var(--border);border-radius:12px;padding:20px;text-align:center;cursor:pointer" onclick="alert('Sélecteur fichier')"><div style="font-size:22px;margin-bottom:6px">📎</div><div style="font-size:13px;font-weight:600;color:var(--black)">Ajouter un document</div><div style="font-size:11px;color:var(--gray-400);margin-top:2px">Diplôme, carte pro, accréditation</div></div></div></div><div style="margin:0 20px 14px;background:var(--blue-soft);border-radius:14px;padding:12px;font-size:13px;color:var(--blue)">⏱ Délai de vérification : <strong>24 à 48 heures</strong>. Notification dès validation.</div><div style="padding:0 20px 0;display:flex;gap:10px"><button class="sa-btn sa-secondary" onclick="closeVerif()">Annuler</button><button class="sa-btn sa-primary" onclick="closeVerif()">Soumettre</button></div><div style="height:8px"></div></div></div>
+
+
+<!-- Follow request sheet -->
+<div class="sheet-overlay" id="follow-sheet" onclick="closeFollowSheet(event)">
+  <div class="sheet" id="follow-sheet-inner">
+    <div class="sheet-handle"></div>
+    <div style="padding:0 20px 14px;border-bottom:1px solid var(--border)">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--black);margin-bottom:3px">Demande de suivi</div>
+      <div style="font-size:13px;color:var(--gray-500)" id="follow-doc-name">Envoyez une demande à ce médecin</div>
+    </div>
+    <div style="padding:16px 20px">
+      <div style="background:var(--blue-soft);border-radius:14px;padding:14px;font-size:13px;color:var(--blue);line-height:1.6;margin-bottom:14px">
+        📋 Le médecin recevra votre demande et aura accès à votre résumé médical (niveau d'accès que vous définissez). Il pourra accepter ou refuser.
+      </div>
+      <div class="form-group" style="padding:0;margin-bottom:13px">
+        <div class="form-lbl">Motif de la demande</div>
+        <textarea class="form-input" rows="3" placeholder="Ex. Suivi diabète, contrôle tension, avis médical…" style="resize:none"></textarea>
+      </div>
+      <div class="form-group" style="padding:0;margin-bottom:0">
+        <div class="form-lbl">Type de suivi souhaité</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
+          <div style="padding:7px 13px;border-radius:10px;border:1.5px solid var(--black);background:var(--black);color:white;font-size:12px;font-weight:600;cursor:pointer">Téléconsultation</div>
+          <div style="padding:7px 13px;border-radius:10px;border:1.5px solid var(--border);font-size:12px;font-weight:600;cursor:pointer;color:var(--gray-700)">Conseils uniquement</div>
+          <div style="padding:7px 13px;border-radius:10px;border:1.5px solid var(--border);font-size:12px;font-weight:600;cursor:pointer;color:var(--gray-700)">Suivi régulier</div>
+        </div>
+      </div>
+    </div>
+    <div style="padding:0 20px 0;display:flex;gap:10px">
+      <button class="sa-btn sa-secondary" onclick="closeFollowSheet()">Annuler</button>
+      <button class="sa-btn sa-primary" onclick="confirmFollow()">Envoyer la demande</button>
+    </div>
+    <div style="height:8px"></div>
+  </div>
+</div>
+
+</div>
+<script>
+/* nav */
+function goTo(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const sb=document.getElementById(id)?.querySelector('.scroll-body');
+  if(sb)sb.scrollTop=0;
+  // Show/hide global nav
+  const noNav=['splash','role-select','emergency','consultations','chat-atanga','chat-mboua','explore-doctors','doctors'];
+  const nav=document.getElementById('bnav');if(noNav.includes(id)){nav.classList.remove('visible');}else{nav.classList.add('visible');}
+}
+function navTo(id,el){goTo(id);if(el&&el.closest('#bnav')){document.querySelectorAll('#bnav .nav-item').forEach(n=>n.classList.remove('active'));el.classList.add('active');}}
+
+/* chat send */
+function sendMsg(e,inp){if(e.key==='Enter'&&inp.value.trim()){addMsg(inp);}}
+function sendMsgBtn(btn){const inp=btn.previousElementSibling;if(inp.value.trim())addMsg(inp);}
+function addMsg(inp){const txt=inp.value.trim();if(!txt)return;const msgs=inp.closest('.screen').querySelector('.chat-messages');const div=document.createElement('div');div.className='msg me';div.innerHTML=`<div class="msg-bubble">${txt}</div><div class="msg-time">maintenant</div>`;msgs.appendChild(div);inp.value='';msgs.scrollTop=msgs.scrollHeight;}
+
+/* access */
+function toggleAcc(hd){const blk=hd.parentElement,sel=blk.querySelector('.lvl-sel'),chv=hd.querySelector('.chev'),was=sel.classList.contains('open');document.querySelectorAll('.lvl-sel').forEach(s=>s.classList.remove('open'));document.querySelectorAll('.chev').forEach(c=>c.classList.remove('open'));if(!was){sel.classList.add('open');chv.classList.add('open');}}
+const lT={1:'N1',2:'N2',3:'N3'},lC={1:'plvl l1',2:'plvl l2',3:'plvl l3'};
+function selLvl(o,k,l){o.closest('.lvl-opts').querySelectorAll('.lvl-opt').forEach(x=>x.classList.remove('sel'));o.classList.add('sel');const b=document.getElementById('b-'+k);if(b){b.textContent=lT[l];b.className=lC[l];}}
+
+/* vacc filter */
+function fv(t,el){document.querySelectorAll('.fpill').forEach(p=>p.classList.remove('active'));el.classList.add('active');const gm={done:'g-done',pending:'g-pending',late:'g-late',partial:'g-partial'};if(t==='all'){Object.values(gm).forEach(id=>{const g=document.getElementById(id);if(g)g.style.display=''});}else{Object.entries(gm).forEach(([k,id])=>{const g=document.getElementById(id);if(g)g.style.display=k===t?'':'none';});}}
+
+/* vacc data */
+const vd={
+  dt:{name:'Rappel DT-Polio',disease:'Diphtérie, Tétanos, Poliomyélite',status:'late',doses:[{l:'Primovaccination nourrisson',d:'1998',s:'done'},{l:'Rappel 6 ans',d:'2003',s:'done'},{l:'Rappel 11–13 ans',d:'2010',s:'done'},{l:'Rappel décennal',d:'Jan 2015',s:'done'},{l:'Rappel décennal (en retard)',d:'Jan 2025 — Non effectué',s:'miss'}],next:'Dès que possible',lab:'Boostrix',org:'Cameroun EPI'},
+  hepb:{name:'Hépatite B',disease:"Virus de l'hépatite B",status:'pending',doses:[{l:'Dose 1',d:'15 Déc 2024',s:'done'},{l:'Dose 2',d:'15 Jan 2025',s:'done'},{l:'Dose 3',d:'Prévu 28 Avr 2025',s:'next'}],next:'28 Avr 2025',lab:'Engerix-B 20µg',org:'CHU Yaoundé'},
+  covid:{name:'COVID-19',disease:'Coronavirus SARS-CoV-2',status:'done',doses:[{l:'Dose 1',d:'Mar 2022',s:'done'},{l:'Dose 2',d:'Avr 2022',s:'done'},{l:'Booster',d:'Oct 2023',s:'done'}],next:'Selon recommandations',lab:'Pfizer BNT162b2',org:'Centre vaccination Yaoundé'},
+  fievre:{name:'Fièvre Jaune',disease:'Arbovirus — Obligatoire Cameroun',status:'done',doses:[{l:'Vaccination unique (valable à vie)',d:'Mar 2022',s:'done'}],next:'Valable à vie',lab:'Stamaril',org:'Centre International Vaccination YDE'},
+  hpv:{name:'HPV',disease:'Prévention cancers liés au HPV',status:'partial',doses:[{l:'Dose 1',d:'Sep 2024',s:'done'},{l:'Dose 2',d:'Nov 2024',s:'done'},{l:'Dose 3',d:'À planifier',s:'next'}],next:'À planifier',lab:'Gardasil 9',org:'Clinique Cité Verte'}
+};
+const IS={done:'<polyline points="20 6 9 17 4 12"/>',late:'<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/>',pending:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',partial:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>'};
+const DS={done:'<polyline points="2 6 5 9 10 3"/>',next:'<circle cx="6" cy="6" r="3"/>',miss:'<line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/>',future:'<circle cx="6" cy="6" r="2"/>'};
+function openVaccSheet(key){const d=vd[key];if(!d)return;const sc=d.status;document.getElementById('vsheet-hd').innerHTML=`<div class="vi-ico ${sc}" style="width:48px;height:48px;border-radius:15px;flex-shrink:0"><svg viewBox="0 0 24 24">${IS[sc]||IS.done}</svg></div><div><div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--black)">${d.name}</div><div style="font-size:13px;color:var(--gray-500);margin-top:2px">${d.disease}</div></div>`;let b=`<div style="padding:14px 20px 6px"><div class="label-xs">Historique des doses</div></div><div style="padding:12px 20px 4px">`;d.doses.forEach((dose,i)=>{const isLast=i===d.doses.length-1;b+=`<div class="dose-row"><div class="dose-col"><div class="d-ico ${dose.s}"><svg viewBox="0 0 12 12">${DS[dose.s]||DS.future}</svg></div>${!isLast?'<div class="d-line"></div>':''}</div><div class="d-info"><div class="d-lbl">${dose.l}</div><div class="d-meta">${dose.d}</div></div></div>`;});b+=`</div><div class="divider"></div><div style="display:flex;justify-content:space-between;padding:11px 20px;border-bottom:1px solid var(--border)"><span style="font-size:13px;color:var(--gray-500)">Prochain rappel</span><span style="font-size:13px;font-weight:600;color:var(--black)">${d.next}</span></div><div style="display:flex;justify-content:space-between;padding:11px 20px;border-bottom:1px solid var(--border)"><span style="font-size:13px;color:var(--gray-500)">Vaccin utilisé</span><span style="font-size:13px;font-weight:600;color:var(--black)">${d.lab}</span></div><div style="display:flex;justify-content:space-between;padding:11px 20px"><span style="font-size:13px;color:var(--gray-500)">Établissement</span><span style="font-size:13px;font-weight:600;color:var(--black);text-align:right;max-width:55%">${d.org}</span></div><div style="padding:0 20px 0;display:flex;gap:10px"><button class="sa-btn sa-secondary" onclick="closeVS()">Fermer</button><button class="sa-btn sa-primary" onclick="closeVS()">Modifier</button></div><div style="height:8px"></div>`;document.getElementById('vsheet-body').innerHTML=b;document.getElementById('vsheet').classList.add('open');}
+function closeVS(e){if(!e||!document.getElementById('vsheet-inner').contains(e.target))document.getElementById('vsheet').classList.remove('open');}
+
+/* add vacc */
+let dn=1,dtn=1;
+function openAddSheet(){document.getElementById('asheet').classList.add('open');}
+function closeAS(e){if(!e||!document.getElementById('asheet-inner').contains(e.target))document.getElementById('asheet').classList.remove('open');}
+function chD(d){dn=Math.max(1,dn+d);document.getElementById('dv').textContent=dn;}
+function chDT(d){dtn=Math.max(1,dtn+d);document.getElementById('dtv').textContent=dtn;}
+
+/* role */
+function openRoleSheet(){document.getElementById('rsheet').classList.add('open');}
+function closeRS(e){if(!e||!document.getElementById('rsheet-inner').contains(e.target))document.getElementById('rsheet').classList.remove('open');}
+function showVerif(r){document.getElementById('rsheet').classList.remove('open');const t={medecin:'Devenir Médecin sur Sequoia',pharmacien:'Devenir Pharmacien sur Sequoia'};document.getElementById('verif-title').textContent=t[r]||'Demande de vérification';setTimeout(()=>document.getElementById('verifsheet').classList.add('open'),220);}
+function closeVerif(e){if(!e||!document.getElementById('verifsheet-inner').contains(e.target))document.getElementById('verifsheet').classList.remove('open');}
+function openFollowSheet(doc){
+  const names={atanga:'Dr. Atanga Paul',fouda:'Dr. Fouda Christine',ngono:'Dr. Ngono Emmanuel'};
+  document.getElementById('follow-doc-name').textContent='Envoyer une demande à '+( names[doc]||'ce médecin');
+  document.getElementById('follow-sheet').classList.add('open');
+}
+function closeFollowSheet(e){
+  if(!e||!document.getElementById('follow-sheet-inner').contains(e.target))
+    document.getElementById('follow-sheet').classList.remove('open');
+}
+function confirmFollow(){
+  document.getElementById('follow-sheet').classList.remove('open');
+  setTimeout(()=>alert('✅ Demande envoyée ! Le médecin vous répondra sous 24h.'),300);
+}
+function backToDoctors(){goTo('doctors');document.querySelectorAll('#bnav .nav-item').forEach(n=>n.classList.remove('active'));document.querySelectorAll('#bnav .nav-item')[3].classList.add('active');}
+</script>
+</body>
+</html>

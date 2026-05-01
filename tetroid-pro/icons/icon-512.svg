@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1a1a4e"/>
+      <stop offset="50%" stop-color="#2d1b6e"/>
+      <stop offset="100%" stop-color="#1a3a6e"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffe566"/>
+      <stop offset="50%" stop-color="#f5c518"/>
+      <stop offset="100%" stop-color="#c87000"/>
+    </linearGradient>
+  </defs>
+  <rect width="192" height="192" rx="34" fill="url(#bg)"/>
+  <!-- Grid lines -->
+  <g stroke="rgba(245,197,24,0.07)" stroke-width="0.8">
+    <line x1="24" y1="19" x2="24" y2="173"/><line x1="48" y1="19" x2="48" y2="173"/>
+    <line x1="72" y1="19" x2="72" y2="173"/><line x1="96" y1="19" x2="96" y2="173"/>
+    <line x1="120" y1="19" x2="120" y2="173"/><line x1="144" y1="19" x2="144" y2="173"/>
+    <line x1="168" y1="19" x2="168" y2="173"/>
+    <line x1="19" y1="24" x2="173" y2="24"/><line x1="19" y1="48" x2="173" y2="48"/>
+    <line x1="19" y1="72" x2="173" y2="72"/><line x1="19" y1="96" x2="173" y2="96"/>
+    <line x1="19" y1="120" x2="173" y2="120"/><line x1="19" y1="144" x2="173" y2="144"/>
+    <line x1="19" y1="168" x2="173" y2="168"/>
+  </g>
+  <!-- T-piece (purple) -->
+  <rect x="44" y="30" width="24" height="24" rx="4" fill="#a855f7" stroke="#7c3aed" stroke-width="1.5"/>
+  <rect x="20" y="54" width="24" height="24" rx="4" fill="#a855f7" stroke="#7c3aed" stroke-width="1.5"/>
+  <rect x="44" y="54" width="24" height="24" rx="4" fill="#a855f7" stroke="#7c3aed" stroke-width="1.5"/>
+  <rect x="68" y="54" width="24" height="24" rx="4" fill="#a855f7" stroke="#7c3aed" stroke-width="1.5"/>
+  <!-- L-piece (orange) -->
+  <rect x="104" y="26" width="24" height="24" rx="4" fill="#f97316" stroke="#ea580c" stroke-width="1.5"/>
+  <rect x="104" y="50" width="24" height="24" rx="4" fill="#f97316" stroke="#ea580c" stroke-width="1.5"/>
+  <rect x="104" y="74" width="24" height="24" rx="4" fill="#f97316" stroke="#ea580c" stroke-width="1.5"/>
+  <rect x="128" y="74" width="24" height="24" rx="4" fill="#f97316" stroke="#ea580c" stroke-width="1.5"/>
+  <!-- S-piece (green) -->
+  <rect x="56" y="96" width="24" height="24" rx="4" fill="#22c55e" stroke="#16a34a" stroke-width="1.5"/>
+  <rect x="80" y="96" width="24" height="24" rx="4" fill="#22c55e" stroke="#16a34a" stroke-width="1.5"/>
+  <rect x="32" y="120" width="24" height="24" rx="4" fill="#22c55e" stroke="#16a34a" stroke-width="1.5"/>
+  <rect x="56" y="120" width="24" height="24" rx="4" fill="#22c55e" stroke="#16a34a" stroke-width="1.5"/>
+  <!-- I-piece (cyan) -->
+  <rect x="104" y="108" width="24" height="24" rx="4" fill="#06b6d4" stroke="#0891b2" stroke-width="1.5"/>
+  <rect x="128" y="108" width="24" height="24" rx="4" fill="#06b6d4" stroke="#0891b2" stroke-width="1.5"/>
+  <rect x="152" y="108" width="24" height="24" rx="4" fill="#06b6d4" stroke="#0891b2" stroke-width="1.5"/>
+  <rect x="104" y="132" width="24" height="24" rx="4" fill="#06b6d4" stroke="#0891b2" stroke-width="1.5"/>
+  <!-- Shines on blocks -->
+  <rect x="47" y="33" width="9" height="5" rx="2" fill="rgba(255,255,255,0.3)"/>
+  <rect x="107" y="29" width="9" height="5" rx="2" fill="rgba(255,255,255,0.3)"/>
+  <rect x="59" y="99" width="9" height="5" rx="2" fill="rgba(255,255,255,0.3)"/>
+  <rect x="107" y="111" width="9" height="5" rx="2" fill="rgba(255,255,255,0.3)"/>
+  <!-- TETROID text -->
+  <text x="96" y="174" text-anchor="middle" font-family="Arial Black,sans-serif" font-weight="900" font-size="23" fill="#000" opacity="0.5" dy="2">TETROID</text>
+  <text x="96" y="174" text-anchor="middle" font-family="Arial Black,sans-serif" font-weight="900" font-size="23" fill="url(#gold)">TETROID</text>
+</svg>

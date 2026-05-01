@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Select</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Display:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue: #1a73e8;
+  --blue-bg: #e8f0fe;
+  --ink: #202124;
+  --ink2: #5f6368;
+  --border: #dadce0;
+  --bg: #f8f9fa;
+  --white: #fff;
+  --red: #d93025;
+  --green: #1e8e3e;
+  --gold: #f9ab00;
+  --font: 'Google Sans', 'Outfit', sans-serif;
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body { height:100%; overscroll-behavior:none; }
+body {
+  font-family: var(--font);
+  background: var(--white);
+  color: var(--ink);
+  max-width: 430px; margin: 0 auto;
+  display: flex; flex-direction: column;
+  height: 100dvh; overflow: hidden;
+}
+
+/* ─── SPLASH ─── */
+#splash {
+  position:fixed; inset:0; z-index:9999;
+  background: var(--white);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+  transition: opacity .5s ease;
+}
+#splash.out { opacity:0; pointer-events:none; }
+.sp-wordmark {
+  font-size: 38px; font-weight: 600; letter-spacing: -1px;
+  color: var(--ink); line-height: 1;
+}
+.sp-wordmark span { color: var(--blue); }
+.sp-sub { font-size: 13px; color: var(--ink2); margin-top: 4px; }
+.sp-bar {
+  width: 48px; height: 3px; border-radius: 2px;
+  background: var(--border);
+  margin-top: 28px; overflow: hidden;
+}
+.sp-bar-fill {
+  height: 100%; width: 0; border-radius: 2px;
+  background: var(--blue);
+  animation: load 1.8s ease forwards;
+}
+@keyframes load { to { width: 100%; } }
+
+/* ─── SCREENS ─── */
+.screen { display:none; flex:1; flex-direction:column; overflow:hidden; min-height:0; }
+.screen.on { display:flex; }
+
+/* ─── HOME ─── */
+#s-home {
+  flex-direction: column;
+  background: var(--white);
+  height: 100%;
+}
+
+/* Top bar */
+.topbar {
+  display: flex; align-items: center; justify-content: center;
+  padding: 14px 20px 10px;
+  flex-shrink: 0;
+}
+.topbar-logo {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 20px; font-weight: 700; letter-spacing: 0; color: var(--ink);
+  line-height: 1;
+}
+.topbar-logo span { color: var(--blue); }
+.topbar-actions { display:none; }
+.icon-btn {
+  width: 36px; height: 36px; border-radius: 50%; border: none;
+  background: transparent; display:flex; align-items:center; justify-content:center;
+  cursor: pointer; transition: background .15s;
+}
+.icon-btn:hover { background: var(--bg); }
+.icon-btn:active { background: var(--blue-bg); }
+.icon-btn svg { width: 20px; height: 20px; fill: var(--ink2); }
+
+/* Scrollable body */
+.home-body {
+  flex: 1; overflow-y: auto; padding-bottom: 0;
+  scrollbar-width: none;
+}
+.home-body::-webkit-scrollbar { display: none; }
+
+/* Category pills */
+.cat-section { padding: 14px 20px 16px; }
+.cat-row {
+  display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+}
+.cat-pill {
+  display: flex; align-items: center; gap: 7px;
+  padding: 9px 16px; border-radius: 100px;
+  border: 1.5px solid var(--border);
+  background: var(--white); color: var(--ink2);
+  font-size: 13px; font-weight: 500; cursor: pointer;
+  transition: all .18s; user-select: none;
+}
+.cat-pill svg { width: 16px; height: 16px; fill: var(--ink2); transition: fill .18s; flex-shrink: 0; }
+.cat-pill:hover { border-color: #c5cae9; background: #f1f3f9; }
+.cat-pill.active {
+  background: var(--blue-bg); border-color: #afc2f5;
+  color: var(--blue); font-weight: 600;
+}
+.cat-pill.active svg { fill: var(--blue); }
+
+/* Sub-pills */
+.sub-section {
+  max-height: 0; overflow: hidden;
+  transition: max-height .3s ease, opacity .3s ease;
+  opacity: 0; padding: 0 20px;
+}
+.sub-section.open { max-height: 60px; opacity: 1; padding-bottom: 16px; }
+.sub-row { display:flex; gap:7px; overflow-x:auto; scrollbar-width:none; }
+.sub-row::-webkit-scrollbar { display:none; }
+.sub-pill {
+  flex-shrink: 0; padding: 5px 14px; border-radius: 100px;
+  border: 1px solid var(--border); background: var(--white);
+  font-size: 12px; color: var(--ink2); cursor: pointer; transition: all .15s;
+}
+.sub-pill.active, .sub-pill:active { background: var(--blue-bg); border-color: #afc2f5; color: var(--blue); }
+
+/* Divider */
+.divider { height: 1px; background: var(--border); margin: 0 20px 0; }
+
+/* Chat thread */
+.chat-thread {
+  padding: 16px 20px 8px;
+  display: flex; flex-direction: column; gap: 12px;
+  min-height: 40px;
+}
+.bubble { display:flex; gap:10px; animation: bi .22s ease both; }
+@keyframes bi { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+.bubble.user { flex-direction: row-reverse; }
+.bav {
+  width: 28px; height: 28px; border-radius: 50%;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.bubble.bot .bav { background: var(--blue-bg); }
+.bubble.bot .bav svg { width:15px; height:15px; fill: var(--blue); }
+.bubble.user .bav { background: var(--blue); }
+.bubble.user .bav svg { width:15px; height:15px; fill: white; }
+.btext {
+  max-width: 78%; padding: 9px 13px;
+  border-radius: 18px; font-size: 14px; line-height: 1.5;
+}
+.bubble.bot .btext {
+  background: var(--bg); color: var(--ink);
+  border-bottom-left-radius: 4px;
+  border: 1px solid var(--border);
+}
+.bubble.user .btext {
+  background: var(--blue); color: white;
+  border-bottom-right-radius: 4px;
+}
+.btime { font-size: 10px; color: var(--ink2); margin-top: 3px; opacity: .7; }
+.typing-dots { display:flex; gap:4px; padding:5px 2px; align-items:center; }
+.td { width:5px; height:5px; border-radius:50%; background:var(--ink2); animation:td 1s infinite; }
+.td:nth-child(2){animation-delay:.15s} .td:nth-child(3){animation-delay:.3s}
+@keyframes td{0%,100%{opacity:.3;transform:scale(.9)}50%{opacity:1;transform:scale(1.1)}}
+
+/* Results */
+.results-section { padding: 4px 20px 8px; }
+.results-label {
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .8px; color: var(--ink2); opacity:.7;
+  margin-bottom: 10px;
+}
+.rc {
+  border: 1px solid var(--border); border-radius: 12px;
+  overflow: hidden; background: var(--white); margin-bottom: 8px;
+  transition: box-shadow .18s; cursor: pointer;
+}
+.rc:hover { box-shadow: 0 2px 12px rgba(0,0,0,.1); }
+.rc-inner { padding: 13px 14px; display:flex; gap:12px; align-items:flex-start; }
+.rc-icon {
+  width: 40px; height: 40px; border-radius: 8px;
+  background: var(--bg); display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.rc-icon svg { width: 20px; height: 20px; fill: var(--ink2); }
+.rc-info { flex:1; min-width:0; }
+.rc-name { font-size: 14px; font-weight: 600; color: var(--ink); }
+.rc-desc { font-size: 12px; color: var(--ink2); margin-top: 2px; line-height: 1.4; }
+.rc-stars { font-size: 11px; color: var(--gold); margin-top: 3px; }
+.rc-fav { padding: 4px; cursor: pointer; }
+.rc-fav svg { width: 18px; height: 18px; fill: var(--border); transition: fill .18s; }
+.rc-fav.on svg { fill: var(--gold); }
+.rc-footer {
+  padding: 0 14px 12px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.rc-price { font-size: 16px; font-weight: 700; color: var(--ink); }
+.rc-price small { font-size: 11px; font-weight: 400; color: var(--ink2); }
+.rc-cta {
+  background: var(--blue); color: white; border: none;
+  border-radius: 100px; padding: 7px 18px; font-size: 13px;
+  font-weight: 600; font-family: var(--font); cursor: pointer; transition: background .15s;
+}
+.rc-cta:hover { background: #1558d6; }
+.rc-badge {
+  font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 100px;
+  background: #e6f4ea; color: var(--green);
+}
+
+/* ─── CHAT INPUT BAR ─── */
+.input-bar {
+  position: relative;
+  background: var(--white);
+  border-top: 1px solid var(--border);
+  padding: 10px 16px 14px;
+  flex-shrink: 0;
+  z-index: 50;
+}
+.input-wrap {
+  display: flex; align-items: flex-end; gap: 6px;
+  background: var(--bg); border: 1.5px solid var(--border);
+  border-radius: 24px; padding: 8px 8px 8px 16px;
+  transition: border-color .18s, box-shadow .18s;
+}
+.input-wrap:focus-within {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(26,115,232,.12);
+  background: var(--white);
+}
+#cta {
+  flex:1; border:none; outline:none; resize:none;
+  font-size: 15px; font-family: var(--font); color: var(--ink);
+  background: transparent; line-height: 1.45;
+  max-height: 100px; min-height: 22px;
+}
+#cta::placeholder { color: #9aa0a6; }
+.input-actions { display:flex; gap:4px; align-items:center; flex-shrink:0; }
+.act-btn {
+  width: 34px; height: 34px; border-radius: 50%; border: none;
+  background: transparent; display:flex; align-items:center; justify-content:center;
+  cursor: pointer; transition: background .15s;
+}
+.act-btn svg { width: 20px; height: 20px; fill: #9aa0a6; transition: fill .15s; }
+.act-btn:hover svg { fill: var(--blue); }
+.act-btn:hover { background: var(--blue-bg); }
+.act-btn.recording { background: #fce8e6; }
+.act-btn.recording svg { fill: var(--red); }
+.act-btn.recording { animation: rec-pulse 1.2s infinite; }
+@keyframes rec-pulse{0%,100%{box-shadow:0 0 0 0 rgba(217,48,37,.3)}50%{box-shadow:0 0 0 6px rgba(217,48,37,0)}}
+.send-btn {
+  width: 34px; height: 34px; border-radius: 50%; border: none;
+  background: var(--blue); display:flex; align-items:center; justify-content:center;
+  cursor: pointer; transition: all .15s; flex-shrink: 0;
+}
+.send-btn:hover { background: #1558d6; }
+.send-btn:active { transform: scale(.93); }
+.send-btn svg { width: 17px; height: 17px; fill: white; }
+
+/* ─── BOTTOM NAV ─── */
+nav {
+  width: 100%;
+  background: var(--white); border-top: 1px solid var(--border);
+  display: flex; padding: 8px 0 max(env(safe-area-inset-bottom), 10px);
+  flex-shrink: 0;
+  z-index: 200;
+}
+.nb {
+  flex: 1; display:flex; flex-direction:column; align-items:center; gap:3px;
+  cursor: pointer; padding: 2px 0; transition: all .15s;
+}
+.nb svg { width: 22px; height: 22px; fill: #9aa0a6; transition: fill .15s; }
+.nb span { font-size: 10px; font-weight: 500; color: #9aa0a6; }
+.nb.on svg { fill: var(--blue); }
+.nb.on span { color: var(--blue); font-weight: 700; }
+
+/* ─── INNER SCREENS ─── */
+.inner-screen {
+  display: flex; flex-direction: column; flex:1; overflow: hidden;
+}
+.inner-screen > .scroll-body {
+  flex:1; overflow-y:auto; padding-bottom: 16px;
+  scrollbar-width: none;
+}
+.inner-screen > .scroll-body::-webkit-scrollbar { display:none; }
+
+/* Top of inner screens */
+.page-head {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.page-title { font-size: 22px; font-weight: 600; color: var(--ink); letter-spacing: -.3px; }
+.page-sub { font-size: 13px; color: var(--ink2); margin-top: 3px; }
+
+/* ─── FAVORITES ─── */
+.fav-list { padding: 14px 20px; display:flex; flex-direction:column; gap:8px; }
+
+/* ─── TRIP ─── */
+.trip-head-card {
+  margin: 16px 20px 0;
+  background: var(--blue); border-radius: 14px;
+  padding: 18px 20px; color: white;
+}
+.thc-label { font-size: 11px; opacity: .75; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+.thc-title { font-size: 20px; font-weight: 600; letter-spacing: -.2px; }
+.thc-steps { display:flex; gap:0; margin-top:16px; background:rgba(255,255,255,.15); border-radius:8px; padding:2px; }
+.ts {
+  flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;
+  padding: 7px 4px; border-radius:6px; cursor:pointer; transition: all .15s;
+}
+.ts.on { background: white; }
+.ts svg { width: 16px; height: 16px; fill: rgba(255,255,255,.7); transition: fill .15s; }
+.ts.on svg { fill: var(--blue); }
+.ts span { font-size: 10px; font-weight: 500; color: rgba(255,255,255,.7); transition: color .15s; }
+.ts.on span { color: var(--blue); }
+
+.form-block { padding: 16px 20px 0; width: 100%; box-sizing: border-box; }
+.form-card {
+  border: 1px solid var(--border); border-radius: 12px;
+  padding: 16px; background: var(--white); margin-bottom: 10px;
+  width: 100%; box-sizing: border-box; overflow: hidden;
+}
+.fc-title {
+  font-size: 12px; font-weight: 600; color: var(--ink2);
+  text-transform: uppercase; letter-spacing: .8px; margin-bottom: 12px;
+}
+.form-grid { display:flex; flex-direction:column; gap:10px; }
+.form-grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.fi { display:flex; flex-direction:column; gap:5px; }
+.fi label { font-size: 11px; font-weight: 600; color: var(--ink2); text-transform:uppercase; letter-spacing:.5px; }
+.fi input, .fi select {
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 10px 12px; font-size: 14px; font-family: var(--font);
+  color: var(--ink); background: var(--bg); outline: none;
+  transition: border .15s; width: 100%; box-sizing: border-box;
+}
+.fi input:focus, .fi select:focus { border-color: var(--blue); background: var(--white); }
+.fi input::placeholder { color: #9aa0a6; }
+.fi-sel { border:1px solid var(--border); border-radius:8px; padding:10px 12px; font-size:14px; font-family:var(--font); color:var(--ink); background:var(--bg); outline:none; width:100%; transition:border .15s; }
+.fi-sel:focus { border-color:var(--blue); background:var(--white); }
+.budget-field {
+  display:flex; align-items:center; gap:8px;
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 10px 12px; background: var(--bg); transition: border .15s;
+  width: 100%;
+}
+.budget-field:focus-within { border-color: var(--blue); background: var(--white); }
+.budget-field svg { width: 14px; height: 14px; fill: var(--ink2); flex-shrink:0; }
+.budget-field input {
+  flex:1; border:none; outline:none; background:transparent;
+  font-size: 14px; font-family: var(--font); font-weight: 600; color: var(--blue);
+}
+.budget-field span { font-size: 12px; color: var(--ink2); }
+input[type=range] {
+  width:100%; -webkit-appearance:none; height:4px; border-radius:2px; outline:none; cursor:pointer; margin-top:8px;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance:none; width:18px; height:18px; border-radius:50%;
+  background:var(--white); border: 2px solid var(--blue); box-shadow: 0 1px 4px rgba(26,115,232,.3); cursor:pointer;
+}
+.services-chips { display:flex; flex-wrap:wrap; gap:8px; }
+.sc {
+  padding: 6px 14px; border-radius:100px; border:1px solid var(--border);
+  font-size: 12px; color: var(--ink2); cursor:pointer; transition: all .15s;
+}
+.sc.on { background: var(--blue-bg); border-color: #afc2f5; color: var(--blue); }
+.plan-btn {
+  width:100%; padding: 14px; background: var(--blue); color: white;
+  border: none; border-radius: 100px; font-size: 15px; font-weight: 600;
+  font-family: var(--font); cursor: pointer; margin-top: 4px; transition: all .15s;
+}
+.plan-btn:hover { background: #1558d6; }
+.plan-btn:active { transform: scale(.99); }
+
+/* Bookings */
+.bk-section { padding: 20px 20px 0; }
+.bk-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing:.8px; color: var(--ink2); margin-bottom: 12px; }
+.bk-card {
+  border: 1px solid var(--border); border-radius: 12px;
+  overflow:hidden; margin-bottom: 8px;
+}
+.bk-top {
+  background: var(--blue); padding: 11px 14px;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.bk-name { color:white; font-weight:600; font-size:13px; }
+.bk-st {
+  font-size: 10px; font-weight: 700; padding: 2px 8px;
+  border-radius: 100px; background: rgba(255,255,255,.2); color: white; text-transform:uppercase;
+}
+.bk-st.ok { background: rgba(30,142,62,.5); }
+.bk-st.no { background: rgba(217,48,37,.5); }
+.bk-body { padding: 11px 14px; }
+.bk-row { display:flex; justify-content:space-between; margin-bottom:5px; }
+.bk-k { font-size:12px; color:var(--ink2); }
+.bk-v { font-size:12px; font-weight:500; color:var(--ink); }
+.bk-acts { padding: 0 14px 11px; display:flex; gap:8px; }
+.bk-btn { flex:1; padding:8px; border-radius:8px; font-size:12px; font-weight:600; font-family:var(--font); cursor:pointer; border:none; transition:all .15s; }
+.bk-btn.p { background:var(--blue-bg); color:var(--blue); }
+.bk-btn.d { background:#fce8e6; color:var(--red); }
+
+/* ─── PROFILE ─── */
+.prof-top {
+  padding: 28px 24px 24px; text-align:center;
+  border-bottom: 1px solid var(--border);
+}
+.prof-av {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: var(--blue-bg); border: 2px solid #afc2f5;
+  display:flex; align-items:center; justify-content:center;
+  margin: 0 auto 14px;
+}
+.prof-av svg { width: 38px; height: 38px; fill: var(--blue); }
+.prof-name { font-size: 20px; font-weight: 600; color: var(--ink); letter-spacing:-.2px; }
+.prof-tag { font-size: 13px; color: var(--ink2); margin-top: 3px; }
+.prof-pills { display:flex; justify-content:center; gap:12px; margin-top:16px; }
+.pp {
+  display:flex; flex-direction:column; align-items:center; gap:2px;
+  padding: 10px 16px; border-radius: 12px; border: 1px solid var(--border); min-width: 68px;
+}
+.pp-n { font-size: 18px; font-weight: 700; color: var(--ink); }
+.pp-l { font-size: 10px; color: var(--ink2); text-transform: uppercase; letter-spacing:.5px; }
+.prof-items { padding: 12px 20px 0; }
+.pi {
+  display:flex; align-items:center; gap:14px; padding: 14px 0;
+  border-bottom: 1px solid var(--border); cursor:pointer; transition: all .15s;
+}
+.pi:last-child { border-bottom: none; }
+.pi:active { opacity: .7; }
+.pi-ic { width: 36px; height: 36px; border-radius: 8px; background: var(--bg); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.pi-ic svg { width: 18px; height: 18px; fill: var(--ink2); }
+.pi-ic.bl { background: var(--blue-bg); }
+.pi-ic.bl svg { fill: var(--blue); }
+.pi-ic.rd { background: #fce8e6; }
+.pi-ic.rd svg { fill: var(--red); }
+.pi-txt { flex:1; }
+.pi-name { font-size: 14px; font-weight: 500; color: var(--ink); }
+.pi-sub { font-size: 12px; color: var(--ink2); margin-top: 1px; }
+.pi-arr { font-size: 18px; color: var(--border); }
+
+/* ─── MODAL / SHEET ─── */
+.overlay {
+  position:fixed; inset:0; z-index:500;
+  background: rgba(0,0,0,.4); backdrop-filter: blur(4px);
+  display:flex; align-items:flex-end;
+  opacity:0; pointer-events:none; transition: opacity .25s;
+}
+.overlay.on { opacity:1; pointer-events:all; }
+.sheet {
+  background: var(--white); border-radius: 20px 20px 0 0;
+  padding: 16px 20px 36px; width: 100%; max-height: 88dvh; overflow-y:auto;
+  transform: translateY(100%); transition: transform .32s cubic-bezier(.32,.72,0,1);
+}
+.overlay.on .sheet { transform: translateY(0); }
+.sh-handle { width:32px; height:3px; background:var(--border); border-radius:2px; margin:0 auto 16px; }
+.sh-title { font-size: 20px; font-weight: 600; color: var(--ink); margin-bottom: 3px; letter-spacing:-.2px; }
+.sh-sub { font-size: 13px; color: var(--ink2); margin-bottom: 18px; }
+.form-group { margin-bottom: 12px; }
+.form-group label { display:block; font-size: 11px; font-weight:600; color:var(--ink2); text-transform:uppercase; letter-spacing:.5px; margin-bottom:5px; }
+.form-group input, .form-group select {
+  width:100%; border: 1px solid var(--border); border-radius: 8px;
+  padding: 11px 13px; font-size: 14px; font-family: var(--font);
+  color: var(--ink); background: var(--bg); outline:none; transition: border .15s;
+}
+.form-group input:focus, .form-group select:focus { border-color: var(--blue); background: var(--white); }
+.fg2 { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+.primary-btn {
+  width:100%; padding:13px; background:var(--blue); color:white;
+  border:none; border-radius:100px; font-size:15px; font-weight:600;
+  font-family:var(--font); cursor:pointer; margin-top:6px; transition:all .15s;
+}
+.primary-btn:hover { background: #1558d6; }
+.danger-btn {
+  width:100%; padding:12px; background:transparent; color:var(--red);
+  border:1px solid #f5c6c2; border-radius:100px; font-size:14px; font-weight:600;
+  font-family:var(--font); cursor:pointer; margin-top:8px; transition:all .15s;
+}
+.warn-box {
+  background:#fce8e6; border-radius:8px; padding:12px 14px;
+  font-size:13px; color:#c5221f; line-height:1.55; margin-bottom:14px;
+}
+
+/* ─── TOAST ─── */
+.toast {
+  position:fixed; bottom:84px; left:50%; transform:translateX(-50%) translateY(6px);
+  background: var(--ink); color:white; padding:10px 18px; border-radius:100px;
+  font-size:13px; font-weight:500; opacity:0; pointer-events:none;
+  transition:all .25s; z-index:700; white-space:nowrap;
+  box-shadow: 0 4px 20px rgba(0,0,0,.2);
+}
+.toast.on { opacity:1; transform:translateX(-50%) translateY(0); }
+.toast.g { background: var(--green); }
+.toast.r { background: var(--red); }
+
+/* empty */
+.empty { text-align:center; padding:48px 24px; }
+.empty svg { width:44px; height:44px; fill:var(--border); margin-bottom:12px; }
+.empty-t { font-size:15px; font-weight:600; color:var(--ink2); margin-bottom:4px; }
+.empty-s { font-size:13px; color:#9aa0a6; }
+
+/* voice wave */
+#vwave { display:none; align-items:center; gap:2px; padding-right:4px; }
+#vwave.on { display:flex; }
+.vb { width:2.5px; border-radius:2px; background:var(--red); animation:vw 1s infinite ease-in-out; }
+.vb:nth-child(1){height:6px;animation-delay:0s}
+.vb:nth-child(2){height:14px;animation-delay:.1s}
+.vb:nth-child(3){height:20px;animation-delay:.2s}
+.vb:nth-child(4){height:14px;animation-delay:.3s}
+.vb:nth-child(5){height:6px;animation-delay:.4s}
+@keyframes vw{0%,100%{transform:scaleY(.4);opacity:.5}50%{transform:scaleY(1);opacity:1}}
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+    <svg width="38" height="46" viewBox="0 0 16 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2 2L14 10.5L9 12.2L6.5 20L2 2Z" fill="#1a73e8"/>
+      <path d="M2 2L14 10.5L9 12.2L6.5 20L2 2Z" stroke="#ffffff" stroke-width="0.5" stroke-linejoin="round"/>
+    </svg>
+    <div class="sp-wordmark">Select</div>
+  </div>
+  <div class="sp-sub">Agent Voyage IA</div>
+  <div class="sp-bar"><div class="sp-bar-fill"></div></div>
+</div>
+
+<!-- ═══ HOME ═══ -->
+<div id="s-home" class="screen on">
+
+  <div class="topbar">
+    <div class="topbar-logo">
+      <svg width="16" height="20" viewBox="0 0 16 22" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+        <path d="M2 2L14 10.5L9 12.2L6.5 20L2 2Z" fill="#1a73e8"/>
+        <path d="M2 2L14 10.5L9 12.2L6.5 20L2 2Z" stroke="#ffffff" stroke-width="0.6" stroke-linejoin="round"/>
+      </svg>
+      <span style="color:var(--ink)">Select</span>
+    </div>
+    <div class="topbar-actions"></div>
+  </div>
+
+  <div class="home-body" id="home-body">
+
+    <!-- Category pills -->
+    <div class="cat-section">
+      <div class="cat-row">
+        <div class="cat-pill active" data-cat="hotel" onclick="pickCat(this,'hotel')">
+          <svg viewBox="0 0 24 24"><path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V5H1v15h2v-3h18v3h2v-9c0-2.21-1.79-4-4-4z"/></svg>
+          Hôtel
+        </div>
+        <div class="cat-pill" data-cat="airbnb" onclick="pickCat(this,'airbnb')">
+          <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+          Airbnb
+        </div>
+        <div class="cat-pill" data-cat="flight" onclick="pickCat(this,'flight')">
+          <svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
+          Vol
+        </div>
+        <div class="cat-pill" data-cat="taxi" onclick="pickCat(this,'taxi')">
+          <svg viewBox="0 0 24 24"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.08 3.11H5.77L6.85 7zM19 17H5v-5h14v5z"/></svg>
+          Taxi
+        </div>
+        <div class="cat-pill" data-cat="restaurant" onclick="pickCat(this,'restaurant')">
+          <svg viewBox="0 0 24 24"><path d="M18.06 22.99h1.66c.84 0 1.53-.64 1.63-1.46L23 5.05h-5V1h-1.97v4.05h-4.97l.3 2.34c1.71.47 3.31 1.32 4.27 2.26 1.44 1.42 2.43 2.89 2.43 5.29v8.05zM1 21.99V21h15.03v.99c0 .55-.45 1-1.01 1H2.01c-.56 0-1.01-.45-1.01-1zm15.03-7c0-4.5-6.72-5-8.53-5-1.8 0-8.5.5-8.5 5h17.03z"/></svg>
+          Restaurant
+        </div>
+        <div class="cat-pill" data-cat="package" onclick="pickCat(this,'package')">
+          <svg viewBox="0 0 24 24"><path d="M11.5 2C6.81 2 3 5.81 3 10.5S6.81 19 11.5 19h.5v3c4.86-2.34 8-7 8-11.5C20 5.81 16.19 2 11.5 2zm1 14.5h-2v-2h2v2zm0-4h-2c0-3.25 3-3 3-5 0-1.1-.9-2-2-2s-2 .9-2 2h-2c0-2.21 1.79-4 4-4s4 1.79 4 4c0 2.5-3 2.75-3 5z"/></svg>
+          Tout inclus
+        </div>
+      </div>
+    </div>
+
+    <!-- Sub pills -->
+    <div class="sub-section" id="sub-section">
+      <div class="sub-row" id="sub-row"></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Chat thread -->
+    <div class="chat-thread" id="chat-thread"></div>
+
+    <!-- Results -->
+    <div id="results-wrap" style="display:none">
+      <div class="results-section">
+        <div class="results-label" id="results-label">Sélection</div>
+        <div id="results-list"></div>
+      </div>
+    </div>
+
+  </div><!-- /home-body -->
+
+  <!-- Input bar -->
+  <div class="input-bar">
+    <div class="input-wrap" id="input-wrap">
+      <div id="vwave"><div class="vb"></div><div class="vb"></div><div class="vb"></div><div class="vb"></div><div class="vb"></div></div>
+      <textarea id="cta" rows="1" placeholder="Ex : hôtel à Paris 2 nuits pour 2 personnes…" onkeydown="kd(event)" oninput="ar(this)"></textarea>
+      <div class="input-actions">
+        <button class="act-btn" id="mic-btn" onclick="toggleMic()" title="Vocal">
+          <svg viewBox="0 0 24 24"><path d="M12 15c1.66 0 2.99-1.34 2.99-3L15 6c0-1.66-1.34-3-3-3S9 4.34 9 6v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 15 6.7 12H5c0 3.42 2.72 6.23 6 6.72V22h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
+        </button>
+        <button class="send-btn" onclick="sendMsg()">
+          <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /s-home -->
+
+<!-- ═══ FAVORITES ═══ -->
+<div id="s-favs" class="screen">
+  <div class="inner-screen">
+    <div class="page-head">
+      <div class="page-title">Favoris</div>
+      <div class="page-sub" id="fav-sub">0 élément sauvegardé</div>
+    </div>
+    <div class="scroll-body">
+      <div class="fav-list" id="fav-list">
+        <div class="empty">
+          <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+          <div class="empty-t">Aucun favori</div>
+          <div class="empty-s">Appuyez sur le ♥ pour sauvegarder</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TRIP PLANNER ═══ -->
+<div id="s-trip" class="screen">
+  <div class="inner-screen">
+    <div class="scroll-body">
+      <div class="trip-head-card">
+        <div class="thc-label">Planificateur</div>
+        <div class="thc-title">Organisez votre<br>voyage complet</div>
+        <div class="thc-steps">
+          <div class="ts on" onclick="setTs(this)">
+            <svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
+            <span>Vol</span>
+          </div>
+          <div class="ts" onclick="setTs(this)">
+            <svg viewBox="0 0 24 24"><path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V5H1v15h2v-3h18v3h2v-9c0-2.21-1.79-4-4-4z"/></svg>
+            <span>Hôtel</span>
+          </div>
+          <div class="ts" onclick="setTs(this)">
+            <svg viewBox="0 0 24 24"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99z"/></svg>
+            <span>Taxi</span>
+          </div>
+          <div class="ts" onclick="setTs(this)">
+            <svg viewBox="0 0 24 24"><path d="M18.06 22.99h1.66c.84 0 1.53-.64 1.63-1.46L23 5.05h-5V1h-1.97v4.05h-4.97l.3 2.34c1.71.47 3.31 1.32 4.27 2.26 1.44 1.42 2.43 2.89 2.43 5.29v8.05z"/></svg>
+            <span>Resto</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-block">
+        <div class="form-card">
+          <div class="fc-title">Destination</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div class="fi"><label>Départ de</label><input type="text" placeholder="Yaoundé, Douala…" id="t-from"></div>
+            <div class="fi"><label>Destination</label><input type="text" placeholder="Paris, Dubaï, Dakar…" id="t-to"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div class="fi"><label>Date aller</label><input type="date" id="t-dep"></div>
+              <div class="fi"><label>Date retour</label><input type="date" id="t-ret"></div>
+            </div>
+          </div>
+        </div>
+        <div class="form-card">
+          <div class="fc-title">Voyageurs &amp; Budget</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+            <div class="fi"><label>Adultes</label><input type="number" value="2" min="1" id="t-adults" style="width:100%"></div>
+            <div class="fi"><label>Enfants</label><input type="number" value="0" min="0" id="t-children" style="width:100%"></div>
+          </div>
+          <div class="fi" style="gap:8px">
+            <label>Budget total</label>
+            <div class="budget-field">
+              <svg viewBox="0 0 24 24" width="14" height="14"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z" fill="#5f6368"/></svg>
+              <input type="text" id="t-bgt" value="500 000" oninput="bgtText(this.value)">
+              <span>FCFA</span>
+            </div>
+            <input type="range" id="t-sld" min="100000" max="5000000" step="10000" value="500000" oninput="bgtSlide(this.value)">
+          </div>
+        </div>
+        <div class="form-card">
+          <div class="fc-title">Services inclus</div>
+          <div class="services-chips" style="display:flex;flex-wrap:wrap;gap:8px">
+            <div class="sc on" onclick="this.classList.toggle('on')">✈️ Vol</div>
+            <div class="sc on" onclick="this.classList.toggle('on')">🏨 Hôtel</div>
+            <div class="sc" onclick="this.classList.toggle('on')">🚕 Taxi</div>
+            <div class="sc" onclick="this.classList.toggle('on')">🍽️ Restaurants</div>
+            <div class="sc" onclick="this.classList.toggle('on')">🏖️ Activités</div>
+            <div class="sc" onclick="this.classList.toggle('on')">🛡️ Assurance</div>
+          </div>
+        </div>
+        <div class="fi" style="gap:6px;margin-bottom:16px;width:100%">
+          <label>Paiement</label>
+          <select class="fi-sel" id="t-pay" style="width:100%">
+            <option>MTN Mobile Money</option>
+            <option>Orange Money</option>
+            <option>Carte bancaire</option>
+            <option>Express Union</option>
+          </select>
+        </div>
+        <button class="plan-btn" onclick="planTrip()">Planifier avec Select IA</button>
+      </div>
+
+      <div class="bk-section">
+        <div class="bk-label">Mes réservations</div>
+        <div id="bk-list">
+          <div class="empty" style="padding:32px 0">
+            <svg viewBox="0 0 24 24"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>
+            <div class="empty-t">Aucune réservation</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PROFILE ═══ -->
+<div id="s-profile" class="screen">
+  <div class="inner-screen">
+    <div class="scroll-body">
+      <div class="prof-top">
+        <div class="prof-av"><svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg></div>
+        <div class="prof-name">Mon compte</div>
+        <div class="prof-tag">Membre Select AI</div>
+        <div class="prof-pills">
+          <div class="pp"><div class="pp-n" id="pp-trips">0</div><div class="pp-l">Voyages</div></div>
+          <div class="pp"><div class="pp-n" id="pp-favs">0</div><div class="pp-l">Favoris</div></div>
+          <div class="pp"><div class="pp-n">Gold</div><div class="pp-l">Statut</div></div>
+        </div>
+      </div>
+      <div class="prof-items">
+        <div class="pi"><div class="pi-ic bl"><svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg></div><div class="pi-txt"><div class="pi-name">Informations personnelles</div><div class="pi-sub">Nom, email, téléphone</div></div><div class="pi-arr">›</div></div>
+        <div class="pi"><div class="pi-ic"><svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></div><div class="pi-txt"><div class="pi-name">Préférences voyage</div><div class="pi-sub">Siège, repas, classe</div></div><div class="pi-arr">›</div></div>
+        <div class="pi"><div class="pi-ic"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg></div><div class="pi-txt"><div class="pi-name">Paiement</div><div class="pi-sub">MTN Money, Orange Money</div></div><div class="pi-arr">›</div></div>
+        <div class="pi"><div class="pi-ic"><svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg></div><div class="pi-txt"><div class="pi-name">Notifications</div><div class="pi-sub">Alertes prix, confirmations</div></div><div class="pi-arr">›</div></div>
+        <div class="pi"><div class="pi-ic"><svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm6.93 6h-2.95c-.32-1.25-.78-2.45-1.38-3.56 1.84.63 3.37 1.9 4.33 3.56z"/></svg></div><div class="pi-txt"><div class="pi-name">Langue</div><div class="pi-sub">Français</div></div><div class="pi-arr">›</div></div>
+        <div class="pi"><div class="pi-ic rd"><svg viewBox="0 0 24 24"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg></div><div class="pi-txt"><div class="pi-name" style="color:var(--red)">Se déconnecter</div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav>
+  <div class="nb on" id="nb-home" onclick="goTo('home')">
+    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+    <span>Accueil</span>
+  </div>
+  <div class="nb" id="nb-favs" onclick="goTo('favs')">
+    <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+    <span>Favoris</span>
+  </div>
+  <div class="nb" id="nb-trip" onclick="goTo('trip')">
+    <svg viewBox="0 0 24 24"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>
+    <span>Voyage</span>
+  </div>
+  <div class="nb" id="nb-profile" onclick="goTo('profile')">
+    <svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+    <span>Profil</span>
+  </div>
+</nav>
+
+<!-- BOOK SHEET -->
+<div class="overlay" id="ov-book">
+  <div class="sheet">
+    <div class="sh-handle"></div>
+    <div class="sh-title" id="sh-title">Réserver</div>
+    <div class="sh-sub" id="sh-sub">Complétez votre réservation</div>
+    <div class="form-group"><label>Nom complet</label><input type="text" placeholder="Jean Dupont" id="b-name"></div>
+    <div class="fg2">
+      <div class="form-group"><label>Arrivée</label><input type="date" id="b-in"></div>
+      <div class="form-group"><label>Départ</label><input type="date" id="b-out"></div>
+    </div>
+    <div class="fg2">
+      <div class="form-group"><label>Adultes</label><input type="number" value="1" min="1" id="b-adults"></div>
+      <div class="form-group"><label>Enfants</label><input type="number" value="0" min="0" id="b-children"></div>
+    </div>
+    <div class="form-group"><label>Paiement</label>
+      <select id="b-pay"><option>MTN Mobile Money</option><option>Orange Money</option><option>Carte bancaire</option><option>Express Union</option></select>
+    </div>
+    <button class="primary-btn" onclick="confirmBook()">Confirmer</button>
+    <button class="danger-btn" onclick="closeOv('ov-book')">Annuler</button>
+  </div>
+</div>
+
+<!-- CANCEL SHEET -->
+<div class="overlay" id="ov-cancel">
+  <div class="sheet">
+    <div class="sh-handle"></div>
+    <div class="sh-title" style="color:var(--red)">Annuler</div>
+    <div class="sh-sub" id="cs-sub">Êtes-vous sûr ?</div>
+    <div class="warn-box">⚠️ <strong>Remboursement 100%</strong> si annulation +48h avant l'arrivée. Des frais peuvent s'appliquer pour les annulations tardives.</div>
+    <div class="form-group"><label>Motif</label>
+      <select id="cr"><option>Changement de programme</option><option>Problème de santé</option><option>Urgence familiale</option><option>Raisons professionnelles</option><option>Autre</option></select>
+    </div>
+    <button class="danger-btn" style="margin-top:0" onclick="confirmCancel()">Confirmer l'annulation</button>
+    <button class="primary-btn" style="background:var(--bg);color:var(--ink);box-shadow:none;border:1px solid var(--border)" onclick="closeOv('ov-cancel')">Garder ma réservation</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ── DATA & STATE ── */
+const SUBS = {
+  hotel:['Hôtel classique','Boutique','Resort & Spa','Affaires','Auberge'],
+  airbnb:['Appartement','Villa','Maison entière','Chambre privée','Insolite'],
+  flight:['Aller simple','Aller-retour','Multi-dest.','Éco','Business'],
+  taxi:['Immédiat','Réservé','Chauffeur privé','Aéroport','Minibus'],
+  restaurant:['Gastronomique','Local','Familial','Végétarien','Rooftop'],
+  package:['Tout inclus','Plage','City break','Aventure','Lune de miel']
+};
+const ICONS = {
+  hotel:`<svg viewBox="0 0 24 24"><path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V5H1v15h2v-3h18v3h2v-9c0-2.21-1.79-4-4-4z"/></svg>`,
+  airbnb:`<svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>`,
+  flight:`<svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>`,
+  taxi:`<svg viewBox="0 0 24 24"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99z"/></svg>`,
+  restaurant:`<svg viewBox="0 0 24 24"><path d="M18.06 22.99h1.66c.84 0 1.53-.64 1.63-1.46L23 5.05h-5V1h-1.97v4.05h-4.97l.3 2.34c1.71.47 3.31 1.32 4.27 2.26 1.44 1.42 2.43 2.89 2.43 5.29v8.05z"/></svg>`,
+  package:`<svg viewBox="0 0 24 24"><path d="M11.5 2C6.81 2 3 5.81 3 10.5S6.81 19 11.5 19h.5v3c4.86-2.34 8-7 8-11.5C20 5.81 16.19 2 11.5 2z"/></svg>`
+};
+const LABELS = {hotel:'Hébergements',airbnb:'Logements',flight:'Vols',taxi:'Taxis & Transferts',restaurant:'Restaurants',package:'Voyages complets'};
+
+let activeCat='hotel', chatHist=[], favs=[], bookings=[], curItem=null, cancelIdx=null;
+let isRec=false, recog=null, budget=500000;
+
+/* ── INIT ── */
+window.addEventListener('load',()=>{
+  // Init screens: cache tout sauf home
+  ['favs','trip','profile'].forEach(s=>{
+    const el=document.getElementById('s-'+s);
+    if(el) el.style.display='none';
+  });
+  document.getElementById('s-home').style.display='flex';
+  setTimeout(()=>{
+    document.getElementById('splash').classList.add('out');
+    addBot('Bonjour 👋 Je suis **Select**. Choisissez une rubrique ci-dessus ou décrivez directement votre demande. Je peux aussi vous écouter via le micro 🎤');
+  },2100);
+  const d1=new Date();d1.setDate(d1.getDate()+1);
+  const d2=new Date();d2.setDate(d2.getDate()+7);
+  const d3=new Date();d3.setDate(d3.getDate()+14);
+  document.getElementById('b-in').value=d1.toISOString().split('T')[0];
+  document.getElementById('b-out').value=d2.toISOString().split('T')[0];
+  document.getElementById('t-dep').value=d1.toISOString().split('T')[0];
+  document.getElementById('t-ret').value=d3.toISOString().split('T')[0];
+  updateSld(500000);
+});
+
+/* ── NAV ── */
+function goTo(p){
+  ['home','favs','trip','profile'].forEach(s=>{
+    const el=document.getElementById('s-'+s);
+    if(el){el.classList.remove('on');el.style.display='none';}
+    const nb=document.getElementById('nb-'+s);
+    if(nb)nb.classList.remove('on');
+  });
+  const target=document.getElementById('s-'+p);
+  if(target){target.classList.add('on');target.style.display='flex';}
+  const nb=document.getElementById('nb-'+p);
+  if(nb)nb.classList.add('on');
+  if(p==='favs')renderFavs();
+  if(p==='trip')renderBks();
+  if(p==='profile'){document.getElementById('pp-trips').textContent=bookings.length;document.getElementById('pp-favs').textContent=favs.length;}
+}
+
+/* ── CATS ── */
+function pickCat(el,cat){
+  document.querySelectorAll('.cat-pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active'); activeCat=cat;
+  const subs=SUBS[cat]||[];
+  document.getElementById('sub-row').innerHTML=subs.map(s=>`<div class="sub-pill" onclick="pickSub(this,'${s.replace(/'/g,"\\'")}') ">${s}</div>`).join('');
+  document.getElementById('sub-section').classList.toggle('open',subs.length>0);
+  const ph={hotel:'Hôtel 4★ Paris, 2 nuits…',airbnb:'Appartement Dubaï, 3 pers…',flight:'Vol Douala→Paris, juin…',taxi:'Taxi aéroport→centre-ville…',restaurant:'Restaurant ce soir…',package:'Voyage complet Maldives…'};
+  document.getElementById('cta').placeholder=ph[cat]||'Décrivez votre demande…';
+}
+function pickSub(el,sub){
+  document.querySelectorAll('.sub-pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+}
+
+/* ── CHAT ── */
+function kd(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}}
+function ar(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,100)+'px';}
+
+const SYS=()=>`Tu es Select, agent voyage IA, toujours en français, phrases courtes et claires.
+Catégorie : ${activeCat}. Adapte tout au contexte.
+Pour proposer des résultats, inclus exactement :
+[RESULTS]{"type":"${activeCat}","items":[{"name":"…","desc":"…","price":0,"rating":4.5},{"name":"…","desc":"…","price":0,"rating":4.2}]}[/RESULTS]
+Annulations : remboursement 100% si +48h avant.`;
+
+async function sendMsg(){
+  const ta=document.getElementById('cta');
+  const txt=ta.value.trim();if(!txt)return;
+  ta.value='';ta.style.height='auto';
+  addUser(txt);
+  chatHist.push({role:'user',content:`[${activeCat}] ${txt}`});
+  showTyping();
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:SYS(),messages:chatHist})
+    });
+    const d=await r.json();
+    const raw=d.content?.[0]?.text||'Une erreur s\'est produite.';
+    hideTyping();chatHist.push({role:'assistant',content:raw});
+    const m=raw.match(/\[RESULTS\]([\s\S]*?)\[\/RESULTS\]/);
+    const t=raw.replace(/\[RESULTS\][\s\S]*?\[\/RESULTS\]/g,'').trim();
+    if(t)addBot(t);
+    if(m){try{renderResults(JSON.parse(m[1].trim()));}catch(e){}}
+  }catch(e){hideTyping();addBot('Une erreur s\'est produite. Vérifiez votre connexion 🙏');}
+}
+
+function addBot(text){
+  const w=document.getElementById('chat-thread');
+  const d=document.createElement('div');d.className='bubble bot';
+  const f=text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+  d.innerHTML=`<div class="bav"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg></div>
+  <div><div class="btext">${f}</div><div class="btime">${now()}</div></div>`;
+  w.appendChild(d);scroll2();
+}
+function addUser(text){
+  const w=document.getElementById('chat-thread');
+  const d=document.createElement('div');d.className='bubble user';
+  d.innerHTML=`<div class="bav"><svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg></div>
+  <div><div class="btext">${text}</div><div class="btime" style="text-align:right">${now()}</div></div>`;
+  w.appendChild(d);scroll2();
+}
+function showTyping(){
+  const w=document.getElementById('chat-thread');
+  const d=document.createElement('div');d.className='bubble bot';d.id='tping';
+  d.innerHTML=`<div class="bav"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg></div>
+  <div class="btext" style="padding:12px 14px"><div class="typing-dots"><div class="td"></div><div class="td"></div><div class="td"></div></div></div>`;
+  w.appendChild(d);scroll2();
+}
+function hideTyping(){document.getElementById('tping')?.remove();}
+function scroll2(){setTimeout(()=>document.getElementById('home-body').scrollTop=document.getElementById('home-body').scrollHeight,60);}
+function now(){return new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});}
+
+/* ── VOICE ── */
+function toggleMic(){
+  const btn=document.getElementById('mic-btn'),vw=document.getElementById('vwave'),ta=document.getElementById('cta');
+  if(!isRec){
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!SR){toast('Vocal non disponible sur ce navigateur','r');return;}
+    recog=new SR();recog.lang='fr-FR';recog.continuous=false;recog.interimResults=true;
+    recog.onstart=()=>{isRec=true;btn.classList.add('recording');vw.classList.add('on');ta.placeholder='Écoute en cours…';};
+    recog.onresult=(e)=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;ta.value=t;ar(ta);};
+    recog.onend=()=>{isRec=false;btn.classList.remove('recording');vw.classList.remove('on');ta.placeholder='Hôtel 4★ à Paris, 2 nuits…';if(ta.value.trim())sendMsg();};
+    recog.onerror=()=>{isRec=false;btn.classList.remove('recording');vw.classList.remove('on');};
+    recog.start();
+  } else { recog?.stop(); }
+}
+
+/* ── RESULTS ── */
+function renderResults(data){
+  document.getElementById('results-label').textContent=LABELS[data.type]||'Sélection';
+  const list=document.getElementById('results-list');list.innerHTML='';
+  (data.items||[]).forEach((item,i)=>{
+    const isFav=favs.some(f=>f.name===item.name);
+    const d=document.createElement('div');d.className='rc';
+    d.innerHTML=`
+      <div class="rc-inner">
+        <div class="rc-icon">${ICONS[data.type]||ICONS.hotel}</div>
+        <div class="rc-info">
+          <div class="rc-name">${item.name}</div>
+          <div class="rc-desc">${item.desc}</div>
+          <div class="rc-stars">${'★'.repeat(Math.floor(item.rating||4))}${'☆'.repeat(5-Math.floor(item.rating||4))} ${item.rating||4}</div>
+        </div>
+        <div class="rc-fav ${isFav?'on':''}" id="fv${i}" onclick="toggleFav(${i},'${item.name.replace(/'/g,"\\'")}','${item.desc.replace(/'/g,"\\'")}',${item.price||0},'${data.type}')">
+          <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        </div>
+      </div>
+      <div class="rc-footer">
+        <div>
+          <div class="rc-price">${(item.price||0).toLocaleString('fr-FR')} <small>FCFA</small></div>
+          ${i===0?'<div class="rc-badge" style="margin-top:3px">Meilleur choix</div>':''}
+        </div>
+        <button class="rc-cta" onclick="openBook('${item.name.replace(/'/g,"\\'")}',${item.price||0},'${data.type}')">Réserver</button>
+      </div>`;
+    list.appendChild(d);
+  });
+  document.getElementById('results-wrap').style.display='block';
+}
+
+/* ── FAVS ── */
+function toggleFav(i,name,desc,price,type){
+  const btn=document.getElementById('fv'+i);
+  const idx=favs.findIndex(f=>f.name===name);
+  if(idx>=0){favs.splice(idx,1);btn.classList.remove('on');toast('Retiré des favoris');}
+  else{favs.push({name,desc,price,type});btn.classList.add('on');toast('Ajouté aux favoris ❤️','g');}
+}
+function renderFavs(){
+  const n=favs.length;
+  document.getElementById('fav-sub').textContent=n+(n>1?' éléments sauvegardés':' élément sauvegardé');
+  const list=document.getElementById('fav-list');
+  if(!n){list.innerHTML=`<div class="empty"><svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg><div class="empty-t">Aucun favori</div><div class="empty-s">Appuyez sur le ♥ pour sauvegarder</div></div>`;return;}
+  list.innerHTML=favs.map((f,i)=>`
+    <div class="rc">
+      <div class="rc-inner">
+        <div class="rc-icon">${ICONS[f.type]||ICONS.hotel}</div>
+        <div class="rc-info"><div class="rc-name">${f.name}</div><div class="rc-desc">${f.desc}</div></div>
+        <div class="rc-fav on" onclick="removeFav(${i})"><svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div>
+      </div>
+      <div class="rc-footer">
+        <div class="rc-price">${f.price.toLocaleString('fr-FR')} <small>FCFA</small></div>
+        <button class="rc-cta" onclick="openBook('${f.name.replace(/'/g,"\\'")}',${f.price},'${f.type}')">Réserver</button>
+      </div>
+    </div>`).join('');
+}
+function removeFav(i){favs.splice(i,1);renderFavs();toast('Retiré des favoris');}
+
+/* ── BOOK ── */
+function openBook(name,price,type){
+  curItem={name,price,type};
+  document.getElementById('sh-title').textContent=name;
+  document.getElementById('sh-sub').textContent=`${price.toLocaleString('fr-FR')} FCFA`;
+  openOv('ov-book');
+}
+function confirmBook(){
+  const name=document.getElementById('b-name').value.trim();
+  if(!name){toast('Veuillez entrer votre nom','r');return;}
+  const b={id:Date.now(),name:curItem.name,type:curItem.type,price:curItem.price,
+    guest:name,dateIn:document.getElementById('b-in').value,dateOut:document.getElementById('b-out').value,
+    adults:document.getElementById('b-adults').value,pay:document.getElementById('b-pay').value,
+    status:'Confirmé',ref:'SEL-'+Math.random().toString(36).substr(2,6).toUpperCase()};
+  bookings.push(b);closeOv('ov-book');
+  toast('Réservation confirmée — '+b.ref,'g');
+  addBot(`🎉 **${name}**, réservation **${b.name}** confirmée !\nRéf. **${b.ref}** — Bon voyage ! ✈️`);
+  renderBks();
+}
+function openCancel(i){cancelIdx=i;document.getElementById('cs-sub').textContent='Annuler : '+bookings[i]?.name;openOv('ov-cancel');}
+function confirmCancel(){
+  const r=document.getElementById('cr').value,b=bookings[cancelIdx];
+  if(b)b.status='Annulé';
+  closeOv('ov-cancel');toast('Réservation annulée');
+  if(b)addBot(`🙏 **${b.name}** (${b.ref}) annulée.\nMotif : "${r}" — Remboursement sous 3–5 jours.`);
+  renderBks();
+}
+function renderBks(){
+  document.getElementById('pp-trips').textContent=bookings.length;
+  const c=document.getElementById('bk-list');
+  if(!bookings.length){c.innerHTML=`<div class="empty" style="padding:32px 0"><svg viewBox="0 0 24 24"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg><div class="empty-t">Aucune réservation</div></div>`;return;}
+  c.innerHTML=bookings.map((b,i)=>`
+    <div class="bk-card">
+      <div class="bk-top"><div class="bk-name">${b.name}</div><div class="bk-st ${b.status==='Confirmé'?'ok':'no'}">${b.status}</div></div>
+      <div class="bk-body">
+        <div class="bk-row"><span class="bk-k">Référence</span><span class="bk-v">${b.ref}</span></div>
+        <div class="bk-row"><span class="bk-k">Voyageur</span><span class="bk-v">${b.guest}</span></div>
+        <div class="bk-row"><span class="bk-k">Arrivée</span><span class="bk-v">${b.dateIn||'—'}</span></div>
+        <div class="bk-row"><span class="bk-k">Paiement</span><span class="bk-v">${b.pay}</span></div>
+        <div class="bk-row"><span class="bk-k">Montant</span><span class="bk-v" style="color:var(--blue);font-weight:700">${b.price.toLocaleString('fr-FR')} FCFA</span></div>
+      </div>
+      ${b.status!=='Annulé'?`<div class="bk-acts"><button class="bk-btn p">Détails</button><button class="bk-btn d" onclick="openCancel(${i})">Annuler</button></div>`:'<div style="padding:0 14px 10px;font-size:12px;color:var(--red)">Remboursement en cours</div>'}
+    </div>`).join('');
+}
+
+/* ── TRIP ── */
+function setTs(el){document.querySelectorAll('.ts').forEach(t=>t.classList.remove('on'));el.classList.add('on');}
+function bgtText(v){const n=parseInt(v.replace(/\D/g,''))||0;budget=Math.min(Math.max(n,100000),5000000);document.getElementById('t-sld').value=budget;updateSld(budget);}
+function bgtSlide(v){budget=parseInt(v);document.getElementById('t-bgt').value=budget.toLocaleString('fr-FR');updateSld(v);}
+function updateSld(v){const p=((parseInt(v)-100000)/(5000000-100000))*100;document.getElementById('t-sld').style.background=`linear-gradient(to right,var(--blue) ${p}%,var(--border) ${p}%)`;}
+function planTrip(){
+  const from=document.getElementById('t-from').value.trim(),to=document.getElementById('t-to').value.trim();
+  if(!from||!to){toast('Renseignez le départ et la destination','r');return;}
+  const adults=document.getElementById('t-adults').value;
+  const dep=document.getElementById('t-dep').value,ret=document.getElementById('t-ret').value;
+  const q=`Planifie un voyage complet de ${from} vers ${to}, départ ${dep}, retour ${ret}, ${adults} adulte(s), budget ${budget.toLocaleString('fr-FR')} FCFA. Inclus vol, hôtel et activités.`;
+  goTo('home');
+  document.getElementById('cta').value=q;
+  sendMsg();
+}
+
+/* ── MODALS ── */
+function openOv(id){document.getElementById(id).classList.add('on');}
+function closeOv(id){document.getElementById(id).classList.remove('on');}
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('on');}));
+
+/* ── TOAST ── */
+function toast(msg,type){const t=document.getElementById('toast');t.textContent=msg;t.className='toast on '+(type||'');setTimeout(()=>t.className='toast',3000);}
+</script>
+</body>
+</html>
