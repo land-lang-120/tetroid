@@ -9,73 +9,99 @@
 
 ---
 
-## 0. 📊 État d'avancement (snapshot 2026-05-02 — Batch 2 terminé)
+## 0. 📊 État d'avancement (snapshot 2026-05-02 — V1 STRUCTURE COMPLÈTE LIVRÉE 🎉)
 
 > Source de vérité unique pour répondre à "où en est-on ?".
 > Mise à jour à CHAQUE batch livré (push GitHub).
 
 ### ✅ FAIT (livré + commité + push)
 
-**Batch 1 — Structure & design tokens**
-- `manifest.json` : nom "Super Tetris", theme `#0b1238`, start_url racine, categories games+puzzle
-- `CAHIER-CHARGES.md` : 8 sections complètes (vision, personas, périmètre, architecture, charte visuelle, roadmap, conformité Google Play, métriques)
-- `0bis. CHECKLIST SENIOR` : 13 règles audit (ghost-refs, walk-through, 3 chemins, cleanup RAF, pause/resume, frame skip, optional chaining, etc.)
+**Batch 1 — Structure & design tokens** (commit `c76bdff`)
+- `manifest.json` : "Super Tetris", theme #0b1238, categories games+puzzle
+- `CAHIER-CHARGES.md` : 8 sections + checklist senior 13 règles + état 3 points
 - `src/styles/variables.css` : palette Tetris officielle (bleu marine + violet + arc-en-ciel + gold)
-- `src/styles/global.css` : reset, body, animations (fade-in, pop-in, shake, pulse, float), classes utilitaires (.btn-3d, .card, .logo-rainbow, .starfield)
+- `src/styles/global.css` : reset + animations (fade-in, pop-in, shake, pulse, float) + classes (.btn-3d, .card, .logo-rainbow, .starfield)
 
-**Batch 2 — Logique de jeu pure (5 modules)**
-- `src/game/pieces.js` : 7 pièces (I, O, T, S, Z, J, L) + 4 rotations chacune + tables wall-kicks SRS (JLSTZ + I)
-- `src/game/bag.js` : système 7-bag (chaque pièce 1× tous les 7 tirages) + queue de 5+ pièces
-- `src/game/core.js` : `createGrid`, `cloneGrid`, `collide`, `lock`, `clearLines`, `rotatePiece` (avec wall-kicks), `dropToBottom`, `isTSpin`, `isGameOver`, `spawnPiece`
-- `src/game/scoring.js` : score Tetris Guideline (single/double/triple/tetris/T-spin/combo/B2B), niveau (1-20), gravité ms, XP & coins par partie
-- `src/game/render.js` : canvas 2D (board, pièces 3D avec highlight + shadow, ghost piece pointillé, mini-pieces pour HUD next/hold)
+**Batch 2 — Logique de jeu pure** (5 modules game/)
+- `pieces.js` : 7 tetrominoes + 4 rotations + tables SRS wall-kicks (JLSTZ + I)
+- `bag.js` : système 7-bag fair + queue 5+ pièces
+- `core.js` : grille, collide, lock, clearLines, rotation SRS, dropToBottom, isTSpin, isGameOver, spawnPiece
+- `scoring.js` : score Tetris Guideline (single/double/triple/tetris/T-spin/combo/B2B) + niveau 1-20 + gravité ms + XP/coins
+- `render.js` : canvas 2D (board, pièces 3D, ghost piece pointillé, mini-pieces HUD)
 
-### 🚧 EN COURS (Batch 3 — Premiers écrans React)
+**Batch 3 — Premiers écrans React**
+- `LoadingScreen.jsx` : splash 1.8s avec logo arc-en-ciel + barre progression + 8 hints rotatifs + spinner + starfield
+- `HomeScreen.jsx` : trophée 3D SVG inline + boutons Settings/PLAY/Wheel + header (coins/rang/⚙️) + bandeau bas "NIVEAUX TRÉPIDANTS"
 
-- `src/components/LoadingScreen.jsx` : splash 2-3s avec logo arc-en-ciel + barre de progression + spinner
-- `src/components/HomeScreen.jsx` : trophée 3D + boutons Settings/PLAY/Stats + bandeau "NIVEAUX TRÉPIDANTS" + monnaie/rang/coins en header
+**Batch 4 — Game UI**
+- `useGameLoop.js` : RAF loop + cleanup + visibility pause + frame skip cap (checklist senior #11-13)
+- `useStorage.js` : wrapper localStorage versionné (st_v) + cache mémoire + safeRead/safeWrite
+- `HUD.jsx` : TIME / TARGET / NEXT / SCORE / LVL / COMBO / HOLD avec mini-canvas
+- `BoosterButtons.jsx` : 4 boutons fixes (freeze/laser/meteor/magnet) + cooldowns + bouton "+" si vide
+- `GameScreen.jsx` : canvas + inputs touch (swipes + tap rotate + double-tap hold) + clavier (arrows/X/Z/Space/Shift/Esc) + pause modal + combo banner
 
-### 📋 À FAIRE (batches restants)
+**Batch 5 — Features metagame**
+- `GameOverScreen.jsx` : médaillon SVG (épées ou trophée selon record) + stats + récompenses + bouton "Voir pub pour continuer" + RÉESSAYER + Accueil
+- `FortuneWheel.jsx` : 8 segments pondérés + animation 4.5s easeOutCubic + 1 spin gratuit/24h + spin payant 50 coins + modal résultat
+- `RewardedAd.jsx` : stub V1 (5s countdown, skippable) — sera remplacé par AdMob en V2
+- `SettingsScreen.jsx` : Toggle (sound/vibro) + SegmentedControl (theme) + select (langue) + reset double-confirm + crédits
 
-**Batch 4 — Game UI (~45 min)**
-- `src/hooks/useGameLoop.js` : RAF loop avec cleanup + visibility pause + frame skip cap (cf. checklist senior #11-13)
-- `src/hooks/useStorage.js` : wrapper localStorage versionné (rétrocompat schema)
-- `src/components/GameScreen.jsx` : conteneur HUD + canvas + boosters + pause modal
-- `src/components/HUD.jsx` : score, niveau, combo, next, hold, target lines
-- `src/components/BoosterButtons.jsx` : 4 boutons fixes (freeze, laser, meteor, magnet) avec compteur
+**Batch 6 — Wire-up & build**
+- `Starfield.jsx` : composant décoratif réutilisable (24 étoiles scintillantes par défaut)
+- `App.jsx` : composant racine, routing 7 écrans, single source of truth profile+settings, handlers (gameOver, retry, wheelReward, resetData)
+- `main.jsx` : entry React + ErrorBoundary class + ReactDOM.createRoot
+- `build.js` : Babel CLI script (preset-env + preset-react) — concatène 19 fichiers en `bundle.js` (~132 KB)
+- `sw.js` : Service Worker v1 (network-first HTML/JS/CSS, cache-first assets)
+- `package.json` : devDependencies Babel + scripts build/dev/test
+- ✅ **Bundle généré : 19 fichiers → 132.6 KB en 3.6s**
 
-**Batch 5 — Features metagame (~60 min)**
-- `src/components/GameOverScreen.jsx` : score + classement + RÉESSAYER + bouton "Voir pub pour continuer"
-- `src/components/FortuneWheel.jsx` : roue de la fortune (animation rotation, segments, récompenses)
-- `src/components/RewardedAd.jsx` : wrapper pubs récompensées (stub V1, AdMob V2)
-- `src/components/SettingsScreen.jsx` : son, vibration, langue, thème
-- `src/components/LeaderboardScreen.jsx` : Top 100 mondial (Firebase later, mocks pour V1)
-- `src/components/ShopScreen.jsx` : packs IAP (stub V1, Google Play Billing V2)
+### 🚧 EN COURS
 
-**Batch 6 — Wire-up & déploiement (~30 min)**
-- `src/App.jsx` : composant racine, routing entre écrans, état global (settings, profile, currentScreen)
-- `src/main.jsx` : entry point React, mount root, dispatch `super-tetris-ready`
-- `build.js` : script Babel CLI pour transpiler `src/**/*.jsx + .js` → `bundle.js`
-- `sw.js` : service worker (cache offline, network-first JS/CSS, cache-first assets)
-- `package.json` : dépendances Babel
-- Création repo GitHub `land-lang-120/super-tetris` + push initial
-- Connexion Cloudflare Pages → URL `https://super-tetris.pages.dev`
+**Aucune tâche en cours.** Le code Super Tetris V1 est **structurellement complet**. Prochaine étape = test local par Pino + déploiement.
 
-**Phase suivante — Polish & QA (~3-4h)**
-- Audit senior post-V1 (3 chemins testés mentalement, no ghost-refs, cleanup RAF, pause/resume)
-- Ajout particules au clear de ligne (canvas overlay)
-- Audio (Web Audio API : musique de fond + 8 effets sonores)
-- Haptics (vibrations courtes au lock, longues au tetris)
-- i18n : 12 langues (au minimum FR + EN à la sortie)
-- Tests perf (Lighthouse mobile 3G, low-end Android)
+### 📋 À FAIRE
 
-**Phase suivante — Soumission Google Play**
-- Génération AAB via PWABuilder
-- 8 screenshots Play Store (1080x1920)
-- Icône 512x512 + bannière 1024x500
-- Description FR/EN + ASO keywords
-- Politique de confidentialité (URL `https://clonex.pages.dev/privacy` partagée)
-- Soumission Play Console (24-72h revue)
+**Tests & validation V1 (~30 min)**
+- Test local : `cd super-tetris && python -m http.server 8000` puis ouvrir `http://localhost:8000`
+- Vérifier les 7 écrans (loading → home → game → gameover → wheel → settings → fallback)
+- Vérifier les inputs (clavier + touch + souris)
+- Vérifier la persistance localStorage (best score, coins, boosters, settings)
+- Vérifier les 3 chemins de la checklist senior :
+  - (a) 1ère ouverture (storage vide)
+  - (b) Joueur récurrent (storage rempli)
+  - (c) Edge case (offline, RAF interrompu, vibrate API absente)
+
+**Déploiement V1 (~15 min)**
+- Créer repo GitHub `land-lang-120/super-tetris` (ou rester dans le mono-repo Tetroid actuel)
+- Push initial
+- Cloudflare Pages → connect repo → build settings (Framework=None, Build command=empty, Output=`/`) → deploy
+- URL résultante : `https://super-tetris.pages.dev`
+
+**Polish & QA (~3-4h post-V1)**
+- Audit senior systématique (3 chemins + ghost-refs + cleanup RAF)
+- Particules canvas au clear de ligne
+- Audio (Web Audio API : musique fond + 8 effets sonores : drop, lock, clear, tetris, level-up, game over, button, combo)
+- Haptics (`navigator.vibrate()` court au lock, long au tetris/level-up)
+- i18n : extraction des strings + ajout EN (FR par défaut)
+- Tests perf : Lighthouse mobile 3G, low-end Android (cible : >85 score)
+
+**Features V2 (post-launch)**
+- Mode Sprint (objectif 40 lignes en moins de temps)
+- Mode Ultra (score max en 2 min)
+- LeaderboardScreen avec Firebase Firestore
+- ShopScreen + Google Play Billing
+- Quêtes journalières / hebdo
+- Skins de pièces (cosmétiques)
+
+**Soumission Google Play (après V1 testée + Wise opérationnel)**
+- Génération AAB via PWABuilder.com (input URL Cloudflare Pages)
+- Politique de confidentialité : `https://clonex.pages.dev/privacy` (déjà en ligne)
+- Page de support : `https://clonex.pages.dev/support` (déjà en ligne)
+- Site officiel app : `https://clonex.pages.dev/super-tetris` (à créer ou pointer vers super-tetris.pages.dev)
+- Screenshots Play Store : 5-8 captures portrait 1080x1920 (loading + home + game + clear ligne + gameover + roue + settings)
+- Icône 512x512 (à exporter depuis icon-512.svg) + bannière feature 1024x500
+- Description FR/EN + ASO keywords (tetris, puzzle, mobile game, etc.)
+- Soumission Play Console (24-72h revue Google)
 
 ---
 
